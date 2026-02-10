@@ -363,6 +363,9 @@ export const SubPatternEditor = () => {
                             basePatternUids: next,
                           }))
                         }
+                        enableBulkActions
+                        selectAllLabel="全選択"
+                        clearAllLabel="全解除"
                         placeholder="基礎パターンを選択"
                         emptyText="有効な基礎パターンがありません"
                       />

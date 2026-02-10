@@ -22,6 +22,9 @@ type MultiSelectProps = {
   placeholder?: string;
   emptyText?: string;
   disabled?: boolean;
+  enableBulkActions?: boolean;
+  selectAllLabel?: string;
+  clearAllLabel?: string;
 };
 
 const toSearchableValue = (option: MultiSelectOption) =>
@@ -34,6 +37,9 @@ export const MultiSelect = ({
   placeholder = "項目を選択",
   emptyText = "候補がありません",
   disabled = false,
+  enableBulkActions = false,
+  selectAllLabel = "全選択",
+  clearAllLabel = "全解除",
 }: MultiSelectProps) => {
   const [open, setOpen] = useState(false);
 
@@ -49,6 +55,19 @@ export const MultiSelect = ({
       return;
     }
     onChange([...value, targetValue]);
+  };
+
+  const canSelectAll = options.length > 0 && selectedOptions.length < options.length;
+  const canClearAll = selectedOptions.length > 0;
+
+  const handleSelectAll = () => {
+    if (!canSelectAll) return;
+    onChange(options.map((option) => option.value));
+  };
+
+  const handleClearAll = () => {
+    if (!canClearAll) return;
+    onChange([]);
   };
 
   return (
@@ -92,6 +111,26 @@ export const MultiSelect = ({
           className="w-[min(var(--radix-popover-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)] p-0"
         >
           <Command className="bg-latte-mantle text-latte-text">
+            {enableBulkActions ? (
+              <div className="flex items-center justify-end gap-1 border-b border-latte-surface0/70 px-2 py-1.5">
+                <button
+                  type="button"
+                  onClick={handleSelectAll}
+                  disabled={disabled || !canSelectAll}
+                  className="rounded px-2 py-1 text-xs font-medium text-latte-blue transition hover:bg-latte-surface0/70 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
+                >
+                  {selectAllLabel}
+                </button>
+                <button
+                  type="button"
+                  onClick={handleClearAll}
+                  disabled={disabled || !canClearAll}
+                  className="rounded px-2 py-1 text-xs font-medium text-latte-subtext0 transition hover:bg-latte-surface0/70 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
+                >
+                  {clearAllLabel}
+                </button>
+              </div>
+            ) : null}
             <Command.List className="max-h-56 overflow-y-auto p-1">
               <Command.Empty className="px-2 py-3 text-xs text-latte-subtext0">
                 {emptyText}
