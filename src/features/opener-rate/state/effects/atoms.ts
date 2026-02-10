@@ -53,30 +53,33 @@ export const runCalculateAtom = atom(null, async (get, set) => {
   }
 });
 
-export const runCreateShortUrlAtom = atom(null, async (get, set) => {
-  const url = get(shortUrlInputAtom).trim();
-  if (url.length === 0) {
-    set(shortUrlErrorAtom, "URLを入力してください");
-    return;
-  }
+export const runCreateShortUrlAtom = atom(
+  null,
+  async (get, set, sourceUrl?: string) => {
+    const url = (sourceUrl ?? get(shortUrlInputAtom)).trim();
+    if (url.length === 0) {
+      set(shortUrlErrorAtom, "URLを入力してください");
+      return;
+    }
 
-  set(shortUrlLoadingAtom, true);
-  set(shortUrlErrorAtom, null);
-  set(shortUrlResultAtom, null);
-  try {
-    const response = await openerRateApi.createShortUrl(url);
-    set(shortUrlResultAtom, response.shortenUrl);
-    set(shortUrlInputAtom, response.shortenUrl);
-    set(shortUrlCacheAtom, (prev) => ({
-      ...prev,
-      [url]: response.shortenUrl,
-    }));
-  } catch (error) {
-    set(shortUrlErrorAtom, toErrorMessage(error));
-  } finally {
-    set(shortUrlLoadingAtom, false);
-  }
-});
+    set(shortUrlLoadingAtom, true);
+    set(shortUrlErrorAtom, null);
+    set(shortUrlResultAtom, null);
+    try {
+      const response = await openerRateApi.createShortUrl(url);
+      set(shortUrlResultAtom, response.shortenUrl);
+      set(shortUrlInputAtom, response.shortenUrl);
+      set(shortUrlCacheAtom, (prev) => ({
+        ...prev,
+        [url]: response.shortenUrl,
+      }));
+    } catch (error) {
+      set(shortUrlErrorAtom, toErrorMessage(error));
+    } finally {
+      set(shortUrlLoadingAtom, false);
+    }
+  },
+);
 
 export const runShareCurrentUrlAtom = atom(null, async (get, set) => {
   if (typeof window === "undefined") return;
@@ -89,6 +92,5 @@ export const runShareCurrentUrlAtom = atom(null, async (get, set) => {
     return;
   }
 
-  set(shortUrlInputAtom, currentUrl);
-  await set(runCreateShortUrlAtom);
+  await set(runCreateShortUrlAtom, currentUrl);
 });
