@@ -2,6 +2,7 @@ name = "opener-rate"
 main = "worker/index.ts"
 compatibility_date = "2026-02-10"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = false
 
 [site]
 bucket = "./dist"
@@ -9,9 +10,12 @@ bucket = "./dist"
 [[d1_databases]]
 binding = "DB"
 database_name = "opener-rate-db"
-# database_id は D1 作成後に差し替える
-database_id = "00000000-0000-0000-0000-000000000000"
+database_id = "3c3c9491-0401-4107-b5ee-99a7dbfb279b"
 migrations_dir = "drizzle"
 
 [vars]
-APP_ORIGIN = "http://localhost:8787"
+APP_ORIGIN = "https://opener-rate.miyauchidp.dev"
+
+[[routes]]
+pattern = "opener-rate.miyauchidp.dev"
+custom_domain = true
