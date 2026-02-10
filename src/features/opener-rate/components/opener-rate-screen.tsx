@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 
 import { markSavedSnapshotAtom, runCalculateAtom } from "../state";
+import { installWindowStateBridge } from "../state/window-state-bridge";
 import { CardListEditor } from "./editor/card-list-editor";
 import { DeckEditor } from "./editor/deck-editor";
 import { DisruptionCardEditor } from "./editor/disruption-card-editor";
@@ -58,6 +59,10 @@ export const OpenerRateScreen = () => {
     autoCalculatedUrls.add(currentUrl);
     void runCalculate();
   }, [runCalculate]);
+
+  useEffect(() => {
+    return installWindowStateBridge();
+  }, []);
 
   return (
     <AppShell
