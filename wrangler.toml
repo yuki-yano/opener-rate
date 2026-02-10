@@ -1,0 +1,17 @@
+name = "opener-rate"
+main = "worker/index.ts"
+compatibility_date = "2026-02-10"
+compatibility_flags = ["nodejs_compat"]
+
+[site]
+bucket = "./dist"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "opener-rate-db"
+# database_id は D1 作成後に差し替える
+database_id = "00000000-0000-0000-0000-000000000000"
+migrations_dir = "drizzle"
+
+[vars]
+APP_ORIGIN = "http://localhost:8787"
