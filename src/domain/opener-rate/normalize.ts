@@ -73,6 +73,7 @@ export const normalizeCalculateInput = (
       cards: input.cards,
       labels: input.labels,
       patterns: input.patterns,
+      subPatterns: input.subPatterns,
       pot: input.pot,
       uidToIndex,
       indexToUid,

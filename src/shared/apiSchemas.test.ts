@@ -33,6 +33,7 @@ describe("apiSchemas", () => {
           ],
         },
       ],
+      subPatterns: [],
       labels: [],
       pot: {
         desiresOrExtravagance: { count: 0 },
@@ -52,6 +53,7 @@ describe("apiSchemas", () => {
       deck: { cardCount: 5, firstHand: 6 },
       cards: [],
       patterns: [],
+      subPatterns: [],
       labels: [],
       pot: {
         desiresOrExtravagance: { count: 0 },
@@ -86,6 +88,7 @@ describe("apiSchemas", () => {
           ],
         },
       ],
+      subPatterns: [],
       labels: [{ uid: "l1", name: " ", memo: "" }],
       pot: {
         desiresOrExtravagance: { count: 0 },
@@ -98,5 +101,114 @@ describe("apiSchemas", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it("accepts sub pattern for conditional label promotion", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [
+        { uid: "grave", name: "墓穴", count: 1, memo: "" },
+        { uid: "starter", name: "初動", count: 3, memo: "" },
+      ],
+      patterns: [
+        {
+          uid: "p1",
+          name: "初動成立",
+          active: true,
+          memo: "",
+          labels: [],
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp1",
+          name: "with墓穴",
+          active: true,
+          basePatternUids: ["p1"],
+          triggerConditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["grave"],
+            },
+          ],
+          triggerSourceUids: ["grave"],
+          applyLimit: "once_per_distinct_uid",
+          effects: [{ type: "add_label", labelUids: ["l-penetrate"] }],
+          memo: "",
+        },
+      ],
+      labels: [{ uid: "l-penetrate", name: "うらら貫通", memo: "" }],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("accepts draft conditions with empty uids for editing state", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [],
+      patterns: [
+        {
+          uid: "p1",
+          name: "P1",
+          active: true,
+          memo: "",
+          labels: [],
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: [],
+            },
+          ],
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp1",
+          name: "SP1",
+          active: true,
+          basePatternUids: ["p1"],
+          triggerConditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: [],
+            },
+          ],
+          triggerSourceUids: [],
+          applyLimit: "once_per_trial",
+          effects: [{ type: "add_penetration", tag: "うらら", amount: 1 }],
+          memo: "",
+        },
+      ],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+    });
+
+    expect(result.success).toBe(true);
   });
 });

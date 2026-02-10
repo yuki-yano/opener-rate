@@ -8,6 +8,7 @@ import {
   deckStateSchema,
   labelSchema,
   patternSchema,
+  subPatternSchema,
   potStateSchema,
 } from "../../../../shared/apiSchemas";
 import type {
@@ -16,6 +17,7 @@ import type {
   DeckState,
   Label,
   Pattern,
+  SubPattern,
   PotState,
 } from "../../../../shared/apiSchemas";
 
@@ -36,9 +38,60 @@ const defaultPotState: PotState = {
 
 export const defaultSimulationTrials = 10000;
 
-const cardsSchema = z.array(cardSchema);
-const patternsSchema = z.array(patternSchema);
-const labelsSchema = z.array(labelSchema);
+const draftCardSchema = cardSchema.extend({
+  name: z.string(),
+});
+const draftPatternSchema = patternSchema.extend({
+  name: z.string(),
+});
+const draftSubPatternSchema = subPatternSchema.extend({
+  name: z.string(),
+});
+const draftLabelSchema = labelSchema.extend({
+  name: z.string(),
+});
+
+const cardsSchema = z.array(draftCardSchema);
+const patternsSchema = z.array(draftPatternSchema);
+const labelsSchema = z.array(draftLabelSchema);
+
+const migrateLegacySubPatterns = (value: unknown) => {
+  if (!Array.isArray(value)) return value;
+  return value.map((entry) => {
+    if (typeof entry !== "object" || entry == null) return entry;
+    const subPattern = entry as Record<string, unknown>;
+    const effectsRaw = subPattern.effects;
+    if (!Array.isArray(effectsRaw)) return entry;
+
+    const effects = effectsRaw.map((effectEntry) => {
+      if (typeof effectEntry !== "object" || effectEntry == null) {
+        return effectEntry;
+      }
+      const effect = effectEntry as Record<string, unknown>;
+      if (effect.type !== "add_label") return effectEntry;
+      if (Array.isArray(effect.labelUids)) return effectEntry;
+
+      const legacyLabelUid = effect.labelUid;
+      return {
+        ...effect,
+        labelUids:
+          typeof legacyLabelUid === "string" && legacyLabelUid.length > 0
+            ? [legacyLabelUid]
+            : [],
+      };
+    });
+
+    return {
+      ...subPattern,
+      effects,
+    };
+  });
+};
+
+const subPatternsSchema: ZodType<SubPattern[]> = z.preprocess(
+  migrateLegacySubPatterns,
+  z.array(draftSubPatternSchema),
+) as ZodType<SubPattern[]>;
 
 const decodeNestedURIComponent = (value: string) => {
   let current = value;
@@ -95,6 +148,11 @@ export const labelsAtom = atomWithHash<Label[]>(
   [],
   createHashSerializeOptions([], labelsSchema),
 );
+export const subPatternsAtom = atomWithHash<SubPattern[]>(
+  "subPattern",
+  [],
+  createHashSerializeOptions([], subPatternsSchema),
+);
 export const potAtom = atomWithHash<PotState>(
   "pot",
   defaultPotState,
@@ -143,6 +201,7 @@ export const resetInputAtom = atom(null, (_get, set) => {
   set(deckAtom, defaultDeckState);
   set(cardsAtom, []);
   set(patternsAtom, []);
+  set(subPatternsAtom, []);
   set(labelsAtom, []);
   set(potAtom, defaultPotState);
   set(deckNameAtom, "");

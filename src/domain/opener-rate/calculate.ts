@@ -2,6 +2,7 @@ import type { CalculateInput, CalculateOutput } from "../../shared/apiSchemas";
 import { calculateByExact } from "./calculate-exact";
 import { calculateBySimulation } from "./calculate-simulation";
 import { compilePatterns } from "./compile-conditions";
+import { compileSubPatterns } from "./compile-sub-patterns";
 import { normalizeCalculateInput } from "./normalize";
 
 const createCardCountExceededOutput = (
@@ -38,11 +39,13 @@ export const calculateOpenerRateDomain = (
   }
 
   const compiledPatterns = compilePatterns(normalized.value);
+  const compiledSubPatterns = compileSubPatterns(normalized.value);
 
   if (input.settings.mode === "exact" && hasPot(input)) {
     return calculateBySimulation({
       normalized: normalized.value,
       compiledPatterns,
+      compiledSubPatterns,
       trials: input.settings.simulationTrials,
       mode: "simulation",
     });
@@ -52,6 +55,7 @@ export const calculateOpenerRateDomain = (
     return calculateBySimulation({
       normalized: normalized.value,
       compiledPatterns,
+      compiledSubPatterns,
       trials: input.settings.simulationTrials,
       mode: "simulation",
     });
@@ -60,5 +64,6 @@ export const calculateOpenerRateDomain = (
   return calculateByExact({
     normalized: normalized.value,
     compiledPatterns,
+    compiledSubPatterns,
   });
 };

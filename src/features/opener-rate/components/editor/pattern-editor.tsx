@@ -71,7 +71,7 @@ export const PatternEditor = () => {
       },
     ]);
     setCollapsedPatternUids((current) =>
-      current.includes(uid) ? current : [...current, uid],
+      current.filter((target) => target !== uid),
     );
   };
 

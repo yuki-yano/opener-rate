@@ -7,7 +7,9 @@ import type {
   DeckState,
   Label,
   Pattern,
+  SubPattern,
   PotState,
+  SubPatternEffect,
 } from "../../shared/apiSchemas";
 
 export const DESIRES_UID = "desires_card";
@@ -19,6 +21,7 @@ export type NormalizedDeck = {
   cards: Card[];
   labels: Label[];
   patterns: Pattern[];
+  subPatterns: SubPattern[];
   pot: PotState;
   uidToIndex: Map<string, number>;
   indexToUid: string[];
@@ -48,6 +51,14 @@ export type CompiledPattern = Omit<Pattern, "conditions"> & {
   conditions: CompiledPatternCondition[];
 };
 
+export type CompiledSubPattern = Omit<
+  SubPattern,
+  "triggerConditions" | "triggerSourceUids"
+> & {
+  triggerConditions: CompiledPatternCondition[];
+  triggerSourceIndices: number[];
+};
+
 export type EvaluationContext = {
   handCounts: number[];
   deckCounts: number[];
@@ -64,3 +75,10 @@ export type ThresholdCheck = {
   threshold: number;
   total: number;
 };
+
+export type SubPatternEvaluationResult = {
+  addedLabelUids: string[];
+  penetrationByTag: Record<string, number>;
+};
+
+export type CompiledSubPatternEffect = SubPatternEffect;

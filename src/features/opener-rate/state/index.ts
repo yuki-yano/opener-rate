@@ -21,6 +21,7 @@ export {
   labelsAtom,
   modeAtom,
   patternsAtom,
+  subPatternsAtom,
   potAtom,
   resetInputAtom,
   simulationTrialsAtom,

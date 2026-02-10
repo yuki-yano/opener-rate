@@ -1,6 +1,7 @@
 import type {
   CompiledBaseCondition,
   CompiledPattern,
+  CompiledPatternCondition,
   EvaluationContext,
   EvaluationResult,
 } from "./types";
@@ -60,16 +61,14 @@ const checkCountCondition = (
   return total >= condition.threshold;
 };
 
-export const evaluatePattern = (
-  pattern: CompiledPattern,
+export const evaluateCompiledConditions = (
+  conditions: CompiledPatternCondition[],
   context: EvaluationContext,
 ): boolean => {
-  if (!pattern.active) return false;
-
   const required: CompiledBaseCondition[] = [];
   const leaveDeck: CompiledBaseCondition[] = [];
 
-  for (const condition of pattern.conditions) {
+  for (const condition of conditions) {
     switch (condition.mode) {
       case "draw_total":
       case "remain_total": {
@@ -118,6 +117,14 @@ export const evaluatePattern = (
   }
 
   return true;
+};
+
+export const evaluatePattern = (
+  pattern: CompiledPattern,
+  context: EvaluationContext,
+): boolean => {
+  if (!pattern.active) return false;
+  return evaluateCompiledConditions(pattern.conditions, context);
 };
 
 export const evaluatePatterns = (

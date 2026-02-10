@@ -1,6 +1,11 @@
 import type { CalculateOutput } from "../../shared/apiSchemas";
-import type { CompiledPattern, NormalizedDeck } from "./types";
+import type {
+  CompiledPattern,
+  CompiledSubPattern,
+  NormalizedDeck,
+} from "./types";
 import { evaluatePatterns } from "./evaluate-pattern";
+import { evaluateSubPatterns } from "./evaluate-sub-pattern";
 
 const toRateString = (successCount: number, total: number) => {
   if (total <= 0) return "0.00";
@@ -110,10 +115,11 @@ const runPotResolution = (
 export const calculateBySimulation = (params: {
   normalized: NormalizedDeck;
   compiledPatterns: CompiledPattern[];
+  compiledSubPatterns: CompiledSubPattern[];
   trials: number;
   mode?: CalculateOutput["mode"];
 }): CalculateOutput => {
-  const { normalized, compiledPatterns, trials } = params;
+  const { normalized, compiledPatterns, compiledSubPatterns, trials } = params;
   const mode = params.mode ?? "simulation";
 
   const deckOrderTemplate = createDeckOrder(normalized.deckCounts);
@@ -155,7 +161,16 @@ export const calculateBySimulation = (params: {
       handCounts,
       deckCounts,
     });
-    if (evaluation.isSuccess) {
+    const subPatternEvaluation = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: { handCounts, deckCounts },
+      matchedPatternUids: evaluation.matchedPatternUids,
+    });
+    const matchedLabelUids = new Set([
+      ...evaluation.matchedLabelUids,
+      ...subPatternEvaluation.addedLabelUids,
+    ]);
+    if (evaluation.matchedPatternUids.length > 0 || matchedLabelUids.size > 0) {
       overallSuccessCount += 1;
     }
     for (const patternUid of evaluation.matchedPatternUids) {
@@ -163,7 +178,7 @@ export const calculateBySimulation = (params: {
       if (index == null) continue;
       patternSuccessCount[index] += 1;
     }
-    for (const labelUid of evaluation.matchedLabelUids) {
+    for (const labelUid of matchedLabelUids) {
       const index = labelIndexByUid.get(labelUid);
       if (index == null) continue;
       labelSuccessCount[index] += 1;

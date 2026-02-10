@@ -31,14 +31,14 @@ export const labelSchema = z.object({
 });
 
 export const countRuleSchema = z.object({
-  uids: z.array(z.string().min(1)).min(1),
+  uids: z.array(z.string().min(1)),
   mode: countRuleModeSchema,
 });
 
 export const baseConditionSchema = z.object({
   mode: patternBaseModeSchema,
   count: z.number().int().min(1).max(60),
-  uids: z.array(z.string().min(1)).min(1),
+  uids: z.array(z.string().min(1)),
 });
 
 export const countConditionSchema = z.object({
@@ -62,6 +62,38 @@ export const patternSchema = z.object({
   memo: z.string(),
 });
 
+export const subPatternApplyLimitSchema = z.enum([
+  "once_per_trial",
+  "once_per_distinct_uid",
+]);
+
+export const subPatternEffectSchema = z.discriminatedUnion("type", [
+  z.object({
+    type: z.literal("add_label"),
+    // `labelUid` は旧URL互換のため残し、現行は `labelUids` を使う
+    labelUid: z.string().min(1).optional(),
+    labelUids: z.array(z.string().min(1)),
+  }),
+  z.object({
+    type: z.literal("add_penetration"),
+    tag: z.string().trim().min(1, "貫通タグは必須です"),
+    amount: z.number().int().min(1).max(20),
+    max: z.number().int().min(1).max(20).optional(),
+  }),
+]);
+
+export const subPatternSchema = z.object({
+  uid: z.string().min(1),
+  name: z.string().trim().min(1, "サブパターン名は必須です"),
+  active: z.boolean(),
+  basePatternUids: z.array(z.string().min(1)),
+  triggerConditions: z.array(patternConditionSchema),
+  triggerSourceUids: z.array(z.string().min(1)),
+  applyLimit: subPatternApplyLimitSchema,
+  effects: z.array(subPatternEffectSchema),
+  memo: z.string(),
+});
+
 export const potStateSchema = z.object({
   desiresOrExtravagance: z.object({
     count: z.number().int().min(0).max(3),
@@ -82,6 +114,7 @@ export const calculateInputSchema = z
     deck: deckStateSchema,
     cards: z.array(cardSchema),
     patterns: z.array(patternSchema),
+    subPatterns: z.array(subPatternSchema).default([]),
     labels: z.array(labelSchema),
     pot: potStateSchema,
     settings: calculationSettingsSchema,
@@ -135,6 +168,9 @@ export type BaseCondition = z.infer<typeof baseConditionSchema>;
 export type CountCondition = z.infer<typeof countConditionSchema>;
 export type PatternCondition = z.infer<typeof patternConditionSchema>;
 export type Pattern = z.infer<typeof patternSchema>;
+export type SubPatternApplyLimit = z.infer<typeof subPatternApplyLimitSchema>;
+export type SubPatternEffect = z.infer<typeof subPatternEffectSchema>;
+export type SubPattern = z.infer<typeof subPatternSchema>;
 export type PotState = z.infer<typeof potStateSchema>;
 export type CalculationSettings = z.infer<typeof calculationSettingsSchema>;
 export type CalculateInput = z.infer<typeof calculateInputSchema>;

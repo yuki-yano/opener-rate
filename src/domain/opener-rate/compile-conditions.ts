@@ -13,7 +13,7 @@ const isCountCondition = (
   { mode: "draw_total" | "remain_total" }
 > => condition.mode === "draw_total" || condition.mode === "remain_total";
 
-const toIndices = (uidToIndex: Map<string, number>, uids: string[]) => {
+export const toIndices = (uidToIndex: Map<string, number>, uids: string[]) => {
   const indices: number[] = [];
   for (const uid of uids) {
     const index = uidToIndex.get(uid);
@@ -49,13 +49,20 @@ const compileCondition = (
   };
 };
 
+export const compilePatternConditions = (
+  uidToIndex: Map<string, number>,
+  conditions: PatternCondition[],
+): CompiledPatternCondition[] =>
+  conditions.map((condition) => compileCondition(uidToIndex, condition));
+
 export const compilePatterns = (
   normalized: NormalizedDeck,
 ): CompiledPattern[] => {
   return normalized.patterns.map((pattern) => ({
     ...pattern,
-    conditions: pattern.conditions.map((condition) =>
-      compileCondition(normalized.uidToIndex, condition),
+    conditions: compilePatternConditions(
+      normalized.uidToIndex,
+      pattern.conditions,
     ),
   }));
 };

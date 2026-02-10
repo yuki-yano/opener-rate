@@ -9,13 +9,21 @@ import { CardListEditor } from "./editor/card-list-editor";
 import { DeckEditor } from "./editor/deck-editor";
 import { LabelEditor } from "./editor/label-editor";
 import { PatternEditor } from "./editor/pattern-editor";
+import { SubPatternEditor } from "./editor/sub-pattern-editor";
 import { AppHeader } from "./layout/app-header";
 import { AppShell } from "./layout/app-shell";
 import { LabelRateTable } from "./result/label-rate-table";
 import { OverallRateCard } from "./result/overall-rate-card";
 import { ShortUrlCard } from "./result/short-url-card";
 
-const urlStateKeys = ["deck", "cards", "pattern", "label", "pot"] as const;
+const urlStateKeys = [
+  "deck",
+  "cards",
+  "pattern",
+  "subPattern",
+  "label",
+  "pot",
+] as const;
 const autoCalculatedUrls = new Set<string>();
 
 const hasUrlState = () => {
@@ -58,6 +66,7 @@ export const OpenerRateScreen = () => {
           <CardListEditor />
           <LabelEditor />
           <PatternEditor />
+          <SubPatternEditor />
         </>
       }
       rightColumn={

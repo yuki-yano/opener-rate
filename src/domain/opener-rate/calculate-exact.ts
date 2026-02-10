@@ -1,6 +1,11 @@
 import type { CalculateOutput } from "../../shared/apiSchemas";
-import type { CompiledPattern, NormalizedDeck } from "./types";
+import type {
+  CompiledPattern,
+  CompiledSubPattern,
+  NormalizedDeck,
+} from "./types";
 import { evaluatePatterns } from "./evaluate-pattern";
+import { evaluateSubPatterns } from "./evaluate-sub-pattern";
 
 const combinationMemo = new Map<string, bigint>();
 
@@ -30,8 +35,9 @@ const toRateString = (success: bigint, total: bigint) => {
 export const calculateByExact = (params: {
   normalized: NormalizedDeck;
   compiledPatterns: CompiledPattern[];
+  compiledSubPatterns: CompiledSubPattern[];
 }): CalculateOutput => {
-  const { normalized, compiledPatterns } = params;
+  const { normalized, compiledPatterns, compiledSubPatterns } = params;
 
   const totalKinds = normalized.deckCounts.length;
   const handCounts = new Array(totalKinds).fill(0);
@@ -65,8 +71,17 @@ export const calculateByExact = (params: {
         handCounts,
         deckCounts,
       });
+      const subPatternEvaluation = evaluateSubPatterns({
+        compiledSubPatterns,
+        context: { handCounts, deckCounts },
+        matchedPatternUids: evaluation.matchedPatternUids,
+      });
+      const matchedLabelUids = new Set([
+        ...evaluation.matchedLabelUids,
+        ...subPatternEvaluation.addedLabelUids,
+      ]);
       totalCombinations += weight;
-      if (evaluation.isSuccess) {
+      if (evaluation.matchedPatternUids.length > 0 || matchedLabelUids.size > 0) {
         overallSuccess += weight;
       }
       for (const patternUid of evaluation.matchedPatternUids) {
@@ -74,7 +89,7 @@ export const calculateByExact = (params: {
         if (index == null) continue;
         patternSuccess[index] += weight;
       }
-      for (const labelUid of evaluation.matchedLabelUids) {
+      for (const labelUid of matchedLabelUids) {
         const index = labelIndexByUid.get(labelUid);
         if (index == null) continue;
         labelSuccess[index] += weight;

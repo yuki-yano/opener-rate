@@ -1,10 +1,11 @@
 import {
-  calculateOutputSchema,
   shortenUrlResponseSchema,
   type CalculateInput,
+  type CalculateOutput,
   type ShortenUrlResponse,
 } from "../../../shared/apiSchemas";
 import type { ZodType } from "zod";
+import { calculateOpenerRateDomain } from "../../../domain/opener-rate";
 import { rpcClient } from "./rpc-client";
 
 const readErrorMessage = async (response: Response) => {
@@ -35,11 +36,9 @@ const parseWith = <T>(schema: ZodType<T>, value: unknown): T => {
 };
 
 export const openerRateApi = {
-  async calculate(input: CalculateInput) {
-    const response = await rpcClient.api.calculate.$post({ json: input });
-    await ensureOk(response);
-    const json = await response.json();
-    return parseWith(calculateOutputSchema, json);
+  async calculate(input: CalculateInput): Promise<CalculateOutput> {
+    // 計算はブラウザ内で完結させる。
+    return calculateOpenerRateDomain(input);
   },
 
   async createShortUrl(url: string): Promise<ShortenUrlResponse> {

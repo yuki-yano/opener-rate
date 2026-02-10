@@ -20,6 +20,7 @@ describe("calculateOpenerRate", () => {
           memo: "",
         },
       ],
+      subPatterns: [],
       labels: [{ uid: "l1", name: "L1", memo: "" }],
       pot: {
         desiresOrExtravagance: { count: 0 },
@@ -59,6 +60,7 @@ describe("calculateOpenerRate", () => {
           memo: "",
         },
       ],
+      subPatterns: [],
       labels: [{ uid: "l1", name: "L1", memo: "" }],
       pot: {
         desiresOrExtravagance: { count: 0 },

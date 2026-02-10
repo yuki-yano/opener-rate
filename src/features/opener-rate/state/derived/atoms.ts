@@ -10,6 +10,7 @@ import {
   labelsAtom,
   modeAtom,
   patternsAtom,
+  subPatternsAtom,
   potAtom,
   simulationTrialsAtom,
 } from "../input/atoms";
@@ -34,6 +35,7 @@ export const calculateInputAtom = atom<CalculateInput>((get) => ({
   deck: get(deckAtom),
   cards: get(cardsAtom),
   patterns: get(patternsAtom),
+  subPatterns: get(subPatternsAtom),
   labels: get(labelsAtom),
   pot: get(potAtom),
   settings: {
