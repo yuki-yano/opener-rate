@@ -10,7 +10,13 @@ import {
 import { useAtom, useAtomValue } from "jotai";
 import { useMemo, useState } from "react";
 
-import { Button, Checkbox, Input, Select, Textarea } from "../../../../components/ui";
+import {
+  Button,
+  Checkbox,
+  Input,
+  Select,
+  Textarea,
+} from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
 import type {
   SubPattern,
@@ -20,7 +26,13 @@ import type { MultiSelectOption } from "../common/multi-select";
 import { MultiSelect } from "../common/multi-select";
 import { SortableList } from "../common/sortable-list";
 import { SectionCard } from "../layout/section-card";
-import { cardsAtom, labelsAtom, patternsAtom, subPatternsAtom } from "../../state";
+import {
+  cardsAtom,
+  disruptionCardsAtom,
+  labelsAtom,
+  patternsAtom,
+  subPatternsAtom,
+} from "../../state";
 import { createLocalId } from "./create-local-id";
 import { PatternConditionEditor } from "./pattern-condition-editor";
 
@@ -30,7 +42,8 @@ const createDefaultCondition = () => ({
   uids: [],
 });
 
-const createDefaultSubPatternName = (index: number) => `サブパターン${index + 1}`;
+const createDefaultSubPatternName = (index: number) =>
+  `サブパターン${index + 1}`;
 
 const applyLimitOptions = [
   { value: "once_per_trial", label: "試行ごとに1回" },
@@ -54,13 +67,6 @@ const toInt = (value: string, fallback: number) => {
   return parsed;
 };
 
-const toOptionalInt = (value: string): number | undefined => {
-  if (value.trim().length === 0) return undefined;
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed)) return undefined;
-  return parsed;
-};
-
 const createDefaultEffect = (): SubPatternEffect => {
   return {
     type: "add_label",
@@ -71,7 +77,7 @@ const createDefaultEffect = (): SubPatternEffect => {
 const createDefaultPenetrationEffect = (): SubPatternEffect => {
   return {
     type: "add_penetration",
-    tag: "うらら",
+    disruptionCardUids: [],
     amount: 1,
   };
 };
@@ -99,6 +105,7 @@ const switchEffectType = (
 export const SubPatternEditor = () => {
   const [subPatterns, setSubPatterns] = useAtom(subPatternsAtom);
   const patterns = useAtomValue(patternsAtom);
+  const disruptionCards = useAtomValue(disruptionCardsAtom);
   const labels = useAtomValue(labelsAtom);
   const cards = useAtomValue(cardsAtom);
 
@@ -138,6 +145,17 @@ export const SubPatternEditor = () => {
           label: card.name,
         })),
     [cards],
+  );
+
+  const penetrationDisruptionOptions = useMemo<MultiSelectOption[]>(
+    () =>
+      disruptionCards
+        .filter((card) => card.name.trim().length > 0)
+        .map((card) => ({
+          value: card.uid,
+          label: card.name,
+        })),
+    [disruptionCards],
   );
 
   const updateSubPattern = (
@@ -334,7 +352,9 @@ export const SubPatternEditor = () => {
                         current.filter((target) => target !== subPattern.uid),
                       );
                       setSubPatterns((current) =>
-                        current.filter((target) => target.uid !== subPattern.uid),
+                        current.filter(
+                          (target) => target.uid !== subPattern.uid,
+                        ),
                       );
                     }}
                   >
@@ -438,35 +458,41 @@ export const SubPatternEditor = () => {
                     ) : null}
 
                     <div className="grid grid-cols-1 gap-2 lg:grid-cols-2 2xl:grid-cols-3">
-                      {subPattern.triggerConditions.map((condition, conditionIndex) => (
-                        <div
-                          key={`${subPattern.uid}-trigger-${conditionIndex}`}
-                          className="min-w-0"
-                        >
-                          <PatternConditionEditor
-                            condition={condition}
-                            index={conditionIndex}
-                            cardOptions={cardOptions}
-                            onChange={(nextCondition) =>
-                              updateSubPattern(subPattern.uid, (target) => ({
-                                ...target,
-                                triggerConditions: target.triggerConditions.map(
-                                  (entry, idx) =>
-                                    idx === conditionIndex ? nextCondition : entry,
-                                ),
-                              }))
-                            }
-                            onRemove={() =>
-                              updateSubPattern(subPattern.uid, (target) => ({
-                                ...target,
-                                triggerConditions: target.triggerConditions.filter(
-                                  (_, idx) => idx !== conditionIndex,
-                                ),
-                              }))
-                            }
-                          />
-                        </div>
-                      ))}
+                      {subPattern.triggerConditions.map(
+                        (condition, conditionIndex) => (
+                          <div
+                            key={`${subPattern.uid}-trigger-${conditionIndex}`}
+                            className="min-w-0"
+                          >
+                            <PatternConditionEditor
+                              condition={condition}
+                              index={conditionIndex}
+                              cardOptions={cardOptions}
+                              onChange={(nextCondition) =>
+                                updateSubPattern(subPattern.uid, (target) => ({
+                                  ...target,
+                                  triggerConditions:
+                                    target.triggerConditions.map(
+                                      (entry, idx) =>
+                                        idx === conditionIndex
+                                          ? nextCondition
+                                          : entry,
+                                    ),
+                                }))
+                              }
+                              onRemove={() =>
+                                updateSubPattern(subPattern.uid, (target) => ({
+                                  ...target,
+                                  triggerConditions:
+                                    target.triggerConditions.filter(
+                                      (_, idx) => idx !== conditionIndex,
+                                    ),
+                                }))
+                              }
+                            />
+                          </div>
+                        ),
+                      )}
                     </div>
                   </div>
 
@@ -481,10 +507,7 @@ export const SubPatternEditor = () => {
                         onClick={() =>
                           updateSubPattern(subPattern.uid, (target) => ({
                             ...target,
-                            effects: [
-                              ...target.effects,
-                              createDefaultEffect(),
-                            ],
+                            effects: [...target.effects, createDefaultEffect()],
                           }))
                         }
                       >
@@ -510,19 +533,23 @@ export const SubPatternEditor = () => {
                                 value={effect.type}
                                 options={effectTypeOptions}
                                 onChange={(next) =>
-                                  updateSubPattern(subPattern.uid, (target) => ({
-                                    ...target,
-                                    effects: target.effects.map((entry, idx) =>
-                                      idx === effectIndex
-                                        ? switchEffectType(
-                                            entry,
-                                            next === "add_label"
-                                              ? "add_label"
-                                              : "add_penetration",
-                                          )
-                                        : entry,
-                                    ),
-                                  }))
+                                  updateSubPattern(
+                                    subPattern.uid,
+                                    (target) => ({
+                                      ...target,
+                                      effects: target.effects.map(
+                                        (entry, idx) =>
+                                          idx === effectIndex
+                                            ? switchEffectType(
+                                                entry,
+                                                next === "add_label"
+                                                  ? "add_label"
+                                                  : "add_penetration",
+                                              )
+                                            : entry,
+                                      ),
+                                    }),
+                                  )
                                 }
                               />
                               {effect.type === "add_label" ? (
@@ -532,83 +559,87 @@ export const SubPatternEditor = () => {
                                   placeholder="付与ラベルを選択"
                                   emptyText="有効なラベルがありません"
                                   onChange={(next) =>
-                                    updateSubPattern(subPattern.uid, (target) => ({
-                                      ...target,
-                                      effects: target.effects.map((entry, idx) =>
-                                        idx === effectIndex && entry.type === "add_label"
-                                          ? { ...entry, labelUids: next }
-                                          : entry,
-                                      ),
-                                    }))
+                                    updateSubPattern(
+                                      subPattern.uid,
+                                      (target) => ({
+                                        ...target,
+                                        effects: target.effects.map(
+                                          (entry, idx) =>
+                                            idx === effectIndex &&
+                                            entry.type === "add_label"
+                                              ? { ...entry, labelUids: next }
+                                              : entry,
+                                        ),
+                                      }),
+                                    )
                                   }
                                 />
                               ) : (
-                                <div className="grid min-w-0 grid-cols-3 gap-2">
-                                  <Input
-                                    className="h-9"
-                                    value={effect.tag}
-                                    placeholder="タグ"
-                                    onChange={(event) =>
-                                      updateSubPattern(subPattern.uid, (target) => ({
-                                        ...target,
-                                        effects: target.effects.map((entry, idx) =>
-                                          idx === effectIndex &&
-                                          entry.type === "add_penetration"
-                                            ? { ...entry, tag: event.target.value }
-                                            : entry,
-                                        ),
-                                      }))
-                                    }
-                                  />
-                                  <Input
-                                    className="h-9"
-                                    type="number"
-                                    min={1}
-                                    max={20}
-                                    value={effect.amount}
-                                    onChange={(event) =>
-                                      updateSubPattern(subPattern.uid, (target) => ({
-                                        ...target,
-                                        effects: target.effects.map((entry, idx) =>
-                                          idx === effectIndex &&
-                                          entry.type === "add_penetration"
-                                            ? {
-                                                ...entry,
-                                                amount: Math.max(
-                                                  1,
-                                                  Math.min(
-                                                    20,
-                                                    toInt(event.target.value, entry.amount),
-                                                  ),
-                                                ),
-                                              }
-                                            : entry,
-                                        ),
-                                      }))
-                                    }
-                                  />
-                                  <Input
-                                    className="h-9"
-                                    type="number"
-                                    min={1}
-                                    max={20}
-                                    value={effect.max ?? ""}
-                                    placeholder="上限"
-                                    onChange={(event) =>
-                                      updateSubPattern(subPattern.uid, (target) => ({
-                                        ...target,
-                                        effects: target.effects.map((entry, idx) =>
-                                          idx === effectIndex &&
-                                          entry.type === "add_penetration"
-                                            ? {
-                                                ...entry,
-                                                max: toOptionalInt(event.target.value),
-                                              }
-                                            : entry,
-                                        ),
-                                      }))
-                                    }
-                                  />
+                                <div className="grid min-w-0 gap-2">
+                                  <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_8rem]">
+                                    <MultiSelect
+                                      options={penetrationDisruptionOptions}
+                                      value={effect.disruptionCardUids}
+                                      placeholder="対象妨害カードを選択"
+                                      emptyText="有効な妨害カードがありません"
+                                      onChange={(next) =>
+                                        updateSubPattern(
+                                          subPattern.uid,
+                                          (target) => ({
+                                            ...target,
+                                            effects: target.effects.map(
+                                              (entry, idx) =>
+                                                idx === effectIndex &&
+                                                entry.type === "add_penetration"
+                                                  ? {
+                                                      ...entry,
+                                                      disruptionCardUids: next,
+                                                    }
+                                                  : entry,
+                                            ),
+                                          }),
+                                        )
+                                      }
+                                    />
+                                    <Input
+                                      className="h-9"
+                                      type="number"
+                                      min={1}
+                                      max={20}
+                                      value={effect.amount}
+                                      placeholder="加算量"
+                                      onChange={(event) =>
+                                        updateSubPattern(
+                                          subPattern.uid,
+                                          (target) => ({
+                                            ...target,
+                                            effects: target.effects.map(
+                                              (entry, idx) =>
+                                                idx === effectIndex &&
+                                                entry.type === "add_penetration"
+                                                  ? {
+                                                      ...entry,
+                                                      amount: Math.max(
+                                                        1,
+                                                        Math.min(
+                                                          20,
+                                                          toInt(
+                                                            event.target.value,
+                                                            entry.amount,
+                                                          ),
+                                                        ),
+                                                      ),
+                                                    }
+                                                  : entry,
+                                            ),
+                                          }),
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <p className="text-[11px] text-latte-subtext0">
+                                    対象妨害カードは複数選択できます。
+                                  </p>
                                 </div>
                               )}
                               <Button
@@ -618,12 +649,15 @@ export const SubPatternEditor = () => {
                                 className="h-8 w-8"
                                 aria-label="効果削除"
                                 onClick={() =>
-                                  updateSubPattern(subPattern.uid, (target) => ({
-                                    ...target,
-                                    effects: target.effects.filter(
-                                      (_, idx) => idx !== effectIndex,
-                                    ),
-                                  }))
+                                  updateSubPattern(
+                                    subPattern.uid,
+                                    (target) => ({
+                                      ...target,
+                                      effects: target.effects.filter(
+                                        (_, idx) => idx !== effectIndex,
+                                      ),
+                                    }),
+                                  )
                                 }
                               >
                                 <Trash2 className="h-4 w-4 text-latte-red" />

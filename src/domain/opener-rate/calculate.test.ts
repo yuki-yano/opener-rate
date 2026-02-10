@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 
+import type { CalculateInput } from "../../shared/apiSchemas";
 import { calculateOpenerRateDomain } from "./calculate";
 
 describe("calculateOpenerRateDomain", () => {
@@ -148,5 +149,182 @@ describe("calculateOpenerRateDomain", () => {
     expect(result.labelSuccessRates).toEqual([
       { uid: "l-penetrate", rate: "16.66" },
     ]);
+  });
+
+  it("computes vs breakdown with disruption penetration", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp-penetrate",
+          name: "うらら貫通付与",
+          active: true,
+          basePatternUids: ["p-base"],
+          triggerConditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          triggerSourceUids: [],
+          applyLimit: "once_per_trial",
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCardUids: ["dc-ash"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "d-ash",
+            disruptionCardUid: "dc-ash",
+            name: "灰流うらら",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    expect(result.mode).toBe("simulation");
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "100.00",
+      disruptedAndFailedRate: "0.00",
+    });
+  });
+
+  it("applies oncePerName in vs disruption count", () => {
+    const baseInput: CalculateInput = {
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp-penetrate",
+          name: "うらら貫通付与",
+          active: true,
+          basePatternUids: ["p-base"],
+          triggerConditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          triggerSourceUids: [],
+          applyLimit: "once_per_trial" as const,
+          effects: [
+            {
+              type: "add_penetration" as const,
+              disruptionCardUids: ["dc-ash"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 as const },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+    };
+
+    const onceLimited = calculateOpenerRateDomain({
+      ...baseInput,
+      vs: {
+        enabled: true,
+        opponentDeckSize: 2,
+        opponentHandSize: 2,
+        opponentDisruptions: [
+          {
+            uid: "d-ash",
+            disruptionCardUid: "dc-ash",
+            name: "灰流うらら",
+            count: 2,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    const noLimit = calculateOpenerRateDomain({
+      ...baseInput,
+      vs: {
+        enabled: true,
+        opponentDeckSize: 2,
+        opponentHandSize: 2,
+        opponentDisruptions: [
+          {
+            uid: "d-ash",
+            disruptionCardUid: "dc-ash",
+            name: "灰流うらら",
+            count: 2,
+            oncePerName: false,
+          },
+        ],
+      },
+    });
+
+    expect(onceLimited.overallProbability).toBe("100.00");
+    expect(onceLimited.vsBreakdown?.disruptedButPenetratedRate).toBe("100.00");
+    expect(noLimit.overallProbability).toBe("0.00");
+    expect(noLimit.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
   });
 });

@@ -14,7 +14,10 @@ export const PatternRateTable = () => {
 
   const sortedPatterns = useMemo(() => {
     const rateMap = new Map(
-      (result?.patternSuccessRates ?? []).map((entry) => [entry.uid, entry.rate]),
+      (result?.patternSuccessRates ?? []).map((entry) => [
+        entry.uid,
+        entry.rate,
+      ]),
     );
 
     return patterns

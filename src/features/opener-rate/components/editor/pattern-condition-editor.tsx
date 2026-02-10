@@ -35,7 +35,10 @@ const countModeOptions: Array<{ value: CountMode; label: string }> = [
   { value: "remain_total", label: "合計残枚数" },
 ];
 
-const allModeOptions: SelectOption[] = [...baseModeOptions, ...countModeOptions];
+const allModeOptions: SelectOption[] = [
+  ...baseModeOptions,
+  ...countModeOptions,
+];
 
 const countOperatorOptions: SelectOption[] = [
   { value: "gte", label: "以上" },
@@ -112,10 +115,7 @@ export const PatternConditionEditor = ({
           options={allModeOptions}
           onChange={(next) =>
             onChange(
-              switchConditionMode(
-                condition,
-                next as PatternCondition["mode"],
-              ),
+              switchConditionMode(condition, next as PatternCondition["mode"]),
             )
           }
         />

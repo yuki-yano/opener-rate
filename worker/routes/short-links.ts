@@ -108,7 +108,9 @@ export const resolveShortUrlRoute = app.get(
 
     try {
       const parsedTargetUrl = new URL(targetUrl, requestOrigin);
-      const deckName = extractDeckName(parsedTargetUrl.searchParams.get("deckName"));
+      const deckName = extractDeckName(
+        parsedTargetUrl.searchParams.get("deckName"),
+      );
       return c.html(buildRedirectHtml(parsedTargetUrl.toString(), deckName));
     } catch {
       return c.html(buildRedirectHtml(fallbackTargetUrl, null));

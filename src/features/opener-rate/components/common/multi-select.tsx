@@ -57,7 +57,8 @@ export const MultiSelect = ({
     onChange([...value, targetValue]);
   };
 
-  const canSelectAll = options.length > 0 && selectedOptions.length < options.length;
+  const canSelectAll =
+    options.length > 0 && selectedOptions.length < options.length;
   const canClearAll = selectedOptions.length > 0;
 
   const handleSelectAll = () => {

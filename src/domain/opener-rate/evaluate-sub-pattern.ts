@@ -48,7 +48,7 @@ export const evaluateSubPatterns = (
   const { compiledSubPatterns, context, matchedPatternUids } = params;
   const matchedPatternSet = new Set(matchedPatternUids);
   const labelSet = new Set<string>();
-  const penetrationByTag: Record<string, number> = {};
+  const penetrationByDisruptionKey: Record<string, number> = {};
 
   for (const subPattern of compiledSubPatterns) {
     if (!subPattern.active) continue;
@@ -65,23 +65,20 @@ export const evaluateSubPatterns = (
         for (const labelUid of effect.labelUids) {
           labelSet.add(labelUid);
         }
-        if (effect.labelUids.length === 0 && effect.labelUid != null) {
-          labelSet.add(effect.labelUid);
-        }
         continue;
       }
 
-      const current = penetrationByTag[effect.tag] ?? 0;
-      let next = current + effect.amount * applyCount;
-      if (effect.max != null) {
-        next = Math.min(next, effect.max);
+      for (const disruptionCardUid of effect.disruptionCardUids) {
+        const current =
+          penetrationByDisruptionKey[disruptionCardUid] ?? 0;
+        const next = current + effect.amount * applyCount;
+        penetrationByDisruptionKey[disruptionCardUid] = next;
       }
-      penetrationByTag[effect.tag] = next;
     }
   }
 
   return {
     addedLabelUids: Array.from(labelSet),
-    penetrationByTag,
+    penetrationByDisruptionKey,
   };
 };

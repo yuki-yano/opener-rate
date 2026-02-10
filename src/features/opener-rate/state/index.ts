@@ -18,11 +18,13 @@ export {
   deckNameAtom,
   deckAtom,
   defaultSimulationTrials,
+  disruptionCardsAtom,
   labelsAtom,
   modeAtom,
   patternsAtom,
   subPatternsAtom,
   potAtom,
+  vsAtom,
   resetInputAtom,
   simulationTrialsAtom,
 } from "./input/atoms";

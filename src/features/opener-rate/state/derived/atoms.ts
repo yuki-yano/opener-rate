@@ -7,9 +7,11 @@ import {
 import {
   cardsAtom,
   deckAtom,
+  disruptionCardsAtom,
   labelsAtom,
   modeAtom,
   patternsAtom,
+  vsAtom,
   subPatternsAtom,
   potAtom,
   simulationTrialsAtom,
@@ -31,18 +33,39 @@ export const deckSizeExceededAtom = atom((get) => {
   return totalCards > deck.cardCount;
 });
 
-export const calculateInputAtom = atom<CalculateInput>((get) => ({
-  deck: get(deckAtom),
-  cards: get(cardsAtom),
-  patterns: get(patternsAtom),
-  subPatterns: get(subPatternsAtom),
-  labels: get(labelsAtom),
-  pot: get(potAtom),
-  settings: {
-    mode: get(modeAtom),
-    simulationTrials: get(simulationTrialsAtom),
-  },
-}));
+export const calculateInputAtom = atom<CalculateInput>((get) => {
+  const disruptionCardByUid = new Map(
+    get(disruptionCardsAtom).map((card) => [card.uid, card] as const),
+  );
+  const vs = get(vsAtom);
+  const syncedVs = {
+    ...vs,
+    opponentDisruptions: vs.opponentDisruptions.map((entry) => {
+      if (entry.disruptionCardUid == null) return entry;
+      const source = disruptionCardByUid.get(entry.disruptionCardUid);
+      if (source == null) return entry;
+      return {
+        ...entry,
+        name: source.name,
+        oncePerName: source.oncePerName,
+      };
+    }),
+  };
+
+  return {
+    deck: get(deckAtom),
+    cards: get(cardsAtom),
+    patterns: get(patternsAtom),
+    subPatterns: get(subPatternsAtom),
+    labels: get(labelsAtom),
+    pot: get(potAtom),
+    vs: syncedVs,
+    settings: {
+      mode: get(modeAtom),
+      simulationTrials: get(simulationTrialsAtom),
+    },
+  };
+});
 
 export const validationResultAtom = atom((get) =>
   calculateInputSchema.safeParse(get(calculateInputAtom)),

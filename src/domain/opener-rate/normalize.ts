@@ -75,6 +75,7 @@ export const normalizeCalculateInput = (
       patterns: input.patterns,
       subPatterns: input.subPatterns,
       pot: input.pot,
+      vs: input.vs,
       uidToIndex,
       indexToUid,
       deckCounts,

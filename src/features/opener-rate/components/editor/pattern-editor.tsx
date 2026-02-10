@@ -185,7 +185,7 @@ export const PatternEditor = () => {
               </Button>
 
               <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface1/65 bg-latte-base/72 px-1.5 py-1">
-                  <Checkbox
+                <Checkbox
                   checked={pattern.active}
                   onChange={(event) =>
                     setPatterns((current) =>
@@ -199,9 +199,7 @@ export const PatternEditor = () => {
                   aria-label="パターン有効切り替え"
                   className={cn(
                     "h-8 w-8 justify-center gap-0 border-transparent bg-latte-mantle/70 px-0 shadow-none",
-                    pattern.active
-                      ? "text-latte-blue"
-                      : "text-latte-red",
+                    pattern.active ? "text-latte-blue" : "text-latte-red",
                   )}
                 />
 

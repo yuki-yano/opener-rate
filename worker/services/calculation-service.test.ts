@@ -81,4 +81,48 @@ describe("calculateOpenerRate", () => {
     ]);
     expect(result.labelSuccessRates).toEqual([{ uid: "l1", rate: "0.00" }]);
   });
+
+  it("falls back to simulation when exact + vs is requested", () => {
+    const result = calculateOpenerRate({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "a", name: "A", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p1",
+          name: "P1",
+          active: true,
+          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+          labels: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "d1",
+            disruptionCardUid: "dc-1",
+            name: "妨害",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    expect(result.mode).toBe("simulation");
+    expect(result.vsBreakdown).toBeDefined();
+  });
 });

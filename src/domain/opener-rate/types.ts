@@ -10,6 +10,7 @@ import type {
   SubPattern,
   PotState,
   SubPatternEffect,
+  VsSimulationInput,
 } from "../../shared/apiSchemas";
 
 export const DESIRES_UID = "desires_card";
@@ -23,6 +24,7 @@ export type NormalizedDeck = {
   patterns: Pattern[];
   subPatterns: SubPattern[];
   pot: PotState;
+  vs?: VsSimulationInput;
   uidToIndex: Map<string, number>;
   indexToUid: string[];
   deckCounts: number[];
@@ -78,7 +80,7 @@ export type ThresholdCheck = {
 
 export type SubPatternEvaluationResult = {
   addedLabelUids: string[];
-  penetrationByTag: Record<string, number>;
+  penetrationByDisruptionKey: Record<string, number>;
 };
 
 export type CompiledSubPatternEffect = SubPatternEffect;

@@ -163,7 +163,9 @@ export const DeckEditor = () => {
             ariaLabel="計算モード"
             value={mode}
             options={calculationModeOptions}
-            onChange={(next) => setMode(next === "exact" ? "exact" : "simulation")}
+            onChange={(next) =>
+              setMode(next === "exact" ? "exact" : "simulation")
+            }
           />
         </label>
         <label className="space-y-1.5 text-xs text-latte-subtext0">

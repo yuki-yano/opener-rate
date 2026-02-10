@@ -81,7 +81,10 @@ export const calculateByExact = (params: {
         ...subPatternEvaluation.addedLabelUids,
       ]);
       totalCombinations += weight;
-      if (evaluation.matchedPatternUids.length > 0 || matchedLabelUids.size > 0) {
+      if (
+        evaluation.matchedPatternUids.length > 0 ||
+        matchedLabelUids.size > 0
+      ) {
         overallSuccess += weight;
       }
       for (const patternUid of evaluation.matchedPatternUids) {

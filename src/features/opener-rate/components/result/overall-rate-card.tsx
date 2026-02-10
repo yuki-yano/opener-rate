@@ -41,7 +41,10 @@ export const OverallRateCard = () => {
 
   const sortedPatterns = useMemo(() => {
     const rateMap = new Map(
-      (result?.patternSuccessRates ?? []).map((entry) => [entry.uid, entry.rate]),
+      (result?.patternSuccessRates ?? []).map((entry) => [
+        entry.uid,
+        entry.rate,
+      ]),
     );
 
     return patterns
@@ -111,6 +114,36 @@ export const OverallRateCard = () => {
           ))
         )}
       </div>
+
+      {result?.vsBreakdown ? (
+        <div className="space-y-2">
+          <p className="text-xs tracking-wider text-latte-subtext0">
+            対妨害シミュレーション内訳
+          </p>
+          <div className="grid gap-2 sm:grid-cols-3">
+            <div className="rounded-md border border-latte-surface1/70 bg-latte-crust/70 px-3 py-2">
+              <p className="text-[11px] text-latte-subtext0">妨害なし成功</p>
+              <p className="mt-1 text-base font-semibold tabular-nums text-latte-text">
+                {result.vsBreakdown.noDisruptionSuccessRate}%
+              </p>
+            </div>
+            <div className="rounded-md border border-latte-surface1/70 bg-latte-crust/70 px-3 py-2">
+              <p className="text-[11px] text-latte-subtext0">
+                妨害あり突破成功
+              </p>
+              <p className="mt-1 text-base font-semibold tabular-nums text-latte-text">
+                {result.vsBreakdown.disruptedButPenetratedRate}%
+              </p>
+            </div>
+            <div className="rounded-md border border-latte-surface1/70 bg-latte-crust/70 px-3 py-2">
+              <p className="text-[11px] text-latte-subtext0">妨害あり失敗</p>
+              <p className="mt-1 text-base font-semibold tabular-nums text-latte-text">
+                {result.vsBreakdown.disruptedAndFailedRate}%
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : null}
 
       {deckExceeded ? (
         <p className="rounded-md border border-latte-red/40 bg-latte-red/10 px-3 py-2 text-xs text-latte-red">

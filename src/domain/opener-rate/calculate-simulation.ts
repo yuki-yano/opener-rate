@@ -1,4 +1,7 @@
-import type { CalculateOutput } from "../../shared/apiSchemas";
+import type {
+  CalculateOutput,
+  OpponentDisruptionCard,
+} from "../../shared/apiSchemas";
 import type {
   CompiledPattern,
   CompiledSubPattern,
@@ -34,6 +37,100 @@ const shuffle = (array: number[]) => {
     [array[index], array[randomIndex]] = [array[randomIndex], array[index]];
   }
 };
+
+const createOpponentDeckOrder = (params: {
+  opponentDeckSize: number;
+  opponentDisruptions: OpponentDisruptionCard[];
+}) => {
+  const { opponentDeckSize, opponentDisruptions } = params;
+  const deckOrder: number[] = [];
+  let totalDisruptionCount = 0;
+
+  for (
+    let disruptionIndex = 0;
+    disruptionIndex < opponentDisruptions.length;
+    disruptionIndex += 1
+  ) {
+    const disruption = opponentDisruptions[disruptionIndex];
+    for (let i = 0; i < disruption.count; i += 1) {
+      deckOrder.push(disruptionIndex);
+      totalDisruptionCount += 1;
+    }
+  }
+
+  const unknownCount = Math.max(0, opponentDeckSize - totalDisruptionCount);
+  for (let i = 0; i < unknownCount; i += 1) {
+    deckOrder.push(-1);
+  }
+
+  return deckOrder;
+};
+
+const resolveDisruptionKey = (disruption: OpponentDisruptionCard) => {
+  if (disruption.disruptionCardUid != null) {
+    return disruption.disruptionCardUid;
+  }
+  const nameKey = disruption.name.trim();
+  if (nameKey.length > 0) {
+    return nameKey;
+  }
+  return disruption.uid;
+};
+
+const resolveOpponentDisruptionStrength = (params: {
+  opponentDeckOrderTemplate: number[];
+  opponentHandSize: number;
+  opponentDisruptions: OpponentDisruptionCard[];
+}) => {
+  const { opponentDeckOrderTemplate, opponentHandSize, opponentDisruptions } =
+    params;
+  const opponentDeckOrder = opponentDeckOrderTemplate.slice();
+  shuffle(opponentDeckOrder);
+
+  const drawCount = Math.min(opponentHandSize, opponentDeckOrder.length);
+  const drawnCountByUid = new Map<string, number>();
+  for (let i = 0; i < drawCount; i += 1) {
+    const disruptionIndex = opponentDeckOrder[i];
+    if (disruptionIndex < 0) continue;
+    const disruption = opponentDisruptions[disruptionIndex];
+    const current = drawnCountByUid.get(disruption.uid) ?? 0;
+    drawnCountByUid.set(disruption.uid, current + 1);
+  }
+
+  let hasDisruption = false;
+  const strengthByDisruptionKey: Record<string, number> = {};
+
+  for (const disruption of opponentDisruptions) {
+    const drawnCount = drawnCountByUid.get(disruption.uid) ?? 0;
+    if (drawnCount <= 0) continue;
+
+    const effectiveCount = disruption.oncePerName
+      ? Math.min(drawnCount, 1)
+      : drawnCount;
+    if (effectiveCount <= 0) continue;
+
+    hasDisruption = true;
+    const key = resolveDisruptionKey(disruption);
+    const currentStrength = strengthByDisruptionKey[key] ?? 0;
+    strengthByDisruptionKey[key] = currentStrength + effectiveCount;
+  }
+
+  return {
+    hasDisruption,
+    strengthByDisruptionKey,
+  };
+};
+
+const canPenetrateAllDisruptions = (
+  penetrationByDisruptionKey: Record<string, number>,
+  disruptionStrengthByDisruptionKey: Record<string, number>,
+) =>
+  Object.entries(disruptionStrengthByDisruptionKey).every(
+    ([disruptionKey, required]) => {
+    if (required <= 0) return true;
+    const penetration = penetrationByDisruptionKey[disruptionKey] ?? 0;
+    return penetration >= required;
+  });
 
 const runPotResolution = (
   normalized: NormalizedDeck,
@@ -123,6 +220,14 @@ export const calculateBySimulation = (params: {
   const mode = params.mode ?? "simulation";
 
   const deckOrderTemplate = createDeckOrder(normalized.deckCounts);
+  const vs = normalized.vs;
+  const vsEnabled = vs?.enabled === true;
+  const opponentDeckOrderTemplate = vsEnabled
+    ? createOpponentDeckOrder({
+        opponentDeckSize: vs.opponentDeckSize,
+        opponentDisruptions: vs.opponentDisruptions,
+      })
+    : [];
 
   const labelOrder = normalized.labels.map((label) => label.uid);
   const patternOrder = normalized.patterns.map((pattern) => pattern.uid);
@@ -134,6 +239,9 @@ export const calculateBySimulation = (params: {
   let overallSuccessCount = 0;
   const labelSuccessCount = new Array(labelOrder.length).fill(0);
   const patternSuccessCount = new Array(patternOrder.length).fill(0);
+  let noDisruptionSuccessCount = 0;
+  let disruptedButPenetratedCount = 0;
+  let disruptedAndFailedCount = 0;
 
   for (let trial = 0; trial < trials; trial += 1) {
     const deckOrder = deckOrderTemplate.slice();
@@ -170,9 +278,40 @@ export const calculateBySimulation = (params: {
       ...evaluation.matchedLabelUids,
       ...subPatternEvaluation.addedLabelUids,
     ]);
-    if (evaluation.matchedPatternUids.length > 0 || matchedLabelUids.size > 0) {
+
+    const baseSuccess =
+      evaluation.matchedPatternUids.length > 0 || matchedLabelUids.size > 0;
+    let isSuccess = baseSuccess;
+
+    if (vsEnabled) {
+      const opponentDisruption = resolveOpponentDisruptionStrength({
+        opponentDeckOrderTemplate,
+        opponentHandSize: vs.opponentHandSize,
+        opponentDisruptions: vs.opponentDisruptions,
+      });
+
+      if (!opponentDisruption.hasDisruption) {
+        if (baseSuccess) {
+          noDisruptionSuccessCount += 1;
+        }
+      } else {
+        const penetrated = canPenetrateAllDisruptions(
+          subPatternEvaluation.penetrationByDisruptionKey,
+          opponentDisruption.strengthByDisruptionKey,
+        );
+        if (baseSuccess && penetrated) {
+          disruptedButPenetratedCount += 1;
+        } else {
+          disruptedAndFailedCount += 1;
+        }
+        isSuccess = baseSuccess && penetrated;
+      }
+    }
+
+    if (isSuccess) {
       overallSuccessCount += 1;
     }
+
     for (const patternUid of evaluation.matchedPatternUids) {
       const index = patternIndexByUid.get(patternUid);
       if (index == null) continue;
@@ -196,5 +335,18 @@ export const calculateBySimulation = (params: {
       rate: toRateString(labelSuccessCount[index] ?? 0, trials),
     })),
     mode,
+    vsBreakdown: vsEnabled
+      ? {
+          noDisruptionSuccessRate: toRateString(
+            noDisruptionSuccessCount,
+            trials,
+          ),
+          disruptedButPenetratedRate: toRateString(
+            disruptedButPenetratedCount,
+            trials,
+          ),
+          disruptedAndFailedRate: toRateString(disruptedAndFailedCount, trials),
+        }
+      : undefined,
   };
 };

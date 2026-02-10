@@ -1,15 +1,14 @@
 import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 
-import {
-  markSavedSnapshotAtom,
-  runCalculateAtom,
-} from "../state";
+import { markSavedSnapshotAtom, runCalculateAtom } from "../state";
 import { CardListEditor } from "./editor/card-list-editor";
 import { DeckEditor } from "./editor/deck-editor";
+import { DisruptionCardEditor } from "./editor/disruption-card-editor";
 import { LabelEditor } from "./editor/label-editor";
 import { PatternEditor } from "./editor/pattern-editor";
 import { SubPatternEditor } from "./editor/sub-pattern-editor";
+import { VsSimulationEditor } from "./editor/vs-simulation-editor";
 import { AppHeader } from "./layout/app-header";
 import { AppShell } from "./layout/app-shell";
 import { LabelRateTable } from "./result/label-rate-table";
@@ -22,7 +21,9 @@ const urlStateKeys = [
   "pattern",
   "subPattern",
   "label",
+  "disruptionCard",
   "pot",
+  "vs",
 ] as const;
 const autoCalculatedUrls = new Set<string>();
 
@@ -66,7 +67,9 @@ export const OpenerRateScreen = () => {
           <CardListEditor />
           <LabelEditor />
           <PatternEditor />
+          <DisruptionCardEditor />
           <SubPatternEditor />
+          <VsSimulationEditor />
         </>
       }
       rightColumn={

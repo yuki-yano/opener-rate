@@ -194,7 +194,13 @@ describe("apiSchemas", () => {
           ],
           triggerSourceUids: [],
           applyLimit: "once_per_trial",
-          effects: [{ type: "add_penetration", tag: "うらら", amount: 1 }],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCardUids: ["d-ash"],
+              amount: 1,
+            },
+          ],
           memo: "",
         },
       ],
@@ -210,5 +216,112 @@ describe("apiSchemas", () => {
     });
 
     expect(result.success).toBe(true);
+  });
+
+  it("accepts vs simulation settings", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [{ uid: "starter", name: "初動", count: 3, memo: "" }],
+      patterns: [
+        {
+          uid: "p1",
+          name: "初動",
+          active: true,
+          memo: "",
+          labels: [],
+          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 40,
+        opponentHandSize: 5,
+        opponentDisruptions: [
+          {
+            uid: "d1",
+            name: "灰流うらら",
+            count: 3,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects vs when opponent hand size exceeds deck size", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [],
+      patterns: [],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 4,
+        opponentHandSize: 5,
+        opponentDisruptions: [],
+      },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
+  it("rejects vs when opponent disruption total exceeds deck size", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [],
+      patterns: [],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 3,
+        opponentHandSize: 3,
+        opponentDisruptions: [
+          {
+            uid: "d1",
+            name: "妨害A",
+            count: 2,
+            oncePerName: false,
+          },
+          {
+            uid: "d2",
+            name: "妨害B",
+            count: 2,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(false);
   });
 });

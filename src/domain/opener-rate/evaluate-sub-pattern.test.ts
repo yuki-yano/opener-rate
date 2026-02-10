@@ -21,7 +21,13 @@ describe("evaluateSubPatterns", () => {
         ],
         triggerSourceIndices: [1, 2],
         applyLimit: "once_per_trial",
-        effects: [{ type: "add_penetration", tag: "うらら", amount: 1 }],
+        effects: [
+          {
+            type: "add_penetration",
+            disruptionCardUids: ["dc-ash"],
+            amount: 1,
+          },
+        ],
         memo: "",
       },
     ];
@@ -32,7 +38,7 @@ describe("evaluateSubPatterns", () => {
       matchedPatternUids: ["p1"],
     });
 
-    expect(result.penetrationByTag).toEqual({ うらら: 1 });
+    expect(result.penetrationByDisruptionKey).toEqual({ "dc-ash": 1 });
   });
 
   it("applies once_per_distinct_uid by distinct drawn sources", () => {
@@ -47,7 +53,13 @@ describe("evaluateSubPatterns", () => {
         ],
         triggerSourceIndices: [1, 2],
         applyLimit: "once_per_distinct_uid",
-        effects: [{ type: "add_penetration", tag: "うらら", amount: 1 }],
+        effects: [
+          {
+            type: "add_penetration",
+            disruptionCardUids: ["dc-ash"],
+            amount: 1,
+          },
+        ],
         memo: "",
       },
     ];
@@ -58,7 +70,7 @@ describe("evaluateSubPatterns", () => {
       matchedPatternUids: ["p1"],
     });
 
-    expect(result.penetrationByTag).toEqual({ うらら: 2 });
+    expect(result.penetrationByDisruptionKey).toEqual({ "dc-ash": 2 });
   });
 
   it("does not apply when base pattern is not matched", () => {

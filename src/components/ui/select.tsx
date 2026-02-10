@@ -102,10 +102,13 @@ export const Select = ({
                   <span
                     className={cn(
                       "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-latte-surface1",
-                      selected && "border-latte-blue bg-latte-blue/20 text-latte-blue",
+                      selected &&
+                        "border-latte-blue bg-latte-blue/20 text-latte-blue",
                     )}
                   >
-                    <Check className={cn("h-3 w-3", !selected && "opacity-0")} />
+                    <Check
+                      className={cn("h-3 w-3", !selected && "opacity-0")}
+                    />
                   </span>
                   <span className="truncate">{option.label}</span>
                 </button>

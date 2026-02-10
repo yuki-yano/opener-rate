@@ -6,19 +6,25 @@ import { z, type ZodType } from "zod";
 import {
   cardSchema,
   deckStateSchema,
+  disruptionCardSchema,
   labelSchema,
+  opponentDisruptionCardSchema,
   patternSchema,
   subPatternSchema,
   potStateSchema,
+  vsSimulationInputSchema,
 } from "../../../../shared/apiSchemas";
 import type {
   CalculationMode,
   Card,
   DeckState,
+  DisruptionCard,
   Label,
+  OpponentDisruptionCard,
   Pattern,
   SubPattern,
   PotState,
+  VsSimulationInput,
 } from "../../../../shared/apiSchemas";
 
 const defaultDeckState: DeckState = {
@@ -37,6 +43,12 @@ const defaultPotState: PotState = {
 };
 
 export const defaultSimulationTrials = 10000;
+const defaultVsState: VsSimulationInput = {
+  enabled: false,
+  opponentDeckSize: 40,
+  opponentHandSize: 5,
+  opponentDisruptions: [],
+};
 
 const draftCardSchema = cardSchema.extend({
   name: z.string(),
@@ -50,48 +62,24 @@ const draftSubPatternSchema = subPatternSchema.extend({
 const draftLabelSchema = labelSchema.extend({
   name: z.string(),
 });
+const draftDisruptionCardSchema: ZodType<DisruptionCard> =
+  disruptionCardSchema.extend({
+    name: z.string(),
+  });
+const draftOpponentDisruptionSchema: ZodType<OpponentDisruptionCard> =
+  opponentDisruptionCardSchema.extend({
+    name: z.string(),
+  });
+const draftVsSchema: ZodType<VsSimulationInput> =
+  vsSimulationInputSchema.extend({
+    opponentDisruptions: z.array(draftOpponentDisruptionSchema),
+  });
 
 const cardsSchema = z.array(draftCardSchema);
 const patternsSchema = z.array(draftPatternSchema);
 const labelsSchema = z.array(draftLabelSchema);
-
-const migrateLegacySubPatterns = (value: unknown) => {
-  if (!Array.isArray(value)) return value;
-  return value.map((entry) => {
-    if (typeof entry !== "object" || entry == null) return entry;
-    const subPattern = entry as Record<string, unknown>;
-    const effectsRaw = subPattern.effects;
-    if (!Array.isArray(effectsRaw)) return entry;
-
-    const effects = effectsRaw.map((effectEntry) => {
-      if (typeof effectEntry !== "object" || effectEntry == null) {
-        return effectEntry;
-      }
-      const effect = effectEntry as Record<string, unknown>;
-      if (effect.type !== "add_label") return effectEntry;
-      if (Array.isArray(effect.labelUids)) return effectEntry;
-
-      const legacyLabelUid = effect.labelUid;
-      return {
-        ...effect,
-        labelUids:
-          typeof legacyLabelUid === "string" && legacyLabelUid.length > 0
-            ? [legacyLabelUid]
-            : [],
-      };
-    });
-
-    return {
-      ...subPattern,
-      effects,
-    };
-  });
-};
-
-const subPatternsSchema: ZodType<SubPattern[]> = z.preprocess(
-  migrateLegacySubPatterns,
-  z.array(draftSubPatternSchema),
-) as ZodType<SubPattern[]>;
+const disruptionCardsSchema = z.array(draftDisruptionCardSchema);
+const subPatternsSchema = z.array(draftSubPatternSchema);
 
 const decodeNestedURIComponent = (value: string) => {
   let current = value;
@@ -115,9 +103,10 @@ const createHashSerializeOptions = <T>(
   deserialize: (value: string): T => {
     try {
       const decompressed = lzstring.decompressFromBase64(value);
-      const raw = decompressed == null || decompressed.trim().length === 0
-        ? value
-        : decompressed;
+      const raw =
+        decompressed == null || decompressed.trim().length === 0
+          ? value
+          : decompressed;
       const parsed = schema.safeParse(JSON.parse(raw));
       if (!parsed.success) return defaultValue;
       return parsed.data;
@@ -148,6 +137,11 @@ export const labelsAtom = atomWithHash<Label[]>(
   [],
   createHashSerializeOptions([], labelsSchema),
 );
+export const disruptionCardsAtom = atomWithHash<DisruptionCard[]>(
+  "disruptionCard",
+  [],
+  createHashSerializeOptions([], disruptionCardsSchema),
+);
 export const subPatternsAtom = atomWithHash<SubPattern[]>(
   "subPattern",
   [],
@@ -157,6 +151,11 @@ export const potAtom = atomWithHash<PotState>(
   "pot",
   defaultPotState,
   createHashSerializeOptions(defaultPotState, potStateSchema),
+);
+export const vsAtom = atomWithHash<VsSimulationInput>(
+  "vs",
+  defaultVsState,
+  createHashSerializeOptions(defaultVsState, draftVsSchema),
 );
 
 const locationAtom = atomWithLocation({ replace: true });
@@ -179,7 +178,9 @@ export const deckNameAtom = atom(
       nextSearchParams.set("deckName", encodeURIComponent(nextDeckName));
     }
 
-    if (nextSearchParams.toString() === (currentSearchParams?.toString() ?? "")) {
+    if (
+      nextSearchParams.toString() === (currentSearchParams?.toString() ?? "")
+    ) {
       return;
     }
 
@@ -203,7 +204,9 @@ export const resetInputAtom = atom(null, (_get, set) => {
   set(patternsAtom, []);
   set(subPatternsAtom, []);
   set(labelsAtom, []);
+  set(disruptionCardsAtom, []);
   set(potAtom, defaultPotState);
+  set(vsAtom, defaultVsState);
   set(deckNameAtom, "");
   set(modeAtom, "exact");
   set(simulationTrialsAtom, defaultSimulationTrials);

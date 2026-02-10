@@ -29,6 +29,7 @@ const createCardCountExceededOutput = (
 
 const hasPot = (input: CalculateInput) =>
   input.pot.desiresOrExtravagance.count > 0 || input.pot.prosperity.count > 0;
+const hasVsSimulation = (input: CalculateInput) => input.vs?.enabled === true;
 
 export const calculateOpenerRateDomain = (
   input: CalculateInput,
@@ -41,7 +42,10 @@ export const calculateOpenerRateDomain = (
   const compiledPatterns = compilePatterns(normalized.value);
   const compiledSubPatterns = compileSubPatterns(normalized.value);
 
-  if (input.settings.mode === "exact" && hasPot(input)) {
+  if (
+    input.settings.mode === "exact" &&
+    (hasPot(input) || hasVsSimulation(input))
+  ) {
     return calculateBySimulation({
       normalized: normalized.value,
       compiledPatterns,
