@@ -22,7 +22,20 @@ const createUniqueKey = async (bindings: Bindings): Promise<string | null> => {
   return null;
 };
 
+const isLocalRequestOrigin = (origin: string) => {
+  try {
+    const { hostname } = new URL(origin);
+    return hostname === "localhost" ||
+      hostname === "127.0.0.1" ||
+      hostname === "0.0.0.0" ||
+      hostname === "::1";
+  } catch {
+    return false;
+  }
+};
+
 const resolveOrigin = (bindings: Bindings, requestOrigin: string) => {
+  if (isLocalRequestOrigin(requestOrigin)) return requestOrigin;
   const configuredOrigin = bindings.APP_ORIGIN?.trim();
   if (configuredOrigin) return configuredOrigin;
   return requestOrigin;
@@ -32,6 +45,7 @@ export const createShortUrl = async (params: {
   bindings: Bindings;
   url: string;
   requestOrigin: string;
+  runtimeOrigin?: string;
 }) => {
   const key = await createUniqueKey(params.bindings);
   if (!key) {
@@ -46,7 +60,10 @@ export const createShortUrl = async (params: {
     targetUrl: params.url,
   });
 
-  const origin = resolveOrigin(params.bindings, params.requestOrigin);
+  const localOriginForDetection = params.runtimeOrigin ?? params.requestOrigin;
+  const origin = isLocalRequestOrigin(localOriginForDetection)
+    ? params.requestOrigin
+    : resolveOrigin(params.bindings, params.requestOrigin);
   return {
     key,
     shortenUrl: `${origin}/short_url/${key}`,

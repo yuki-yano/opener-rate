@@ -11,6 +11,57 @@ import type { AppEnv } from "../types";
 const app = new Hono<AppEnv>();
 const BASE_SHARE_TITLE = "Opener Rate 初動率シミュレーター";
 
+const pickFirstHeaderValue = (raw: string | null) => {
+  if (raw == null) return null;
+  const [first] = raw.split(",");
+  const trimmed = first?.trim();
+  if (trimmed == null || trimmed.length === 0) return null;
+  return trimmed;
+};
+
+const normalizeHostForLocal = (host: string, fallbackPort: string) => {
+  const url = new URL(`http://${host}`);
+  const hostname = url.hostname;
+  if (hostname === "0.0.0.0" || hostname === "::") {
+    const port = url.port.length > 0 ? url.port : fallbackPort;
+    return port.length > 0 ? `127.0.0.1:${port}` : "127.0.0.1";
+  }
+  return host;
+};
+
+const resolveRequestOrigin = (request: Request) => {
+  const parsed = new URL(request.url);
+  const protocol =
+    pickFirstHeaderValue(request.headers.get("x-forwarded-proto")) ??
+    parsed.protocol.replace(":", "");
+  const fromOriginHeader = pickFirstHeaderValue(request.headers.get("origin"));
+  if (fromOriginHeader != null) {
+    try {
+      return new URL(fromOriginHeader).origin;
+    } catch {
+      // ignore invalid origin header and continue resolving from host headers
+    }
+  }
+
+  const hostCandidates = [
+    pickFirstHeaderValue(request.headers.get("host")),
+    pickFirstHeaderValue(request.headers.get("x-forwarded-host")),
+    parsed.host,
+  ];
+
+  for (const hostCandidate of hostCandidates) {
+    if (hostCandidate == null) continue;
+    try {
+      const normalized = normalizeHostForLocal(hostCandidate, parsed.port);
+      return `${protocol}://${normalized}`;
+    } catch {
+      continue;
+    }
+  }
+
+  return parsed.origin;
+};
+
 const decodeNestedURIComponent = (value: string) => {
   let current = value;
   for (let i = 0; i < 3; i += 1) {
@@ -78,11 +129,13 @@ export const createShortUrlRoute = app.post(
   zValidator("json", shortenUrlRequestSchema),
   async (c) => {
     const { url } = c.req.valid("json");
-    const requestOrigin = new URL(c.req.url).origin;
+    const requestOrigin = resolveRequestOrigin(c.req.raw);
+    const runtimeOrigin = new URL(c.req.url).origin;
     const response = await createShortUrl({
       bindings: c.env,
       url,
       requestOrigin,
+      runtimeOrigin,
     });
 
     return c.json({
@@ -95,7 +148,7 @@ export const resolveShortUrlRoute = app.get(
   "/short_url/:key{[0-9a-z]{8}}",
   async (c) => {
     const key = c.req.param("key");
-    const requestOrigin = new URL(c.req.url).origin;
+    const requestOrigin = resolveRequestOrigin(c.req.raw);
     const fallbackTargetUrl = new URL("/", requestOrigin).toString();
     const targetUrl = await resolveShortUrlTarget({
       bindings: c.env,
