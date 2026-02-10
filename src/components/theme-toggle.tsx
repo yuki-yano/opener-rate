@@ -23,19 +23,19 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
       onValueChange={handleValueChange}
       className={className}
     >
-      <TabsList aria-label="Theme selection">
+      <TabsList aria-label="テーマ選択">
         <TabsTrigger
           value="system"
           className="flex h-7 w-7 items-center justify-center p-0"
-          aria-label="System theme"
-          title="System"
+          aria-label="システムテーマ"
+          title="システム"
         >
           <Laptop className="h-4 w-4" />
         </TabsTrigger>
         <TabsTrigger
           value="latte"
           className="flex h-7 w-7 items-center justify-center p-0"
-          aria-label="Latte theme"
+          aria-label="ライトテーマ"
           title="Latte"
         >
           <Sun className="h-4 w-4" />
@@ -43,7 +43,7 @@ export const ThemeToggle = ({ className }: ThemeToggleProps) => {
         <TabsTrigger
           value="mocha"
           className="flex h-7 w-7 items-center justify-center p-0"
-          aria-label="Mocha theme"
+          aria-label="ダークテーマ"
           title="Mocha"
         >
           <Moon className="h-4 w-4" />
