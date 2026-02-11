@@ -167,7 +167,10 @@ export const resolveShortUrlRoute = app.get(
   async (c) => {
     const key = c.req.param("key");
     const requestOrigin = resolveRequestOrigin(c.req.raw);
-    const sourceShortUrl = new URL(`/short_url/${key}`, requestOrigin).toString();
+    const sourceShortUrl = new URL(
+      `/short_url/${key}`,
+      requestOrigin,
+    ).toString();
     const fallbackTargetUrl = new URL("/", requestOrigin).toString();
     const targetUrl = await resolveShortUrlTarget({
       bindings: c.env,
