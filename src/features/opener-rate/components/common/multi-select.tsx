@@ -100,7 +100,7 @@ export const MultiSelect = ({
                 </span>
               )}
             </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 self-start text-latte-overlay1" />
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 self-center text-latte-overlay1" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
