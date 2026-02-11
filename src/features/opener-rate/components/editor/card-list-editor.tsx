@@ -44,7 +44,7 @@ export const CardListEditor = () => {
     <SectionCard
       title="カード一覧"
       description="デッキに含めるカードと枚数を編集します。"
-      actions={
+      floatingActions={
         <Button
           size="icon"
           variant="outline"

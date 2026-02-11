@@ -37,7 +37,7 @@ export const LabelEditor = () => {
     <SectionCard
       title="ラベル一覧"
       description="パターン分類のためのラベルを管理します。"
-      actions={
+      floatingActions={
         <Button
           size="icon"
           variant="outline"

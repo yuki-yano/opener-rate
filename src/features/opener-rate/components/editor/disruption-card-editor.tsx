@@ -74,7 +74,7 @@ export const DisruptionCardEditor = () => {
       <SectionCard
         title="妨害カテゴリ一覧"
         description="貫通判定で使うカテゴリを先に登録します。"
-        actions={
+        floatingActions={
           <Button
             size="icon"
             variant="outline"
@@ -199,7 +199,7 @@ export const DisruptionCardEditor = () => {
       <SectionCard
         title="妨害カード一覧"
         description="サブパターンと対戦シミュレーションで共有する妨害カードを管理します。"
-        actions={
+        floatingActions={
           <Button
             size="icon"
             variant="outline"

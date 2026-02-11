@@ -62,7 +62,7 @@ export const VsSimulationEditor = () => {
     <SectionCard
       title="対戦シミュレーション"
       description="相手妨害を加味した成功率を計算します。"
-      actions={
+      floatingActions={
         <Button
           size="icon"
           variant="outline"
