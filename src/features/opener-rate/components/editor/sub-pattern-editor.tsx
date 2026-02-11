@@ -526,7 +526,7 @@ export const SubPatternEditor = () => {
                             key={`${subPattern.uid}-effect-${effectIndex}`}
                             className="grid min-w-0 gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/72 p-2"
                           >
-                            <div className="grid grid-cols-[9rem_minmax(0,1fr)_2rem] items-center gap-2">
+                            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
                               <Select
                                 ariaLabel={`効果${effectIndex + 1}種類`}
                                 triggerClassName="h-9"
@@ -552,30 +552,52 @@ export const SubPatternEditor = () => {
                                   )
                                 }
                               />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 justify-self-end sm:col-start-3 sm:justify-self-auto"
+                                aria-label="効果削除"
+                                onClick={() =>
+                                  updateSubPattern(
+                                    subPattern.uid,
+                                    (target) => ({
+                                      ...target,
+                                      effects: target.effects.filter(
+                                        (_, idx) => idx !== effectIndex,
+                                      ),
+                                    }),
+                                  )
+                                }
+                              >
+                                <Trash2 className="h-4 w-4 text-latte-red" />
+                              </Button>
                               {effect.type === "add_label" ? (
-                                <MultiSelect
-                                  options={labelOptions}
-                                  value={effect.labelUids}
-                                  placeholder="付与ラベルを選択"
-                                  emptyText="有効なラベルがありません"
-                                  onChange={(next) =>
-                                    updateSubPattern(
-                                      subPattern.uid,
-                                      (target) => ({
-                                        ...target,
-                                        effects: target.effects.map(
-                                          (entry, idx) =>
-                                            idx === effectIndex &&
-                                            entry.type === "add_label"
-                                              ? { ...entry, labelUids: next }
-                                              : entry,
-                                        ),
-                                      }),
-                                    )
-                                  }
-                                />
+                                <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+                                  <MultiSelect
+                                    options={labelOptions}
+                                    value={effect.labelUids}
+                                    placeholder="付与ラベルを選択"
+                                    emptyText="有効なラベルがありません"
+                                    onChange={(next) =>
+                                      updateSubPattern(
+                                        subPattern.uid,
+                                        (target) => ({
+                                          ...target,
+                                          effects: target.effects.map(
+                                            (entry, idx) =>
+                                              idx === effectIndex &&
+                                              entry.type === "add_label"
+                                                ? { ...entry, labelUids: next }
+                                                : entry,
+                                          ),
+                                        }),
+                                      )
+                                    }
+                                  />
+                                </div>
                               ) : (
-                                <div className="grid min-w-0 gap-2">
+                                <div className="col-span-2 row-start-2 grid min-w-0 gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-1">
                                   <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_8rem]">
                                     <MultiSelect
                                       options={penetrationDisruptionOptions}
@@ -642,26 +664,6 @@ export const SubPatternEditor = () => {
                                   </p>
                                 </div>
                               )}
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8"
-                                aria-label="効果削除"
-                                onClick={() =>
-                                  updateSubPattern(
-                                    subPattern.uid,
-                                    (target) => ({
-                                      ...target,
-                                      effects: target.effects.filter(
-                                        (_, idx) => idx !== effectIndex,
-                                      ),
-                                    }),
-                                  )
-                                }
-                              >
-                                <Trash2 className="h-4 w-4 text-latte-red" />
-                              </Button>
                             </div>
                           </div>
                         ))}
