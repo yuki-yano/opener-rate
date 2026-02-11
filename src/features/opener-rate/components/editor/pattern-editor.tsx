@@ -3,6 +3,7 @@ import {
   ChevronRight,
   ChevronsDown,
   ChevronsUp,
+  Copy,
   NotebookPen,
   Plus,
   Trash2,
@@ -30,6 +31,7 @@ import {
 import { SortableList } from "../common/sortable-list";
 import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
+import { createDuplicatedPattern } from "./duplicate-pattern";
 import { PatternConditionEditor } from "./pattern-condition-editor";
 import { PatternComposeDialogTrigger } from "./pattern-compose-editor";
 
@@ -180,6 +182,27 @@ export const PatternEditor = () => {
     );
   };
 
+  const handleDuplicatePattern = (sourceUid: string) => {
+    const duplicateUid = createLocalId("pattern");
+    setPatterns((current) => {
+      const sourceIndex = current.findIndex(
+        (pattern) => pattern.uid === sourceUid,
+      );
+      if (sourceIndex < 0) return current;
+      return [
+        ...current,
+        createDuplicatedPattern({
+          source: current[sourceIndex],
+          nextUid: duplicateUid,
+          fallbackName: createDefaultPatternName(sourceIndex),
+        }),
+      ];
+    });
+    setCollapsedPatternUids((current) =>
+      current.filter((target) => target !== duplicateUid),
+    );
+  };
+
   const toggleMemo = (uid: string) => {
     setExpandedMemoUids((current) =>
       current.includes(uid)
@@ -229,16 +252,19 @@ export const PatternEditor = () => {
           >
             <ChevronsUp className="h-4 w-4" />
           </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={handleAddPattern}
-            aria-label="パターン追加"
-            title="パターン追加"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <span aria-hidden className="h-9 w-9 shrink-0" />
         </>
+      }
+      floatingActions={
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={handleAddPattern}
+          aria-label="パターン追加"
+          title="パターン追加"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       }
     >
       {patterns.length === 0 ? (
@@ -346,6 +372,17 @@ export const PatternEditor = () => {
                     }}
                   >
                     <NotebookPen className="h-4 w-4" />
+                  </Button>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 border border-transparent"
+                    aria-label="パターン複製"
+                    onClick={() => handleDuplicatePattern(pattern.uid)}
+                  >
+                    <Copy className="h-4 w-4 text-latte-subtext0" />
                   </Button>
 
                   <Button

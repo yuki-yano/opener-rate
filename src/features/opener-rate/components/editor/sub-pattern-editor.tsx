@@ -3,6 +3,7 @@ import {
   ChevronRight,
   ChevronsDown,
   ChevronsUp,
+  Copy,
   NotebookPen,
   Plus,
   Trash2,
@@ -34,6 +35,7 @@ import {
   subPatternsAtom,
 } from "../../state";
 import { createLocalId } from "./create-local-id";
+import { createDuplicatedSubPattern } from "./duplicate-pattern";
 import { PatternConditionEditor } from "./pattern-condition-editor";
 import { PatternComposeDialogTrigger } from "./pattern-compose-editor";
 
@@ -215,6 +217,27 @@ export const SubPatternEditor = () => {
     setCollapsedUids((current) => current.filter((target) => target !== uid));
   };
 
+  const handleDuplicateSubPattern = (sourceUid: string) => {
+    const duplicateUid = createLocalId("sub_pattern");
+    setSubPatterns((current) => {
+      const sourceIndex = current.findIndex(
+        (subPattern) => subPattern.uid === sourceUid,
+      );
+      if (sourceIndex < 0) return current;
+      return [
+        ...current,
+        createDuplicatedSubPattern({
+          source: current[sourceIndex],
+          nextUid: duplicateUid,
+          fallbackName: createDefaultSubPatternName(sourceIndex),
+        }),
+      ];
+    });
+    setCollapsedUids((current) =>
+      current.filter((target) => target !== duplicateUid),
+    );
+  };
+
   const toggleMemo = (uid: string) => {
     setExpandedMemoUids((current) =>
       current.includes(uid)
@@ -264,16 +287,19 @@ export const SubPatternEditor = () => {
           >
             <ChevronsUp className="h-4 w-4" />
           </Button>
-          <Button
-            size="icon"
-            variant="outline"
-            onClick={handleAddSubPattern}
-            aria-label="サブパターン追加"
-            title="サブパターン追加"
-          >
-            <Plus className="h-4 w-4" />
-          </Button>
+          <span aria-hidden className="h-9 w-9 shrink-0" />
         </>
+      }
+      floatingActions={
+        <Button
+          size="icon"
+          variant="outline"
+          onClick={handleAddSubPattern}
+          aria-label="サブパターン追加"
+          title="サブパターン追加"
+        >
+          <Plus className="h-4 w-4" />
+        </Button>
       }
     >
       {subPatterns.length === 0 ? (
@@ -365,6 +391,16 @@ export const SubPatternEditor = () => {
                     }}
                   >
                     <NotebookPen className="h-4 w-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 border border-transparent"
+                    aria-label="サブパターン複製"
+                    onClick={() => handleDuplicateSubPattern(subPattern.uid)}
+                  >
+                    <Copy className="h-4 w-4 text-latte-subtext0" />
                   </Button>
                   <Button
                     type="button"

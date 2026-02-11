@@ -340,7 +340,7 @@ export const PatternComposeDialogTrigger = ({
         onClick={() => handleDialogOpenChange(true)}
       >
         <FlaskConical className="mr-1.5 h-3.5 w-3.5 text-latte-blue" />
-        合成ジェネレーター
+        合成
       </Button>
       <DialogContent className="p-4 sm:p-6">
         <DialogHeader>
