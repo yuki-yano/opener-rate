@@ -9,7 +9,7 @@ import {
 import type { AppEnv } from "../types";
 
 const app = new Hono<AppEnv>();
-const BASE_SHARE_TITLE = "Opener Rate 初動率シミュレーター";
+const BASE_SHARE_TITLE = "初動率シミュレーター";
 const REDIRECT_SOURCE_SHORT_URL_KEY = "openerRate.redirectSourceShortUrl";
 
 const pickFirstHeaderValue = (raw: string | null) => {
