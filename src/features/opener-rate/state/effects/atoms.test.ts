@@ -75,9 +75,27 @@ describe("runCalculateAtom", () => {
 });
 
 describe("seedSharedUrlAsGeneratedAtom", () => {
-  it("marks shared URL as generated and locks regeneration until input changes", () => {
+  it("does not update short URL form when seeded URL is not a short URL", () => {
     const store = createStore();
     const sharedUrl = "https://example.com/#deck=abc";
+
+    store.set(seedSharedUrlAsGeneratedAtom, sharedUrl);
+
+    expect(store.get(shortUrlInputAtom)).toBe("");
+    expect(store.get(shortUrlResultAtom)).toBeNull();
+    expect(store.get(shortUrlCacheAtom)[sharedUrl]).toBeUndefined();
+    expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(false);
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(false);
+
+    store.set(savedInputAtom, differentSavedInput);
+
+    expect(store.get(calculateInputAtom).deck.cardCount).toBe(40);
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(false);
+  });
+
+  it("locks regeneration when seeded URL is a short URL", () => {
+    const store = createStore();
+    const sharedUrl = "https://example.com/short_url/abc123de";
 
     store.set(seedSharedUrlAsGeneratedAtom, sharedUrl);
 
@@ -86,10 +104,5 @@ describe("seedSharedUrlAsGeneratedAtom", () => {
     expect(store.get(shortUrlCacheAtom)[sharedUrl]).toBe(sharedUrl);
     expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
-
-    store.set(savedInputAtom, differentSavedInput);
-
-    expect(store.get(calculateInputAtom).deck.cardCount).toBe(40);
-    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(false);
   });
 });

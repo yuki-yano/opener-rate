@@ -10,6 +10,7 @@ import type { AppEnv } from "../types";
 
 const app = new Hono<AppEnv>();
 const BASE_SHARE_TITLE = "Opener Rate 初動率シミュレーター";
+const REDIRECT_SOURCE_SHORT_URL_KEY = "openerRate.redirectSourceShortUrl";
 
 const pickFirstHeaderValue = (raw: string | null) => {
   if (raw == null) return null;
@@ -94,10 +95,16 @@ const escapeHtml = (value: string) =>
 const buildShareTitle = (deckName: string | null) =>
   deckName == null ? BASE_SHARE_TITLE : `${BASE_SHARE_TITLE} - ${deckName}`;
 
-const buildRedirectHtml = (targetUrl: string, deckName: string | null) => {
+const buildRedirectHtml = (
+  targetUrl: string,
+  deckName: string | null,
+  sourceShortUrl?: string,
+) => {
   const shareTitle = buildShareTitle(deckName);
   const escapedTarget = escapeHtml(targetUrl);
   const escapedTitle = escapeHtml(shareTitle);
+  const sourceShortUrlJson =
+    sourceShortUrl == null ? "null" : JSON.stringify(sourceShortUrl);
 
   return `<!doctype html>
 <html lang="ja">
@@ -112,11 +119,22 @@ const buildRedirectHtml = (targetUrl: string, deckName: string | null) => {
     <meta name="twitter:card" content="summary" />
     <meta name="twitter:title" content="${escapedTitle}" />
     <meta name="twitter:url" content="${escapedTarget}" />
-    <meta http-equiv="refresh" content="0;url=${escapedTarget}" />
     <link rel="canonical" href="${escapedTarget}" />
     <script>
+      const sourceShortUrl = ${sourceShortUrlJson};
+      if (typeof sourceShortUrl === "string" && sourceShortUrl.length > 0) {
+        try {
+          window.sessionStorage.setItem(
+            ${JSON.stringify(REDIRECT_SOURCE_SHORT_URL_KEY)},
+            sourceShortUrl,
+          );
+        } catch {
+          // sessionStorage が無効な環境はそのまま遷移
+        }
+      }
       window.location.replace(${JSON.stringify(targetUrl)});
     </script>
+    <meta http-equiv="refresh" content="0;url=${escapedTarget}" />
   </head>
   <body>
     <p>リダイレクト中です…</p>
@@ -149,6 +167,7 @@ export const resolveShortUrlRoute = app.get(
   async (c) => {
     const key = c.req.param("key");
     const requestOrigin = resolveRequestOrigin(c.req.raw);
+    const sourceShortUrl = new URL(`/short_url/${key}`, requestOrigin).toString();
     const fallbackTargetUrl = new URL("/", requestOrigin).toString();
     const targetUrl = await resolveShortUrlTarget({
       bindings: c.env,
@@ -164,7 +183,9 @@ export const resolveShortUrlRoute = app.get(
       const deckName = extractDeckName(
         parsedTargetUrl.searchParams.get("deckName"),
       );
-      return c.html(buildRedirectHtml(parsedTargetUrl.toString(), deckName));
+      return c.html(
+        buildRedirectHtml(parsedTargetUrl.toString(), deckName, sourceShortUrl),
+      );
     } catch {
       return c.html(buildRedirectHtml(fallbackTargetUrl, null));
     }

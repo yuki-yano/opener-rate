@@ -31,6 +31,7 @@ const urlStateKeys = [
   "pot",
   "vs",
 ] as const;
+const redirectSourceShortUrlStorageKey = "openerRate.redirectSourceShortUrl";
 const autoCalculatedUrls = new Set<string>();
 
 const hasUrlState = () => {
@@ -47,6 +48,20 @@ const hasUrlState = () => {
   });
 };
 
+const consumeRedirectSourceShortUrl = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    const raw = window.sessionStorage.getItem(redirectSourceShortUrlStorageKey);
+    if (raw == null) return null;
+    window.sessionStorage.removeItem(redirectSourceShortUrlStorageKey);
+
+    const url = raw.trim();
+    return url.length > 0 ? url : null;
+  } catch {
+    return null;
+  }
+};
+
 export const OpenerRateScreen = () => {
   const markSavedSnapshot = useSetAtom(markSavedSnapshotAtom);
   const runCalculate = useSetAtom(runCalculateAtom);
@@ -58,10 +73,13 @@ export const OpenerRateScreen = () => {
 
   useEffect(() => {
     if (typeof window === "undefined") return;
+    const redirectSourceShortUrl = consumeRedirectSourceShortUrl();
+    if (redirectSourceShortUrl != null) {
+      seedSharedUrlAsGenerated(redirectSourceShortUrl);
+    }
     if (!hasUrlState()) return;
 
     const currentUrl = window.location.href;
-    seedSharedUrlAsGenerated(currentUrl);
     if (autoCalculatedUrls.has(currentUrl)) return;
     autoCalculatedUrls.add(currentUrl);
     void runCalculate();

@@ -22,6 +22,15 @@ const toErrorMessage = (error: unknown) => {
   return "予期しない通信エラーが発生しました";
 };
 
+const isShortUrlPath = (url: string) => {
+  try {
+    const parsed = new URL(url);
+    return /^\/short_url\/[0-9a-z]{8}\/?$/.test(parsed.pathname);
+  } catch {
+    return false;
+  }
+};
+
 export const markSavedSnapshotAtom = atom(
   null,
   (get, set, snapshot?: CalculateInput) => {
@@ -110,14 +119,16 @@ export const seedSharedUrlAsGeneratedAtom = atom(
   (_get, set, sharedUrl: string) => {
     const url = sharedUrl.trim();
     if (url.length === 0) return;
+    const isShortUrl = isShortUrlPath(url);
+    if (!isShortUrl) {
+      set(shortUrlLockedUntilChangeAtom, false);
+      return;
+    }
 
     set(shortUrlInputAtom, url);
     set(shortUrlResultAtom, url);
     set(shortUrlErrorAtom, null);
     set(shortUrlLockedUntilChangeAtom, true);
-    set(shortUrlCacheAtom, (prev) => ({
-      ...prev,
-      [url]: url,
-    }));
+    set(shortUrlCacheAtom, (prev) => ({ ...prev, [url]: url }));
   },
 );
