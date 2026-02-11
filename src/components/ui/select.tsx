@@ -93,9 +93,9 @@ export const Select = ({
                   disabled={option.disabled}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-latte-text transition",
-                    "hover:bg-latte-surface0/70",
-                    "focus-visible:bg-latte-surface0/80 focus-visible:outline-none",
-                    selected && "bg-latte-surface0/80",
+                    "hover:bg-latte-crust",
+                    "focus-visible:bg-latte-crust focus-visible:outline-none",
+                    selected && "bg-latte-crust",
                     option.disabled && "cursor-not-allowed opacity-50",
                   )}
                   onClick={() => {
@@ -108,7 +108,7 @@ export const Select = ({
                     className={cn(
                       "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-latte-surface1",
                       selected &&
-                        "border-latte-blue bg-latte-blue/20 text-latte-blue",
+                        "border-latte-blue bg-latte-blue/16 text-latte-blue",
                     )}
                   >
                     <Check

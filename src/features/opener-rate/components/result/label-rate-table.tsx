@@ -10,7 +10,7 @@ import {
 import { SectionCard } from "../layout/section-card";
 
 const rateBadgeClassName =
-  "min-w-[4.75rem] justify-center rounded-md border-latte-blue/45 bg-latte-blue/18 px-2.5 py-1 text-sm font-semibold tabular-nums text-latte-blue";
+  "min-w-[5rem] justify-center px-2.5 py-1 text-sm tabular-nums";
 const diffEpsilon = 0.005;
 
 type RateDiff = {
@@ -89,7 +89,7 @@ export const LabelRateTable = () => {
           return (
             <div
               key={label.uid}
-              className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/70 px-3 py-2"
+              className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface0/70 bg-latte-mantle px-3 py-2.5"
             >
               <span className="text-xs tabular-nums text-latte-overlay1">
                 {index + 1}

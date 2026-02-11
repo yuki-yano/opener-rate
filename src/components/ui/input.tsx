@@ -11,9 +11,9 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
       <input
         ref={ref}
         className={cn(
-          "h-10 w-full rounded-md border border-latte-surface1 bg-latte-crust px-3 text-sm text-latte-text shadow-sm outline-none transition",
+          "h-10 w-full rounded-md border border-latte-surface0 bg-latte-mantle px-3 text-sm text-latte-text shadow-sm outline-none transition",
           "placeholder:text-latte-overlay1",
-          "focus:border-latte-blue focus:ring-2 focus:ring-latte-blue/25",
+          "focus:border-latte-blue focus:ring-2 focus:ring-latte-blue/20",
           "disabled:cursor-not-allowed disabled:opacity-60",
           className,
         )}

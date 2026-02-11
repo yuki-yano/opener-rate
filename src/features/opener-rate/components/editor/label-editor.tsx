@@ -50,7 +50,7 @@ export const LabelEditor = () => {
       }
     >
       {labels.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-4 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
           ラベルがありません。「ラベル追加」から作成してください。
         </p>
       ) : null}
@@ -65,10 +65,10 @@ export const LabelEditor = () => {
           const isMemoExpanded = expandedMemoUids.includes(label.uid);
 
           return (
-            <div className="space-y-2 rounded-md border border-latte-surface1/80 bg-latte-crust/70 py-3 pl-9 pr-3">
+            <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                 <Input
-                  className="border-latte-surface2/70 bg-latte-surface0/55 text-latte-text placeholder:text-latte-overlay1"
+                  className="border-latte-surface0/80 bg-latte-mantle text-latte-text placeholder:text-latte-overlay1"
                   value={label.name}
                   placeholder="ラベル名（必須）"
                   onChange={(event) =>
@@ -116,7 +116,7 @@ export const LabelEditor = () => {
                 </p>
               ) : null}
               {isMemoExpanded ? (
-                <div className="rounded-md border border-latte-surface1/70 bg-latte-mantle/55 p-2">
+                <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
                   <Textarea
                     value={label.memo}
                     placeholder="メモ"

@@ -37,7 +37,7 @@ const DialogContent = forwardRef<
     <DialogPrimitive.Content
       ref={ref}
       className={cn(
-        "fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-lg border border-latte-surface0 bg-latte-mantle p-6 shadow-xl outline-none",
+        "fixed left-1/2 top-1/2 z-50 w-[95vw] max-w-2xl -translate-x-1/2 -translate-y-1/2 rounded-md border border-latte-surface0 bg-latte-mantle p-6 shadow-panel outline-none",
         className,
       )}
       {...props}
@@ -50,7 +50,7 @@ const DialogHeader = ({
   className,
   ...props
 }: HTMLAttributes<HTMLDivElement>) => (
-  <div className={cn("mb-4 space-y-1", className)} {...props} />
+  <div className={cn("mb-4 space-y-1.5", className)} {...props} />
 );
 
 const DialogTitle = forwardRef<
@@ -71,7 +71,7 @@ const DialogDescription = forwardRef<
 >(({ className, ...props }, ref) => (
   <DialogPrimitive.Description
     ref={ref}
-    className={cn("text-latte-subtext0 text-sm", className)}
+    className={cn("text-sm text-latte-subtext0", className)}
     {...props}
   />
 ));

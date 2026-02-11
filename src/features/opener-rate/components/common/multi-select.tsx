@@ -80,7 +80,7 @@ export const MultiSelect = ({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "h-auto min-h-9 w-full justify-between py-1.5 text-left text-sm font-normal",
+              "h-auto min-h-9 w-full justify-between py-1.5 text-left text-sm font-medium",
               selectedOptions.length === 0 && "text-latte-overlay1",
             )}
           >
@@ -92,7 +92,7 @@ export const MultiSelect = ({
                   {selectedOptions.map((option) => (
                     <span
                       key={`selected-${option.value}`}
-                      className="inline-flex max-w-full items-center rounded border border-latte-surface1 bg-latte-mantle/80 px-1.5 py-0.5 text-sm font-medium leading-5 text-latte-subtext0"
+                      className="inline-flex max-w-full items-center rounded-md border border-latte-surface0/70 bg-latte-base/84 px-1.5 py-0.5 text-sm font-medium leading-5 text-latte-subtext0"
                     >
                       <span className="break-all">{option.label}</span>
                     </span>
@@ -118,7 +118,7 @@ export const MultiSelect = ({
                   type="button"
                   onClick={handleSelectAll}
                   disabled={disabled || !canSelectAll}
-                  className="rounded px-2 py-1 text-xs font-medium text-latte-blue transition hover:bg-latte-surface0/70 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-latte-blue transition hover:bg-latte-crust/60 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
                 >
                   {selectAllLabel}
                 </button>
@@ -126,7 +126,7 @@ export const MultiSelect = ({
                   type="button"
                   onClick={handleClearAll}
                   disabled={disabled || !canClearAll}
-                  className="rounded px-2 py-1 text-xs font-medium text-latte-subtext0 transition hover:bg-latte-surface0/70 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-latte-subtext0 transition hover:bg-latte-crust/60 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
                 >
                   {clearAllLabel}
                 </button>
@@ -149,13 +149,13 @@ export const MultiSelect = ({
                       key={option.value}
                       value={toSearchableValue(option)}
                       onSelect={() => handleToggle(option.value)}
-                      className="flex cursor-pointer items-center gap-2 rounded-md px-2 py-2 text-sm outline-none transition data-[selected=true]:bg-latte-surface0/80"
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition data-[selected=true]:bg-latte-crust/70"
                     >
                       <span
                         className={cn(
                           "inline-flex h-4 w-4 items-center justify-center rounded border border-latte-surface1",
                           selected &&
-                            "border-latte-blue bg-latte-blue/20 text-latte-blue",
+                            "border-latte-blue bg-latte-blue/16 text-latte-blue",
                         )}
                       >
                         <Check

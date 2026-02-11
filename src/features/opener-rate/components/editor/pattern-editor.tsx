@@ -266,7 +266,7 @@ export const PatternEditor = () => {
       }
     >
       {patterns.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-4 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
           パターンがありません。「パターン追加」から作成してください。
         </p>
       ) : null}
@@ -274,7 +274,7 @@ export const PatternEditor = () => {
       <SortableList
         items={patterns}
         onReorder={(next) => setPatterns(next)}
-        handleClassName="top-[1.625rem]"
+        handleClassName="top-[2.1875rem] -translate-y-1/2"
         renderItem={(pattern) => {
           const isNameEmpty = pattern.name.trim().length === 0;
           const isMemoExpanded = expandedMemoUids.includes(pattern.uid);
@@ -290,33 +290,13 @@ export const PatternEditor = () => {
           return (
             <div
               className={cn(
-                "relative min-w-0 space-y-2.5 rounded-lg border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--ctp-base)/0.45)]",
+                "relative min-w-0 space-y-2.5 rounded-md border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--ctp-base)/0.45)]",
                 pattern.active
-                  ? "border-latte-blue/45 bg-latte-mantle/92"
-                  : "border-latte-red/45 bg-latte-mantle/78",
+                  ? "border-latte-blue/45 bg-latte-mantle"
+                  : "border-latte-red/45 bg-latte-base/78",
               )}
             >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "absolute left-2 z-10 h-8 w-5 rounded-md border border-latte-surface1 bg-latte-base/90 p-0 text-latte-subtext0 shadow-sm transition-colors duration-150 hover:border-latte-blue/60 hover:text-latte-blue",
-                  isPatternExpanded
-                    ? "top-1/2 -translate-y-1/2"
-                    : "top-[4.8125rem]",
-                )}
-                aria-label={isPatternExpanded ? "折りたたむ" : "展開する"}
-                onClick={() => toggleCollapsed(pattern.uid)}
-              >
-                {isPatternExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-
-              <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface1/65 bg-latte-base/72 px-1.5 py-1">
+              <div className="relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface0/70 bg-latte-mantle px-2 py-1.5">
                 <Checkbox
                   checked={pattern.active}
                   onChange={(event) =>
@@ -330,13 +310,13 @@ export const PatternEditor = () => {
                   }
                   aria-label="パターン有効切り替え"
                   className={cn(
-                    "h-8 w-8 justify-center gap-0 border-transparent bg-latte-mantle/70 px-0 shadow-none",
+                    "h-8 w-8 justify-center gap-0 border-transparent bg-latte-crust/60 px-0 shadow-none",
                     pattern.active ? "text-latte-blue" : "text-latte-red",
                   )}
                 />
 
                 <Input
-                  className="h-9 border-latte-surface2/70 bg-latte-surface0/55 text-latte-text placeholder:text-latte-overlay1"
+                  className="h-9 border-latte-surface0/80 bg-latte-mantle text-latte-text placeholder:text-latte-overlay1"
                   value={pattern.name}
                   placeholder="パターン名（必須）"
                   onChange={(event) =>
@@ -515,7 +495,7 @@ export const PatternEditor = () => {
                       ))}
                     </div>
                   </div>
-                  <div className="space-y-2 rounded-md border border-latte-surface1/75 bg-latte-base/60 p-2">
+                  <div className="space-y-2 rounded-md border border-latte-surface0/70 bg-latte-crust/70 p-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs text-latte-subtext0">効果</p>
                       <Button
@@ -552,7 +532,7 @@ export const PatternEditor = () => {
                         {patternEffects.map((effect, effectIndex) => (
                           <div
                             key={`${pattern.uid}-effect-${effectIndex}`}
-                            className="grid min-w-0 gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/72 p-2"
+                            className="grid min-w-0 gap-2 rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5"
                           >
                             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
                               <Select
@@ -745,10 +725,10 @@ export const PatternEditor = () => {
                       )
                     }
                     label="合計初動率に計算しない"
-                    className="h-8 border-latte-surface1/70 bg-latte-mantle/55"
+                    className="h-8 border-latte-surface0/70 bg-latte-crust/60"
                   />
                   {isMemoExpanded ? (
-                    <div className="rounded-md border border-latte-surface1/75 bg-latte-base/60 p-2">
+                    <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/70 p-2.5">
                       <Textarea
                         value={pattern.memo}
                         placeholder="メモ"
@@ -767,13 +747,36 @@ export const PatternEditor = () => {
                   ) : null}
                 </>
               ) : (
-                <div className="flex flex-wrap items-center gap-2 rounded-md border border-latte-surface1/70 bg-latte-base/58 px-2.5 py-2 text-xs text-latte-subtext0">
+                <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-latte-surface0/70 bg-latte-crust/60 px-2.5 py-2 text-xs text-latte-subtext0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-[-1.75rem] top-1/2 z-10 h-8 w-5 -translate-y-1/2 rounded-md border border-latte-surface0/80 bg-latte-base p-0 text-latte-subtext0 shadow-sm transition-colors duration-150 hover:border-latte-blue/60 hover:text-latte-blue"
+                    aria-label="展開する"
+                    onClick={() => toggleCollapsed(pattern.uid)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                   <span>条件: {pattern.conditions.length}</span>
                   <span>ラベル: {summaryLabels.length}</span>
                   <span>効果: {patternEffects.length}</span>
                   {isExcludedFromOverall ? <span>集計除外</span> : null}
                 </div>
               )}
+
+              {isPatternExpanded ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 z-10 h-8 w-5 -translate-y-1/2 rounded-md border border-latte-surface0/80 bg-latte-base p-0 text-latte-subtext0 shadow-sm transition-colors duration-150 hover:border-latte-blue/60 hover:text-latte-blue"
+                  aria-label="折りたたむ"
+                  onClick={() => toggleCollapsed(pattern.uid)}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              ) : null}
             </div>
           );
         }}

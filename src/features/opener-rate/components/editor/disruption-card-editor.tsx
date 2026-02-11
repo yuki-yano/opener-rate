@@ -87,7 +87,7 @@ export const DisruptionCardEditor = () => {
         }
       >
         {disruptionCategories.length === 0 ? (
-          <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-4 text-xs text-latte-subtext0">
+          <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
             妨害カテゴリがありません。「妨害カテゴリ追加」から作成してください。
           </p>
         ) : null}
@@ -104,7 +104,7 @@ export const DisruptionCardEditor = () => {
             );
 
             return (
-              <div className="space-y-2 rounded-md border border-latte-surface1/80 bg-latte-crust/70 py-3 pl-9 pr-3">
+              <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                   <Input
                     value={category.name}
@@ -173,7 +173,7 @@ export const DisruptionCardEditor = () => {
                 ) : null}
 
                 {isMemoExpanded ? (
-                  <div className="rounded-md border border-latte-surface1/70 bg-latte-mantle/55 p-2">
+                  <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
                     <Textarea
                       value={category.memo}
                       placeholder="メモ"
@@ -212,7 +212,7 @@ export const DisruptionCardEditor = () => {
         }
       >
         {disruptionCards.length === 0 ? (
-          <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-4 text-xs text-latte-subtext0">
+          <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
             妨害カードがありません。「妨害カード追加」から作成してください。
           </p>
         ) : null}
@@ -229,7 +229,7 @@ export const DisruptionCardEditor = () => {
             );
 
             return (
-              <div className="space-y-2 rounded-md border border-latte-surface1/80 bg-latte-crust/70 py-3 pl-9 pr-3">
+              <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                   <Input
                     value={disruptionCard.name}
@@ -332,7 +332,7 @@ export const DisruptionCardEditor = () => {
                 ) : null}
 
                 {isMemoExpanded ? (
-                  <div className="rounded-md border border-latte-surface1/70 bg-latte-mantle/55 p-2">
+                  <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
                     <Textarea
                       value={disruptionCard.memo}
                       placeholder="メモ"

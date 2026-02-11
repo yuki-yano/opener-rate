@@ -4,19 +4,20 @@ import { type ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "../../lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-latte-blue/40 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center rounded-md text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-latte-blue/30 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
-          "bg-latte-lavender text-latte-base shadow-sm hover:bg-latte-lavender/85 active:bg-latte-lavender/75",
+          "border border-latte-surface0 bg-latte-surface0 text-latte-text shadow-sm hover:bg-latte-surface1/85 active:bg-latte-surface1",
         outline:
-          "border border-latte-surface1 text-latte-text hover:bg-latte-surface0/50",
-        ghost: "text-latte-text hover:bg-latte-surface0",
+          "border border-latte-surface0 bg-latte-mantle text-latte-text shadow-sm hover:bg-latte-crust",
+        ghost:
+          "border border-transparent text-latte-subtext0 hover:border-latte-surface0 hover:bg-latte-crust hover:text-latte-text",
       },
       size: {
-        default: "px-4 py-2",
-        sm: "px-3 py-2 text-xs",
+        default: "h-10 px-4",
+        sm: "h-8 px-3 text-xs",
         icon: "h-9 w-9",
       },
     },

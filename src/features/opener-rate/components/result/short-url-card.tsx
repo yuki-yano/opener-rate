@@ -33,13 +33,20 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
   }, [copied]);
 
   return (
-    <section className={cn("space-y-2", className)}>
+    <section
+      className={cn(
+        "space-y-3 rounded-md border border-latte-surface0/80 bg-latte-mantle p-4 shadow-panel",
+        className,
+      )}
+    >
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-        <span className="text-xs font-medium text-latte-subtext1">共有URL</span>
+        <span className="text-sm font-semibold tracking-[0.08em] text-latte-text">
+          共有URL
+        </span>
         <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-2">
           <div className="relative min-w-0">
             <Input
-              className="h-8 pr-9 text-xs"
+              className="h-10 pr-9 text-sm"
               value={url}
               readOnly
               placeholder="「共有」を押すとURLを生成します"
@@ -48,7 +55,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute right-1 top-1/2 h-6 w-6 -translate-y-1/2 rounded text-latte-subtext0 hover:text-latte-blue"
+              className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md text-latte-subtext0 hover:text-latte-blue"
               aria-label="URLをコピー"
               onClick={async () => {
                 const text = url.trim();
@@ -69,7 +76,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
             </Button>
           </div>
           <Button
-            className="h-8 px-3 text-xs"
+            className="h-10 px-3 text-xs"
             size="sm"
             onClick={() => {
               void runShareCurrentUrl();
@@ -86,7 +93,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
       </div>
 
       {shortUrlError ? (
-        <p className="rounded-md border border-latte-red/40 bg-latte-red/10 px-2 py-1.5 text-xs text-latte-red">
+        <p className="rounded-md border border-latte-red/40 bg-latte-red/12 px-3 py-2 text-xs text-latte-red">
           {shortUrlError}
         </p>
       ) : null}

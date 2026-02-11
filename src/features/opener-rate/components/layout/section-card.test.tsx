@@ -47,8 +47,8 @@ describe("SectionCard", () => {
         /<div class="([^"]*pointer-events-auto[^"]*)"><button type="button">追加/,
       )?.[1] ?? "";
     expect(floatingClass).toContain("pointer-events-auto");
-    expect(floatingClass).toContain("[&amp;&gt;button]:bg-latte-surface0");
-    expect(floatingClass).toContain("[&amp;&gt;button]:border-latte-surface1");
+    expect(floatingClass).toContain("[&amp;&gt;button]:bg-latte-mantle");
+    expect(floatingClass).toContain("[&amp;&gt;button]:border-latte-surface0");
   });
 
   it("merges custom floating action class names", () => {

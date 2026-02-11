@@ -74,7 +74,7 @@ export const VsSimulationEditor = () => {
         </Button>
       }
     >
-      <div className="rounded-md border border-latte-surface1/80 bg-latte-base/55 px-3 py-2 text-xs text-latte-subtext0">
+      <div className="rounded-md border border-latte-surface0/80 bg-latte-mantle px-3 py-2.5 text-xs text-latte-subtext0">
         <p>入力ガイド</p>
         <p className="mt-1">枚数: 相手デッキに入っているその妨害札の枚数</p>
         <p>
@@ -140,12 +140,12 @@ export const VsSimulationEditor = () => {
       </div>
 
       {vs.opponentDisruptions.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-4 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
           妨害札がありません。「妨害札追加」から作成してください。
         </p>
       ) : null}
       {disruptionCards.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-3 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-3 text-xs text-latte-subtext0">
           妨害カード一覧が空です。先に妨害カードを登録してください。
         </p>
       ) : null}
@@ -169,7 +169,7 @@ export const VsSimulationEditor = () => {
           const isNameEmpty = resolvedName.trim().length === 0;
 
           return (
-            <div className="space-y-2 rounded-md border border-latte-surface1/80 bg-latte-crust/70 py-3 pl-9 pr-3">
+            <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
               <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_7rem_auto] sm:items-end">
                 <div className="space-y-1 text-[11px] text-latte-subtext0">
                   <p>妨害カード</p>

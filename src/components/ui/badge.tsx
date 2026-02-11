@@ -14,15 +14,15 @@ export const Badge = ({
   return (
     <span
       className={cn(
-        "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+        "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium",
         variant === "default" &&
-          "bg-latte-lavender/20 text-latte-lavender border border-latte-lavender/35",
+          "border-latte-blue/35 bg-latte-blue/12 text-latte-blue",
         variant === "muted" &&
-          "bg-latte-surface0/60 text-latte-subtext1 border border-latte-surface1",
+          "border-latte-surface0 bg-latte-crust text-latte-subtext1",
         variant === "danger" &&
-          "bg-latte-red/20 text-latte-red border border-latte-red/35",
+          "border-latte-red/35 bg-latte-red/12 text-latte-red",
         variant === "success" &&
-          "bg-latte-green/20 text-latte-green border border-latte-green/35",
+          "border-latte-green/35 bg-latte-green/12 text-latte-green",
         className,
       )}
       {...props}

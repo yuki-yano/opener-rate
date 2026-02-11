@@ -4,64 +4,36 @@
 
 :root {
   color-scheme: light;
-  font-family:
-    system-ui,
-    -apple-system,
-    BlinkMacSystemFont,
-    "Segoe UI",
-    sans-serif;
+  --font-body:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Kaku Gothic ProN",
+    "Yu Gothic", "Meiryo", Helvetica, Arial, sans-serif;
   line-height: 1.5;
   font-weight: 400;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --ctp-base: 239 241 245;
-  --ctp-mantle: 230 233 239;
-  --ctp-crust: 220 224 232;
-  --ctp-text: 76 79 105;
-  --ctp-subtext1: 92 95 119;
-  --ctp-subtext0: 108 111 133;
-  --ctp-surface0: 204 208 218;
-  --ctp-surface1: 188 192 204;
-  --ctp-surface2: 172 176 190;
-  --ctp-overlay0: 156 160 176;
-  --ctp-overlay1: 140 143 161;
-  --ctp-overlay2: 124 127 147;
-  --ctp-blue: 30 102 245;
-  --ctp-lavender: 114 135 253;
-  --ctp-peach: 254 100 11;
-  --ctp-red: 210 15 57;
-  --ctp-green: 64 160 43;
-  --ctp-yellow: 223 142 29;
-  --ctp-mauve: 136 57 239;
-  --ctp-maroon: 230 69 83;
-  --ctp-shadow: 31 30 58;
-}
-
-:root[data-theme="mocha"] {
-  color-scheme: dark;
-  --ctp-base: 30 30 46;
-  --ctp-mantle: 24 24 37;
-  --ctp-crust: 17 17 27;
-  --ctp-text: 205 214 244;
-  --ctp-subtext1: 186 194 222;
-  --ctp-subtext0: 166 173 200;
-  --ctp-surface0: 49 50 68;
-  --ctp-surface1: 69 71 90;
-  --ctp-surface2: 88 91 112;
-  --ctp-overlay0: 108 112 134;
-  --ctp-overlay1: 127 132 156;
-  --ctp-overlay2: 147 153 178;
-  --ctp-blue: 137 180 250;
-  --ctp-lavender: 180 190 254;
-  --ctp-peach: 250 179 135;
-  --ctp-red: 243 139 168;
-  --ctp-green: 166 227 161;
-  --ctp-yellow: 249 226 175;
-  --ctp-mauve: 203 166 247;
-  --ctp-maroon: 235 160 172;
-  --ctp-shadow: 8 10 22;
+  --ctp-base: 247 250 252;
+  --ctp-mantle: 255 255 255;
+  --ctp-crust: 237 242 247;
+  --ctp-text: 26 32 44;
+  --ctp-subtext1: 45 55 72;
+  --ctp-subtext0: 74 85 104;
+  --ctp-surface0: 226 232 240;
+  --ctp-surface1: 203 213 224;
+  --ctp-surface2: 160 174 192;
+  --ctp-overlay0: 113 128 150;
+  --ctp-overlay1: 74 85 104;
+  --ctp-overlay2: 45 55 72;
+  --ctp-blue: 49 130 206;
+  --ctp-lavender: 66 153 225;
+  --ctp-peach: 66 153 225;
+  --ctp-red: 229 62 62;
+  --ctp-green: 56 161 105;
+  --ctp-yellow: 214 158 46;
+  --ctp-mauve: 128 90 213;
+  --ctp-maroon: 197 48 48;
+  --ctp-shadow: 15 23 42;
 }
 
 body {
@@ -70,6 +42,7 @@ body {
   min-height: 100svh;
   background-color: rgb(var(--ctp-base));
   color: rgb(var(--ctp-text));
+  font-family: var(--font-body);
 }
 
 #root {
@@ -78,6 +51,11 @@ body {
 
 a {
   color: inherit;
+}
+
+::selection {
+  background-color: rgb(var(--ctp-blue) / 0.18);
+  color: rgb(var(--ctp-text));
 }
 
 button {

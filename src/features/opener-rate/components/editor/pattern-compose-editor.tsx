@@ -313,7 +313,7 @@ export const PatternComposeDialogTrigger = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2 rounded-lg border border-latte-blue/20 bg-[linear-gradient(145deg,rgba(var(--ctp-blue),0.12),rgba(var(--ctp-surface0),0.35))] p-3">
+        <div className="space-y-2 rounded-md border border-latte-surface0 bg-latte-crust p-3.5">
           <div className="space-y-0.5">
             {isComposeLocked ? (
               <p className="text-[11px] text-latte-overlay1">
@@ -405,7 +405,7 @@ export const PatternComposeDialogTrigger = () => {
             )}
           </div>
           {filterInputMode === "inline" ? (
-            <div className="space-y-1.5 rounded-md border border-latte-surface1/70 bg-latte-base/55 p-2.5">
+            <div className="space-y-1.5 rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
               <div className="flex items-center justify-between">
                 <p className="text-[11px] text-latte-subtext0">
                   手動フィルタ条件

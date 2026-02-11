@@ -303,7 +303,7 @@ export const SubPatternEditor = () => {
       }
     >
       {subPatterns.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-4 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
           サブパターンがありません。「サブパターン追加」から作成してください。
         </p>
       ) : null}
@@ -311,7 +311,7 @@ export const SubPatternEditor = () => {
       <SortableList
         items={subPatterns}
         onReorder={(next) => setSubPatterns(next)}
-        handleClassName="top-[1.625rem]"
+        handleClassName="top-[2.1875rem] -translate-y-1/2"
         renderItem={(subPattern) => {
           const isNameEmpty = subPattern.name.trim().length === 0;
           const isMemoExpanded = expandedMemoUids.includes(subPattern.uid);
@@ -319,31 +319,13 @@ export const SubPatternEditor = () => {
           return (
             <div
               className={cn(
-                "relative min-w-0 space-y-2.5 rounded-lg border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--ctp-base)/0.45)]",
+                "relative min-w-0 space-y-2.5 rounded-md border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--ctp-base)/0.45)]",
                 subPattern.active
-                  ? "border-latte-blue/45 bg-latte-mantle/92"
-                  : "border-latte-red/45 bg-latte-mantle/78",
+                  ? "border-latte-blue/45 bg-latte-mantle"
+                  : "border-latte-red/45 bg-latte-base/78",
               )}
             >
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className={cn(
-                  "absolute left-2 z-10 h-8 w-5 rounded-md border border-latte-surface1 bg-latte-base/90 p-0 text-latte-subtext0 shadow-sm transition-colors duration-150 hover:border-latte-blue/60 hover:text-latte-blue",
-                  isExpanded ? "top-1/2 -translate-y-1/2" : "top-[4.8125rem]",
-                )}
-                aria-label={isExpanded ? "折りたたむ" : "展開する"}
-                onClick={() => toggleCollapsed(subPattern.uid)}
-              >
-                {isExpanded ? (
-                  <ChevronDown className="h-4 w-4" />
-                ) : (
-                  <ChevronRight className="h-4 w-4" />
-                )}
-              </Button>
-
-              <div className="grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface1/65 bg-latte-base/72 px-1.5 py-1">
+              <div className="relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface0/70 bg-latte-mantle px-2 py-1.5">
                 <Checkbox
                   checked={subPattern.active}
                   onChange={(event) =>
@@ -354,13 +336,13 @@ export const SubPatternEditor = () => {
                   }
                   aria-label="サブパターン有効切り替え"
                   className={cn(
-                    "h-8 w-8 justify-center gap-0 border-transparent bg-latte-mantle/70 px-0 shadow-none",
+                    "h-8 w-8 justify-center gap-0 border-transparent bg-latte-crust/60 px-0 shadow-none",
                     subPattern.active ? "text-latte-blue" : "text-latte-red",
                   )}
                 />
 
                 <Input
-                  className="h-9 border-latte-surface2/70 bg-latte-surface0/55 text-latte-text placeholder:text-latte-overlay1"
+                  className="h-9 border-latte-surface0/80 bg-latte-mantle text-latte-text placeholder:text-latte-overlay1"
                   value={subPattern.name}
                   placeholder="サブパターン名（必須）"
                   onChange={(event) =>
@@ -561,7 +543,7 @@ export const SubPatternEditor = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2 rounded-md border border-latte-surface1/75 bg-latte-base/60 p-2">
+                  <div className="space-y-2 rounded-md border border-latte-surface0/70 bg-latte-crust/70 p-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs text-latte-subtext0">効果</p>
                       <Button
@@ -589,7 +571,7 @@ export const SubPatternEditor = () => {
                         {subPattern.effects.map((effect, effectIndex) => (
                           <div
                             key={`${subPattern.uid}-effect-${effectIndex}`}
-                            className="grid min-w-0 gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/72 p-2"
+                            className="grid min-w-0 gap-2 rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5"
                           >
                             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
                               <Select
@@ -738,7 +720,7 @@ export const SubPatternEditor = () => {
                   </div>
 
                   {isMemoExpanded ? (
-                    <div className="rounded-md border border-latte-surface1/75 bg-latte-base/60 p-2">
+                    <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/70 p-2.5">
                       <Textarea
                         value={subPattern.memo}
                         placeholder="メモ"
@@ -754,11 +736,34 @@ export const SubPatternEditor = () => {
                   ) : null}
                 </>
               ) : (
-                <div className="flex flex-wrap items-center gap-2 rounded-md border border-latte-surface1/70 bg-latte-base/58 px-2.5 py-2 text-xs text-latte-subtext0">
+                <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-latte-surface0/70 bg-latte-crust/60 px-2.5 py-2 text-xs text-latte-subtext0">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="absolute left-[-1.75rem] top-1/2 z-10 h-8 w-5 -translate-y-1/2 rounded-md border border-latte-surface0/80 bg-latte-base p-0 text-latte-subtext0 shadow-sm transition-colors duration-150 hover:border-latte-blue/60 hover:text-latte-blue"
+                    aria-label="展開する"
+                    onClick={() => toggleCollapsed(subPattern.uid)}
+                  >
+                    <ChevronRight className="h-4 w-4" />
+                  </Button>
                   <span>条件: {subPattern.triggerConditions.length}</span>
                   <span>効果: {subPattern.effects.length}</span>
                 </div>
               )}
+
+              {isExpanded ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute left-2 top-1/2 z-10 h-8 w-5 -translate-y-1/2 rounded-md border border-latte-surface0/80 bg-latte-base p-0 text-latte-subtext0 shadow-sm transition-colors duration-150 hover:border-latte-blue/60 hover:text-latte-blue"
+                  aria-label="折りたたむ"
+                  onClick={() => toggleCollapsed(subPattern.uid)}
+                >
+                  <ChevronDown className="h-4 w-4" />
+                </Button>
+              ) : null}
             </div>
           );
         }}

@@ -25,7 +25,7 @@ export const SectionCard = ({
   return (
     <Card
       className={cn(
-        "relative border-latte-surface0 bg-latte-mantle/95 p-0 shadow-[0_16px_40px_rgb(var(--ctp-shadow)/0.15)] md:backdrop-blur",
+        "relative border-latte-surface0 bg-latte-mantle p-0 shadow-panel",
         className,
       )}
     >
@@ -34,7 +34,7 @@ export const SectionCard = ({
           <div className="sticky top-3 flex justify-end px-4 pt-3">
             <div
               className={cn(
-                "pointer-events-auto w-fit [&>button]:border-latte-surface1 [&>button]:bg-latte-surface0 [&>button]:shadow-sm [&>button]:hover:bg-latte-surface0",
+                "pointer-events-auto w-fit [&>button]:border-latte-surface0 [&>button]:bg-latte-mantle [&>button]:shadow-sm [&>button]:hover:bg-latte-crust",
                 floatingActionsClassName,
               )}
             >
@@ -45,14 +45,12 @@ export const SectionCard = ({
       ) : null}
       <header
         className={cn(
-          "rounded-t-lg border-b border-latte-surface0/80 bg-latte-surface0/45 px-4 py-3",
+          "rounded-t-md border-b border-latte-surface0 bg-latte-crust px-4 py-3",
         )}
       >
         <div className="flex items-start justify-between gap-3">
           <div className="space-y-0.5">
-            <h2 className="text-sm font-semibold tracking-wide text-latte-text">
-              {title}
-            </h2>
+            <h2 className="text-sm font-semibold text-latte-text">{title}</h2>
             {description ? (
               <p className="text-xs text-latte-subtext0">{description}</p>
             ) : null}
@@ -62,7 +60,7 @@ export const SectionCard = ({
           ) : null}
         </div>
       </header>
-      <div className="space-y-4 rounded-b-lg px-4 py-4">{children}</div>
+      <div className="space-y-4 rounded-b-md px-4 py-4">{children}</div>
     </Card>
   );
 };

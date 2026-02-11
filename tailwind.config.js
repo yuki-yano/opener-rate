@@ -5,6 +5,9 @@ export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["var(--font-body)"],
+      },
       colors: {
         latte: {
           base: withAlpha("base"),
@@ -28,6 +31,10 @@ export default {
           mauve: withAlpha("mauve"),
           maroon: withAlpha("maroon"),
         },
+      },
+      boxShadow: {
+        panel:
+          "0 1px 3px rgb(var(--ctp-shadow) / 0.1), 0 1px 2px rgb(var(--ctp-shadow) / 0.06)",
       },
     },
   },
