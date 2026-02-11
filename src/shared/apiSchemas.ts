@@ -30,10 +30,17 @@ export const labelSchema = z.object({
   memo: z.string(),
 });
 
+export const disruptionCategorySchema = z.object({
+  uid: z.string().min(1),
+  name: z.string().trim().min(1, "妨害カテゴリ名は必須です"),
+  memo: z.string(),
+});
+
 export const disruptionCardSchema = z.object({
   uid: z.string().min(1),
   name: z.string().trim().min(1, "妨害カード名は必須です"),
   oncePerName: z.boolean(),
+  disruptionCategoryUid: z.string().min(1).optional(),
   memo: z.string(),
 });
 
@@ -81,7 +88,7 @@ export const subPatternEffectSchema = z.discriminatedUnion("type", [
   }),
   z.object({
     type: z.literal("add_penetration"),
-    disruptionCardUids: z.array(z.string().min(1)),
+    disruptionCategoryUids: z.array(z.string().min(1)),
     amount: z.number().int().min(1).max(20),
   }),
 ]);
@@ -119,6 +126,7 @@ export const opponentDisruptionCardSchema = z.object({
   name: z.string().trim().min(1, "妨害札名は必須です"),
   count: z.number().int().min(0).max(60),
   oncePerName: z.boolean(),
+  disruptionCategoryUid: z.string().min(1).optional(),
 });
 
 export const vsSimulationInputSchema = z.object({
@@ -213,6 +221,7 @@ export type CountOperator = z.infer<typeof countOperatorSchema>;
 export type DeckState = z.infer<typeof deckStateSchema>;
 export type Card = z.infer<typeof cardSchema>;
 export type Label = z.infer<typeof labelSchema>;
+export type DisruptionCategory = z.infer<typeof disruptionCategorySchema>;
 export type DisruptionCard = z.infer<typeof disruptionCardSchema>;
 export type CountRule = z.infer<typeof countRuleSchema>;
 export type BaseCondition = z.infer<typeof baseConditionSchema>;

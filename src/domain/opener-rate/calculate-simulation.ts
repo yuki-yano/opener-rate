@@ -67,6 +67,9 @@ const createOpponentDeckOrder = (params: {
 };
 
 const resolveDisruptionKey = (disruption: OpponentDisruptionCard) => {
+  if (disruption.disruptionCategoryUid != null) {
+    return disruption.disruptionCategoryUid;
+  }
   if (disruption.disruptionCardUid != null) {
     return disruption.disruptionCardUid;
   }
@@ -127,10 +130,11 @@ const canPenetrateAllDisruptions = (
 ) =>
   Object.entries(disruptionStrengthByDisruptionKey).every(
     ([disruptionKey, required]) => {
-    if (required <= 0) return true;
-    const penetration = penetrationByDisruptionKey[disruptionKey] ?? 0;
-    return penetration >= required;
-  });
+      if (required <= 0) return true;
+      const penetration = penetrationByDisruptionKey[disruptionKey] ?? 0;
+      return penetration >= required;
+    },
+  );
 
 const runPotResolution = (
   normalized: NormalizedDeck,

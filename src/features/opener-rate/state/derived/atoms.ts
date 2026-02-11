@@ -48,6 +48,7 @@ export const calculateInputAtom = atom<CalculateInput>((get) => {
         ...entry,
         name: source.name,
         oncePerName: source.oncePerName,
+        disruptionCategoryUid: source.disruptionCategoryUid,
       };
     }),
   };

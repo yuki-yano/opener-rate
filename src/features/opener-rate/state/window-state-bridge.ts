@@ -5,6 +5,7 @@ import {
   calculationModeSchema,
   cardSchema,
   deckStateSchema,
+  disruptionCategorySchema,
   disruptionCardSchema,
   labelSchema,
   opponentDisruptionCardSchema,
@@ -22,6 +23,7 @@ import {
   cardsAtom,
   deckAtom,
   deckNameAtom,
+  disruptionCategoriesAtom,
   disruptionCardsAtom,
   labelsAtom,
   modeAtom,
@@ -54,6 +56,9 @@ const draftSubPatternSchema = subPatternSchema.extend({
 const draftLabelSchema = labelSchema.extend({
   name: z.string(),
 });
+const draftDisruptionCategorySchema = disruptionCategorySchema.extend({
+  name: z.string(),
+});
 const draftDisruptionCardSchema = disruptionCardSchema.extend({
   name: z.string(),
 });
@@ -72,6 +77,7 @@ const exportedStateSchema = z.object({
   patterns: z.array(draftPatternSchema),
   subPatterns: z.array(draftSubPatternSchema),
   labels: z.array(draftLabelSchema),
+  disruptionCategories: z.array(draftDisruptionCategorySchema).optional(),
   disruptionCards: z.array(draftDisruptionCardSchema),
   pot: potStateSchema,
   vs: draftVsSchema.optional(),
@@ -88,6 +94,7 @@ const legacyExportedStateSchema = z.object({
     patterns: z.array(draftPatternSchema),
     subPatterns: z.array(draftSubPatternSchema),
     labels: z.array(draftLabelSchema),
+    disruptionCategories: z.array(draftDisruptionCategorySchema).optional(),
     pot: potStateSchema,
     vs: draftVsSchema.optional(),
     settings: z.object({
@@ -104,6 +111,7 @@ const normalizeImportedState = (raw: unknown): ExportedState | null => {
   if (latest.success) {
     return {
       ...latest.data,
+      disruptionCategories: latest.data.disruptionCategories ?? [],
       mode: latest.data.mode ?? defaultMode,
       simulationTrials:
         latest.data.simulationTrials ?? defaultSimulationTrials,
@@ -122,6 +130,7 @@ const normalizeImportedState = (raw: unknown): ExportedState | null => {
     patterns: legacy.data.input.patterns,
     subPatterns: legacy.data.input.subPatterns,
     labels: legacy.data.input.labels,
+    disruptionCategories: legacy.data.input.disruptionCategories ?? [],
     disruptionCards: [],
     pot: legacy.data.input.pot,
     vs: legacy.data.input.vs ?? defaultVsState,
@@ -151,6 +160,7 @@ export const installWindowStateBridge = () => {
       patterns: store.get(patternsAtom),
       subPatterns: store.get(subPatternsAtom),
       labels: store.get(labelsAtom),
+      disruptionCategories: store.get(disruptionCategoriesAtom),
       disruptionCards: store.get(disruptionCardsAtom),
       pot: store.get(potAtom),
       vs: store.get(vsAtom),
@@ -175,6 +185,7 @@ export const installWindowStateBridge = () => {
       store.set(patternsAtom, normalized.patterns);
       store.set(subPatternsAtom, normalized.subPatterns);
       store.set(labelsAtom, normalized.labels);
+      store.set(disruptionCategoriesAtom, normalized.disruptionCategories ?? []);
       store.set(disruptionCardsAtom, normalized.disruptionCards);
       store.set(potAtom, normalized.pot);
       store.set(vsAtom, normalized.vs ?? defaultVsState);

@@ -6,6 +6,7 @@ import { z, type ZodType } from "zod";
 import {
   cardSchema,
   deckStateSchema,
+  disruptionCategorySchema,
   disruptionCardSchema,
   labelSchema,
   opponentDisruptionCardSchema,
@@ -18,6 +19,7 @@ import type {
   CalculationMode,
   Card,
   DeckState,
+  DisruptionCategory,
   DisruptionCard,
   Label,
   OpponentDisruptionCard,
@@ -62,6 +64,10 @@ const draftSubPatternSchema = subPatternSchema.extend({
 const draftLabelSchema = labelSchema.extend({
   name: z.string(),
 });
+const draftDisruptionCategorySchema: ZodType<DisruptionCategory> =
+  disruptionCategorySchema.extend({
+    name: z.string(),
+  });
 const draftDisruptionCardSchema: ZodType<DisruptionCard> =
   disruptionCardSchema.extend({
     name: z.string(),
@@ -78,6 +84,7 @@ const draftVsSchema: ZodType<VsSimulationInput> =
 const cardsSchema = z.array(draftCardSchema);
 const patternsSchema = z.array(draftPatternSchema);
 const labelsSchema = z.array(draftLabelSchema);
+const disruptionCategoriesSchema = z.array(draftDisruptionCategorySchema);
 const disruptionCardsSchema = z.array(draftDisruptionCardSchema);
 const subPatternsSchema = z.array(draftSubPatternSchema);
 
@@ -136,6 +143,11 @@ export const labelsAtom = atomWithHash<Label[]>(
   "label",
   [],
   createHashSerializeOptions([], labelsSchema),
+);
+export const disruptionCategoriesAtom = atomWithHash<DisruptionCategory[]>(
+  "disruptionCategory",
+  [],
+  createHashSerializeOptions([], disruptionCategoriesSchema),
 );
 export const disruptionCardsAtom = atomWithHash<DisruptionCard[]>(
   "disruptionCard",
@@ -204,6 +216,7 @@ export const resetInputAtom = atom(null, (_get, set) => {
   set(patternsAtom, []);
   set(subPatternsAtom, []);
   set(labelsAtom, []);
+  set(disruptionCategoriesAtom, []);
   set(disruptionCardsAtom, []);
   set(potAtom, defaultPotState);
   set(vsAtom, defaultVsState);

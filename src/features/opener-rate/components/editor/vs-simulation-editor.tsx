@@ -3,7 +3,7 @@ import { useAtom, useAtomValue } from "jotai";
 import { useMemo } from "react";
 
 import { Button, Checkbox, Input, Select } from "../../../../components/ui";
-import { disruptionCardsAtom, vsAtom } from "../../state";
+import { disruptionCardsAtom, disruptionCategoriesAtom, vsAtom } from "../../state";
 import { SortableList } from "../common/sortable-list";
 import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
@@ -19,9 +19,15 @@ const createDefaultDisruptionName = (index: number) => `妨害札${index + 1}`;
 export const VsSimulationEditor = () => {
   const [vs, setVs] = useAtom(vsAtom);
   const disruptionCards = useAtomValue(disruptionCardsAtom);
+  const disruptionCategories = useAtomValue(disruptionCategoriesAtom);
   const disruptionCardByUid = useMemo(
     () => new Map(disruptionCards.map((card) => [card.uid, card] as const)),
     [disruptionCards],
+  );
+  const disruptionCategoryByUid = useMemo(
+    () =>
+      new Map(disruptionCategories.map((category) => [category.uid, category] as const)),
+    [disruptionCategories],
   );
 
   const handleAddDisruption = () => {
@@ -38,6 +44,7 @@ export const VsSimulationEditor = () => {
             createDefaultDisruptionName(current.opponentDisruptions.length),
           count: 1,
           oncePerName: firstCard?.oncePerName ?? true,
+          disruptionCategoryUid: firstCard?.disruptionCategoryUid,
         },
       ],
     }));
@@ -62,7 +69,9 @@ export const VsSimulationEditor = () => {
       <div className="rounded-md border border-latte-surface1/80 bg-latte-base/55 px-3 py-2 text-xs text-latte-subtext0">
         <p>入力ガイド</p>
         <p className="mt-1">枚数: 相手デッキに入っているその妨害札の枚数</p>
-        <p>妨害カードは「妨害カード一覧」で登録し、ここでは枚数だけ指定します。</p>
+        <p>
+          妨害カードは「妨害カード一覧」で登録し、ここでは枚数だけ指定します。
+        </p>
       </div>
 
       <Checkbox
@@ -144,9 +153,10 @@ export const VsSimulationEditor = () => {
         }
         handleClassName="top-1/2 -translate-y-1/2"
         renderItem={(disruption) => {
-          const linkedCard = disruption.disruptionCardUid == null
-            ? undefined
-            : disruptionCardByUid.get(disruption.disruptionCardUid);
+          const linkedCard =
+            disruption.disruptionCardUid == null
+              ? undefined
+              : disruptionCardByUid.get(disruption.disruptionCardUid);
           const resolvedName = linkedCard?.name ?? disruption.name;
           const isNameEmpty = resolvedName.trim().length === 0;
 
@@ -175,6 +185,7 @@ export const VsSimulationEditor = () => {
                               disruptionCardUid: selected.uid,
                               name: selected.name,
                               oncePerName: selected.oncePerName,
+                              disruptionCategoryUid: selected.disruptionCategoryUid,
                             };
                           },
                         ),
@@ -233,6 +244,13 @@ export const VsSimulationEditor = () => {
                 <div className="space-y-1 text-xs text-latte-red">
                   {isNameEmpty ? <p>妨害札名は必須です。</p> : null}
                 </div>
+              ) : null}
+              {disruption.disruptionCategoryUid != null ? (
+                <p className="text-[11px] text-latte-subtext0">
+                  カテゴリ:{" "}
+                  {disruptionCategoryByUid.get(disruption.disruptionCategoryUid)
+                    ?.name ?? "未設定"}
+                </p>
               ) : null}
             </div>
           );

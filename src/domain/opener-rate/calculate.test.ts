@@ -189,7 +189,7 @@ describe("calculateOpenerRateDomain", () => {
           effects: [
             {
               type: "add_penetration",
-              disruptionCardUids: ["dc-ash"],
+              disruptionCategoryUids: ["cat-ash"],
               amount: 1,
             },
           ],
@@ -213,6 +213,7 @@ describe("calculateOpenerRateDomain", () => {
           {
             uid: "d-ash",
             disruptionCardUid: "dc-ash",
+            disruptionCategoryUid: "cat-ash",
             name: "灰流うらら",
             count: 1,
             oncePerName: true,
@@ -268,7 +269,7 @@ describe("calculateOpenerRateDomain", () => {
           effects: [
             {
               type: "add_penetration" as const,
-              disruptionCardUids: ["dc-ash"],
+              disruptionCategoryUids: ["cat-ash"],
               amount: 1,
             },
           ],
@@ -296,6 +297,7 @@ describe("calculateOpenerRateDomain", () => {
           {
             uid: "d-ash",
             disruptionCardUid: "dc-ash",
+            disruptionCategoryUid: "cat-ash",
             name: "灰流うらら",
             count: 2,
             oncePerName: true,
@@ -314,6 +316,7 @@ describe("calculateOpenerRateDomain", () => {
           {
             uid: "d-ash",
             disruptionCardUid: "dc-ash",
+            disruptionCategoryUid: "cat-ash",
             name: "灰流うらら",
             count: 2,
             oncePerName: false,
@@ -326,5 +329,107 @@ describe("calculateOpenerRateDomain", () => {
     expect(onceLimited.vsBreakdown?.disruptedButPenetratedRate).toBe("100.00");
     expect(noLimit.overallProbability).toBe("0.00");
     expect(noLimit.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
+  });
+
+  it("supports grouped disruption penetration by category key", () => {
+    const baseInput: CalculateInput = {
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp-group-penetrate",
+          name: "無効2貫通",
+          active: true,
+          basePatternUids: ["p-base"],
+          triggerConditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          triggerSourceUids: [],
+          applyLimit: "once_per_trial",
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-negate"],
+              amount: 2,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 2,
+        opponentHandSize: 2,
+        opponentDisruptions: [
+          {
+            uid: "d-imperm",
+            disruptionCardUid: "dc-imperm",
+            disruptionCategoryUid: "cat-negate",
+            name: "無限泡影",
+            count: 1,
+            oncePerName: true,
+          },
+          {
+            uid: "d-veiler",
+            disruptionCardUid: "dc-veiler",
+            disruptionCategoryUid: "cat-negate",
+            name: "エフェクト・ヴェーラー",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    };
+
+    const penetrated = calculateOpenerRateDomain(baseInput);
+    expect(penetrated.overallProbability).toBe("100.00");
+    expect(penetrated.vsBreakdown?.disruptedButPenetratedRate).toBe("100.00");
+
+    const notEnough = calculateOpenerRateDomain({
+      ...baseInput,
+      subPatterns: [
+        {
+          ...baseInput.subPatterns[0],
+          effects: [
+            {
+              type: "add_penetration" as const,
+              disruptionCategoryUids: ["cat-negate"],
+              amount: 1,
+            },
+          ],
+        },
+      ],
+    });
+    expect(notEnough.overallProbability).toBe("0.00");
+    expect(notEnough.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
   });
 });

@@ -68,11 +68,11 @@ export const evaluateSubPatterns = (
         continue;
       }
 
-      for (const disruptionCardUid of effect.disruptionCardUids) {
+      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
         const current =
-          penetrationByDisruptionKey[disruptionCardUid] ?? 0;
+          penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
         const next = current + effect.amount * applyCount;
-        penetrationByDisruptionKey[disruptionCardUid] = next;
+        penetrationByDisruptionKey[disruptionCategoryUid] = next;
       }
     }
   }

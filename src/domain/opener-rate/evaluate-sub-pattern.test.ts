@@ -24,7 +24,7 @@ describe("evaluateSubPatterns", () => {
         effects: [
           {
             type: "add_penetration",
-            disruptionCardUids: ["dc-ash"],
+            disruptionCategoryUids: ["cat-negate"],
             amount: 1,
           },
         ],
@@ -38,7 +38,7 @@ describe("evaluateSubPatterns", () => {
       matchedPatternUids: ["p1"],
     });
 
-    expect(result.penetrationByDisruptionKey).toEqual({ "dc-ash": 1 });
+    expect(result.penetrationByDisruptionKey).toEqual({ "cat-negate": 1 });
   });
 
   it("applies once_per_distinct_uid by distinct drawn sources", () => {
@@ -56,7 +56,7 @@ describe("evaluateSubPatterns", () => {
         effects: [
           {
             type: "add_penetration",
-            disruptionCardUids: ["dc-ash"],
+            disruptionCategoryUids: ["cat-negate"],
             amount: 1,
           },
         ],
@@ -70,7 +70,7 @@ describe("evaluateSubPatterns", () => {
       matchedPatternUids: ["p1"],
     });
 
-    expect(result.penetrationByDisruptionKey).toEqual({ "dc-ash": 2 });
+    expect(result.penetrationByDisruptionKey).toEqual({ "cat-negate": 2 });
   });
 
   it("does not apply when base pattern is not matched", () => {

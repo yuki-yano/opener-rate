@@ -22,6 +22,7 @@ const urlStateKeys = [
   "pattern",
   "subPattern",
   "label",
+  "disruptionCategory",
   "disruptionCard",
   "pot",
   "vs",

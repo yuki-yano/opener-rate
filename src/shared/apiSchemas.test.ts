@@ -197,7 +197,7 @@ describe("apiSchemas", () => {
           effects: [
             {
               type: "add_penetration",
-              disruptionCardUids: ["d-ash"],
+              disruptionCategoryUids: ["cat-negate"],
               amount: 1,
             },
           ],

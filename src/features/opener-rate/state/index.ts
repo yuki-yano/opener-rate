@@ -18,6 +18,7 @@ export {
   deckNameAtom,
   deckAtom,
   defaultSimulationTrials,
+  disruptionCategoriesAtom,
   disruptionCardsAtom,
   labelsAtom,
   modeAtom,
