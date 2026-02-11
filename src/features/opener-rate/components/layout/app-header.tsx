@@ -2,7 +2,7 @@ import { ThemeToggle } from "../../../../components/theme-toggle";
 
 export const AppHeader = () => {
   return (
-    <header className="border-b border-latte-surface1/80 bg-latte-mantle/92 backdrop-blur">
+    <header className="border-b border-latte-surface1/80 bg-latte-mantle/92 md:backdrop-blur">
       <div className="mx-auto flex w-full max-w-7xl items-center justify-between px-4 py-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="min-w-0">

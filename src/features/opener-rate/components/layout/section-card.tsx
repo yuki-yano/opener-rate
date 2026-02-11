@@ -21,7 +21,7 @@ export const SectionCard = ({
   return (
     <Card
       className={cn(
-        "overflow-hidden border-latte-surface0 bg-latte-mantle/95 p-0 shadow-[0_16px_40px_rgb(var(--ctp-shadow)/0.15)] backdrop-blur",
+        "overflow-hidden border-latte-surface0 bg-latte-mantle/95 p-0 shadow-[0_16px_40px_rgb(var(--ctp-shadow)/0.15)] md:backdrop-blur",
         className,
       )}
     >
