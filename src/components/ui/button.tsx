@@ -11,7 +11,7 @@ const buttonVariants = cva(
         default:
           "border border-ui-surface0 bg-ui-surface0 text-ui-text shadow-sm hover:bg-ui-surface1/85 active:bg-ui-surface1",
         outline:
-          "border border-ui-surface0 bg-ui-mantle text-ui-text shadow-sm hover:bg-ui-crust",
+          "border border-ui-surface0 bg-ui-mantle text-ui-text shadow-sm hover:bg-ui-crust/45",
         ghost:
           "border border-transparent text-ui-subtext0 hover:border-ui-surface0 hover:bg-ui-crust hover:text-ui-text",
       },

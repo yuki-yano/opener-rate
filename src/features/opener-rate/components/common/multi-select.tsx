@@ -80,19 +80,20 @@ export const MultiSelect = ({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "h-auto min-h-9 w-full justify-between py-1.5 text-left text-sm font-medium",
+              "h-auto min-h-9 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-medium",
+              "focus:ring-ui-blue/15 focus:border-ui-surface1",
               selectedOptions.length === 0 && "text-ui-overlay1",
             )}
           >
-            <span className="min-w-0 flex-1">
+            <span className="min-w-0 flex-1 py-1.5">
               {selectedOptions.length === 0 ? (
-                <span className="truncate">{placeholder}</span>
+                <span className="block truncate">{placeholder}</span>
               ) : (
                 <span className="flex flex-wrap gap-1">
                   {selectedOptions.map((option) => (
                     <span
                       key={`selected-${option.value}`}
-                      className="inline-flex max-w-full items-center rounded-md border border-ui-surface0/70 bg-ui-base/84 px-1.5 py-0.5 text-sm font-medium leading-5 text-ui-subtext0"
+                      className="inline-flex max-w-full items-center rounded-md border border-ui-surface1 bg-ui-crust px-1.5 py-0.5 text-xs font-medium leading-5 text-ui-subtext1"
                     >
                       <span className="break-all">{option.label}</span>
                     </span>
@@ -100,7 +101,9 @@ export const MultiSelect = ({
                 </span>
               )}
             </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 self-center text-ui-overlay1" />
+            <span className="ml-2 inline-flex w-8 shrink-0 self-stretch items-center justify-center border-l border-ui-surface0/80 bg-ui-crust text-ui-overlay1">
+              <ChevronsUpDown className="h-4 w-4" />
+            </span>
           </Button>
         </PopoverTrigger>
         <PopoverContent
