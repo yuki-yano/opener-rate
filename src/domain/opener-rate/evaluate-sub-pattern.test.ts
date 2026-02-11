@@ -1,7 +1,8 @@
 import { describe, expect, it } from "vitest";
 
+import { evaluatePatterns } from "./evaluate-pattern";
 import { evaluateSubPatterns } from "./evaluate-sub-pattern";
-import type { CompiledSubPattern } from "./types";
+import type { CompiledPattern, CompiledSubPattern } from "./types";
 
 const createContext = (handCounts: number[], deckCounts?: number[]) => ({
   handCounts,
@@ -97,5 +98,126 @@ describe("evaluateSubPatterns", () => {
     });
 
     expect(result.addedLabelUids).toEqual([]);
+  });
+
+  it("applies base_match_total when any matched base pattern satisfies", () => {
+    const compiledSubPatterns: CompiledSubPattern[] = [
+      {
+        uid: "sp1",
+        name: "成立内ヨクル",
+        active: true,
+        basePatternUids: ["p1", "p2"],
+        triggerConditions: [
+          {
+            mode: "base_match_total",
+            operator: "gte",
+            threshold: 1,
+            rules: [{ mode: "raw", indices: [2] }],
+          },
+        ],
+        triggerSourceIndices: [],
+        applyLimit: "once_per_trial",
+        effects: [{ type: "add_label", labelUids: ["l-hit"] }],
+        memo: "",
+      },
+    ];
+
+    const result = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([0, 0, 1]),
+      matchedPatternUids: ["p1", "p2"],
+      matchedCardCountsByPatternUid: {
+        p1: { 1: 1 },
+        p2: { 2: 1 },
+      },
+    });
+
+    expect(result.addedLabelUids).toEqual(["l-hit"]);
+  });
+
+  it("does not apply base_match_total when no matched base pattern satisfies", () => {
+    const compiledSubPatterns: CompiledSubPattern[] = [
+      {
+        uid: "sp1",
+        name: "成立内ヨクル",
+        active: true,
+        basePatternUids: ["p1"],
+        triggerConditions: [
+          {
+            mode: "base_match_total",
+            operator: "eq",
+            threshold: 1,
+            rules: [{ mode: "raw", indices: [2] }],
+          },
+        ],
+        triggerSourceIndices: [],
+        applyLimit: "once_per_trial",
+        effects: [{ type: "add_label", labelUids: ["l-hit"] }],
+        memo: "",
+      },
+    ];
+
+    const result = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([0, 0, 1]),
+      matchedPatternUids: ["p1"],
+      matchedCardCountsByPatternUid: {
+        p1: { 1: 1 },
+      },
+    });
+
+    expect(result.addedLabelUids).toEqual([]);
+  });
+
+  it("works with matched-card usage produced by evaluatePatterns", () => {
+    const compiledPatterns: CompiledPattern[] = [
+      {
+        uid: "p1",
+        name: "初動A+B",
+        active: true,
+        excludeFromOverall: false,
+        conditions: [
+          { mode: "required", count: 1, uids: ["a"], indices: [1] },
+          { mode: "required_distinct", count: 1, uids: ["b"], indices: [2] },
+        ],
+        labels: [],
+        effects: [],
+        memo: "",
+      },
+    ];
+    const patternEvaluation = evaluatePatterns(
+      compiledPatterns,
+      createContext([0, 1, 1]),
+    );
+    const compiledSubPatterns: CompiledSubPattern[] = [
+      {
+        uid: "sp1",
+        name: "成立内B",
+        active: true,
+        basePatternUids: ["p1"],
+        triggerConditions: [
+          {
+            mode: "base_match_total",
+            operator: "eq",
+            threshold: 1,
+            rules: [{ mode: "raw", indices: [2] }],
+          },
+        ],
+        triggerSourceIndices: [],
+        applyLimit: "once_per_trial",
+        effects: [{ type: "add_label", labelUids: ["l-hit"] }],
+        memo: "",
+      },
+    ];
+
+    const result = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([0, 1, 1]),
+      matchedPatternUids: patternEvaluation.matchedPatternUids,
+      matchedCardCountsByPatternUid:
+        patternEvaluation.matchedCardCountsByPatternUid,
+    });
+
+    expect(result.addedLabelUids).toEqual(["l-hit"]);
   });
 });

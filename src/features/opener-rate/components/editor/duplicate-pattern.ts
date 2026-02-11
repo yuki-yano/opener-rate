@@ -3,6 +3,7 @@ import type {
   PatternCondition,
   SubPattern,
   SubPatternEffect,
+  SubPatternTriggerCondition,
 } from "../../../../shared/apiSchemas";
 
 const resolveDuplicateName = (name: string, fallbackName: string) =>
@@ -11,6 +12,25 @@ const resolveDuplicateName = (name: string, fallbackName: string) =>
 const clonePatternCondition = (
   condition: PatternCondition,
 ): PatternCondition => {
+  if ("rules" in condition) {
+    return {
+      ...condition,
+      rules: condition.rules.map((rule) => ({
+        ...rule,
+        uids: [...rule.uids],
+      })),
+    };
+  }
+
+  return {
+    ...condition,
+    uids: [...condition.uids],
+  };
+};
+
+const cloneSubPatternTriggerCondition = (
+  condition: SubPatternTriggerCondition,
+): SubPatternTriggerCondition => {
   if ("rules" in condition) {
     return {
       ...condition,
@@ -77,7 +97,9 @@ export const createDuplicatedSubPattern = ({
   name: resolveDuplicateName(source.name, fallbackName),
   active: true,
   basePatternUids: [...source.basePatternUids],
-  triggerConditions: source.triggerConditions.map(clonePatternCondition),
+  triggerConditions: source.triggerConditions.map(
+    cloneSubPatternTriggerCondition,
+  ),
   triggerSourceUids: [...source.triggerSourceUids],
   effects: source.effects.map(cloneSubPatternEffect),
 });

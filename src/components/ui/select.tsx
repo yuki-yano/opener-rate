@@ -20,6 +20,7 @@ type SelectProps = {
   className?: string;
   triggerClassName?: string;
   contentClassName?: string;
+  listClassName?: string;
   ariaLabel?: string;
 };
 
@@ -32,6 +33,7 @@ export const Select = ({
   className,
   triggerClassName,
   contentClassName,
+  listClassName,
   ariaLabel,
 }: SelectProps) => {
   const [open, setOpen] = useState(false);
@@ -76,7 +78,10 @@ export const Select = ({
             contentClassName,
           )}
         >
-          <div role="listbox" className="max-h-56 overflow-y-auto">
+          <div
+            role="listbox"
+            className={cn("max-h-56 overflow-y-auto", listClassName)}
+          >
             {options.map((option) => {
               const selected = option.value === value;
               return (

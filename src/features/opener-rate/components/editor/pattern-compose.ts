@@ -1,13 +1,13 @@
 import type {
-  PatternCondition,
   SubPattern,
   SubPatternEffect,
+  SubPatternTriggerCondition,
 } from "../../../../shared/apiSchemas";
 
 export type ComposeSource = {
   value: string;
   label: string;
-  conditions: PatternCondition[];
+  conditions: SubPatternTriggerCondition[];
   basePatternUids: string[];
   triggerSourceUids: string[];
   effects: SubPatternEffect[];
@@ -18,11 +18,13 @@ type ComposePenetrationEntry = {
   totalAmount: number;
 };
 
+export type ManualPenetrationAmountByCategory = Record<string, number>;
+
 const dedupe = (values: string[]) => Array.from(new Set(values));
 
 const clonePatternCondition = (
-  condition: PatternCondition,
-): PatternCondition => {
+  condition: SubPatternTriggerCondition,
+): SubPatternTriggerCondition => {
   if ("rules" in condition) {
     return {
       ...condition,
@@ -55,6 +57,7 @@ export const resolveComposeEntries = (
   mainSource: ComposeSource,
   filterSource: ComposeSource,
   categoryUids: string[],
+  manualPenetrationAmountByCategory: ManualPenetrationAmountByCategory = {},
 ): ComposePenetrationEntry[] =>
   dedupe(categoryUids)
     .map((disruptionCategoryUid) => {
@@ -66,9 +69,11 @@ export const resolveComposeEntries = (
         filterSource,
         disruptionCategoryUid,
       );
+      const manualAmount =
+        manualPenetrationAmountByCategory[disruptionCategoryUid] ?? 0;
       return {
         disruptionCategoryUid,
-        totalAmount: amountFromMain + amountFromFilter,
+        totalAmount: amountFromMain + amountFromFilter + manualAmount,
       };
     })
     .filter((entry) => entry.totalAmount > 0);
@@ -80,6 +85,7 @@ type BuildComposedSubPatternParams = {
   filterSource: ComposeSource;
   selectedCategoryUids: string[];
   selectedLabelUids: string[];
+  manualPenetrationAmountByCategory?: ManualPenetrationAmountByCategory;
 };
 
 export const buildComposedSubPattern = ({
@@ -89,6 +95,7 @@ export const buildComposedSubPattern = ({
   filterSource,
   selectedCategoryUids,
   selectedLabelUids,
+  manualPenetrationAmountByCategory,
 }: BuildComposedSubPatternParams): SubPattern | null => {
   const trimmedName = name.trim();
   if (trimmedName.length === 0) return null;
@@ -97,6 +104,7 @@ export const buildComposedSubPattern = ({
     mainSource,
     filterSource,
     selectedCategoryUids,
+    manualPenetrationAmountByCategory,
   );
   if (composeEntries.length === 0) return null;
 

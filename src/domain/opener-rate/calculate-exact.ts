@@ -117,6 +117,7 @@ export const calculateByExact = (params: {
         compiledSubPatterns,
         context: { handCounts, deckCounts },
         matchedPatternUids: evaluation.matchedPatternUids,
+        matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
       });
       const countablePatternEffects = collectCountablePatternEffects(
         evaluation.matchedPatternUids,
@@ -126,6 +127,7 @@ export const calculateByExact = (params: {
         compiledSubPatterns,
         context: { handCounts, deckCounts },
         matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
+        matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
       });
       const matchedLabelUids = new Set([
         ...evaluation.matchedLabelUids,

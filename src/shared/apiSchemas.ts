@@ -62,9 +62,22 @@ export const countConditionSchema = z.object({
   rules: z.array(countRuleSchema).min(1),
 });
 
+export const baseMatchCountConditionSchema = z.object({
+  mode: z.literal("base_match_total"),
+  operator: countOperatorSchema,
+  threshold: z.number().int().min(0).max(60),
+  rules: z.array(countRuleSchema).min(1),
+});
+
 export const patternConditionSchema = z.discriminatedUnion("mode", [
   baseConditionSchema,
   countConditionSchema,
+]);
+
+export const subPatternTriggerConditionSchema = z.discriminatedUnion("mode", [
+  baseConditionSchema,
+  countConditionSchema,
+  baseMatchCountConditionSchema,
 ]);
 
 export const subPatternApplyLimitSchema = z.enum([
@@ -100,7 +113,7 @@ export const subPatternSchema = z.object({
   name: z.string().trim().min(1, "サブパターン名は必須です"),
   active: z.boolean(),
   basePatternUids: z.array(z.string().min(1)),
-  triggerConditions: z.array(patternConditionSchema),
+  triggerConditions: z.array(subPatternTriggerConditionSchema),
   triggerSourceUids: z.array(z.string().min(1)),
   applyLimit: subPatternApplyLimitSchema,
   effects: z.array(subPatternEffectSchema),
@@ -228,7 +241,13 @@ export type DisruptionCard = z.infer<typeof disruptionCardSchema>;
 export type CountRule = z.infer<typeof countRuleSchema>;
 export type BaseCondition = z.infer<typeof baseConditionSchema>;
 export type CountCondition = z.infer<typeof countConditionSchema>;
+export type BaseMatchCountCondition = z.infer<
+  typeof baseMatchCountConditionSchema
+>;
 export type PatternCondition = z.infer<typeof patternConditionSchema>;
+export type SubPatternTriggerCondition = z.infer<
+  typeof subPatternTriggerConditionSchema
+>;
 export type Pattern = z.infer<typeof patternSchema>;
 export type SubPatternApplyLimit = z.infer<typeof subPatternApplyLimitSchema>;
 export type SubPatternEffect = z.infer<typeof subPatternEffectSchema>;

@@ -1,4 +1,7 @@
-import { compilePatternConditions, toIndices } from "./compile-conditions";
+import {
+  compileSubPatternTriggerConditions,
+  toIndices,
+} from "./compile-conditions";
 import type { CompiledSubPattern, NormalizedDeck } from "./types";
 
 const toUniqueIndices = (indices: number[]) => Array.from(new Set(indices));
@@ -8,7 +11,7 @@ export const compileSubPatterns = (
 ): CompiledSubPattern[] =>
   normalized.subPatterns.map((subPattern) => ({
     ...subPattern,
-    triggerConditions: compilePatternConditions(
+    triggerConditions: compileSubPatternTriggerConditions(
       normalized.uidToIndex,
       subPattern.triggerConditions,
     ),

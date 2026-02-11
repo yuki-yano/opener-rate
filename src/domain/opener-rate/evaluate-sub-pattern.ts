@@ -1,5 +1,7 @@
 import { evaluateCompiledConditions } from "./evaluate-pattern";
 import type {
+  CompiledBaseMatchCountCondition,
+  CompiledPatternCondition,
   CompiledSubPattern,
   EvaluationContext,
   SubPatternEvaluationResult,
@@ -9,6 +11,7 @@ type EvaluateSubPatternsParams = {
   compiledSubPatterns: CompiledSubPattern[];
   context: EvaluationContext;
   matchedPatternUids: string[];
+  matchedCardCountsByPatternUid?: Record<string, Record<number, number>>;
 };
 
 const resolveApplyCount = (
@@ -42,10 +45,79 @@ const canApplyByBasePattern = (
   return subPattern.basePatternUids.some((uid) => matchedPatternSet.has(uid));
 };
 
+const checkBaseMatchCountCondition = (
+  condition: CompiledBaseMatchCountCondition,
+  matchedCardCounts: Record<number, number>,
+) => {
+  const total = condition.rules.reduce((acc, rule) => {
+    const raw = rule.indices.reduce(
+      (sum, index) => sum + (matchedCardCounts[index] ?? 0),
+      0,
+    );
+    if (rule.mode === "cap1") return acc + Math.min(raw, 1);
+    return acc + raw;
+  }, 0);
+
+  if (condition.operator === "eq") {
+    return total === condition.threshold;
+  }
+  return total >= condition.threshold;
+};
+
+const canApplyByBaseMatchedCards = (params: {
+  subPattern: CompiledSubPattern;
+  matchedPatternUids: string[];
+  matchedCardCountsByPatternUid: Record<string, Record<number, number>>;
+}) => {
+  const { subPattern, matchedPatternUids, matchedCardCountsByPatternUid } =
+    params;
+  const baseMatchConditions: CompiledBaseMatchCountCondition[] = [];
+  const regularConditions: CompiledPatternCondition[] = [];
+
+  for (const condition of subPattern.triggerConditions) {
+    if (condition.mode === "base_match_total") {
+      baseMatchConditions.push(condition);
+      continue;
+    }
+    regularConditions.push(condition);
+  }
+
+  const targetPatternUids =
+    subPattern.basePatternUids.length > 0
+      ? matchedPatternUids.filter((uid) =>
+          subPattern.basePatternUids.includes(uid),
+        )
+      : matchedPatternUids;
+
+  if (baseMatchConditions.length === 0) {
+    return {
+      canApply: true,
+      regularConditions,
+    };
+  }
+
+  const hasMatchedPatternWithSatisfiedCards = targetPatternUids.some((uid) => {
+    const matchedCardCounts = matchedCardCountsByPatternUid[uid] ?? {};
+    return baseMatchConditions.every((condition) =>
+      checkBaseMatchCountCondition(condition, matchedCardCounts),
+    );
+  });
+
+  return {
+    canApply: hasMatchedPatternWithSatisfiedCards,
+    regularConditions,
+  };
+};
+
 export const evaluateSubPatterns = (
   params: EvaluateSubPatternsParams,
 ): SubPatternEvaluationResult => {
-  const { compiledSubPatterns, context, matchedPatternUids } = params;
+  const {
+    compiledSubPatterns,
+    context,
+    matchedPatternUids,
+    matchedCardCountsByPatternUid = {},
+  } = params;
   const matchedPatternSet = new Set(matchedPatternUids);
   const labelSet = new Set<string>();
   const penetrationByDisruptionKey: Record<string, number> = {};
@@ -53,7 +125,15 @@ export const evaluateSubPatterns = (
   for (const subPattern of compiledSubPatterns) {
     if (!subPattern.active) continue;
     if (!canApplyByBasePattern(subPattern, matchedPatternSet)) continue;
-    if (!evaluateCompiledConditions(subPattern.triggerConditions, context)) {
+    const baseMatchCheck = canApplyByBaseMatchedCards({
+      subPattern,
+      matchedPatternUids,
+      matchedCardCountsByPatternUid,
+    });
+    if (!baseMatchCheck.canApply) continue;
+    if (
+      !evaluateCompiledConditions(baseMatchCheck.regularConditions, context)
+    ) {
       continue;
     }
 

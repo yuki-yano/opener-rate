@@ -162,6 +162,95 @@ describe("apiSchemas", () => {
     expect(result.success).toBe(true);
   });
 
+  it("accepts base_match_total in sub pattern trigger conditions", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [
+        { uid: "starter", name: "初動", count: 3, memo: "" },
+        { uid: "yokuru", name: "ヨクル", count: 1, memo: "" },
+      ],
+      patterns: [
+        {
+          uid: "p1",
+          name: "初動成立",
+          active: true,
+          memo: "",
+          labels: [],
+          effects: [],
+          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp1",
+          name: "成立内ヨクル",
+          active: true,
+          basePatternUids: ["p1"],
+          triggerConditions: [
+            {
+              mode: "base_match_total",
+              operator: "gte",
+              threshold: 1,
+              rules: [{ mode: "raw", uids: ["yokuru"] }],
+            },
+          ],
+          triggerSourceUids: ["yokuru"],
+          applyLimit: "once_per_trial",
+          effects: [{ type: "add_label", labelUids: ["l-penetrate"] }],
+          memo: "",
+        },
+      ],
+      labels: [{ uid: "l-penetrate", name: "うらら貫通", memo: "" }],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+    });
+
+    expect(result.success).toBe(true);
+  });
+
+  it("rejects base_match_total in main pattern conditions", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [{ uid: "a", name: "A", count: 3, memo: "" }],
+      patterns: [
+        {
+          uid: "p1",
+          name: "P1",
+          active: true,
+          memo: "",
+          labels: [],
+          effects: [],
+          conditions: [
+            {
+              mode: "base_match_total",
+              operator: "gte",
+              threshold: 1,
+              rules: [{ mode: "raw", uids: ["a"] }],
+            },
+          ],
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("accepts draft conditions with empty uids for editing state", () => {
     const result = calculateInputSchema.safeParse({
       deck: { cardCount: 40, firstHand: 5 },

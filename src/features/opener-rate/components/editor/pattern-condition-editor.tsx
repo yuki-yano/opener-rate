@@ -7,21 +7,38 @@ import {
   type SelectOption,
 } from "../../../../components/ui";
 import type {
+  BaseMatchCountCondition,
   CountCondition,
   PatternCondition,
+  SubPatternTriggerCondition,
 } from "../../../../shared/apiSchemas";
 import { MultiSelect, type MultiSelectOption } from "../common/multi-select";
 
-type PatternConditionEditorProps = {
-  condition: PatternCondition;
+type PatternConditionEditorBaseProps = {
   index: number;
   cardOptions: MultiSelectOption[];
-  onChange: (next: PatternCondition) => void;
   onRemove: () => void;
 };
 
+type PatternConditionEditorPatternProps = PatternConditionEditorBaseProps & {
+  scope?: "pattern";
+  condition: PatternCondition;
+  onChange: (next: PatternCondition) => void;
+};
+
+type PatternConditionEditorSubPatternProps = PatternConditionEditorBaseProps & {
+  scope: "sub_pattern";
+  condition: SubPatternTriggerCondition;
+  onChange: (next: SubPatternTriggerCondition) => void;
+};
+
+type PatternConditionEditorProps =
+  | PatternConditionEditorPatternProps
+  | PatternConditionEditorSubPatternProps;
+
+type EditableCondition = PatternCondition | SubPatternTriggerCondition;
 type BaseMode = "required" | "required_distinct" | "leave_deck" | "not_drawn";
-type CountMode = "draw_total" | "remain_total";
+type CountMode = "draw_total" | "remain_total" | "base_match_total";
 
 const baseModeOptions: Array<{ value: BaseMode; label: string }> = [
   { value: "required", label: "指定カードを引く" },
@@ -33,11 +50,7 @@ const baseModeOptions: Array<{ value: BaseMode; label: string }> = [
 const countModeOptions: Array<{ value: CountMode; label: string }> = [
   { value: "draw_total", label: "合計ドロー数" },
   { value: "remain_total", label: "合計残枚数" },
-];
-
-const allModeOptions: SelectOption[] = [
-  ...baseModeOptions,
-  ...countModeOptions,
+  { value: "base_match_total", label: "パターン成立時に含む枚数" },
 ];
 
 const countOperatorOptions: SelectOption[] = [
@@ -46,22 +59,24 @@ const countOperatorOptions: SelectOption[] = [
 ];
 
 const countRuleModeOptions: SelectOption[] = [
-  { value: "cap1", label: "種類ごと最大1枚" },
+  { value: "cap1", label: "種類毎に1枚" },
   { value: "raw", label: "実枚数" },
 ];
 
 const isCountCondition = (
-  condition: PatternCondition,
-): condition is CountCondition =>
-  condition.mode === "draw_total" || condition.mode === "remain_total";
+  condition: EditableCondition,
+): condition is CountCondition | BaseMatchCountCondition =>
+  condition.mode === "draw_total" ||
+  condition.mode === "remain_total" ||
+  condition.mode === "base_match_total";
 
-const createDefaultBaseCondition = (mode: BaseMode): PatternCondition => ({
+const createDefaultBaseCondition = (mode: BaseMode): EditableCondition => ({
   mode,
   count: 1,
   uids: [],
 });
 
-const createDefaultCountCondition = (mode: CountMode): PatternCondition => ({
+const createDefaultCountCondition = (mode: CountMode): EditableCondition => ({
   mode,
   operator: "gte",
   threshold: 1,
@@ -69,10 +84,19 @@ const createDefaultCountCondition = (mode: CountMode): PatternCondition => ({
 });
 
 const switchConditionMode = (
-  current: PatternCondition,
-  nextMode: PatternCondition["mode"],
-): PatternCondition => {
-  if (nextMode === "draw_total" || nextMode === "remain_total") {
+  current: EditableCondition,
+  nextMode: EditableCondition["mode"],
+  scope: "pattern" | "sub_pattern",
+): EditableCondition => {
+  if (nextMode === "base_match_total" && scope !== "sub_pattern") {
+    return current;
+  }
+
+  if (
+    nextMode === "draw_total" ||
+    nextMode === "remain_total" ||
+    nextMode === "base_match_total"
+  ) {
     if (isCountCondition(current)) {
       return {
         ...current,
@@ -101,21 +125,48 @@ const toInt = (value: string, fallback: number) => {
 export const PatternConditionEditor = ({
   condition,
   index,
+  scope = "pattern",
   cardOptions,
   onChange,
   onRemove,
 }: PatternConditionEditorProps) => {
+  const modeOptions: SelectOption[] =
+    scope === "sub_pattern"
+      ? [...baseModeOptions, ...countModeOptions]
+      : [
+          ...baseModeOptions,
+          ...countModeOptions.filter(
+            (option) => option.value !== "base_match_total",
+          ),
+        ];
+
+  const emitChange = (next: EditableCondition) => {
+    if (scope === "sub_pattern") {
+      (onChange as (next: SubPatternTriggerCondition) => void)(
+        next as SubPatternTriggerCondition,
+      );
+      return;
+    }
+
+    (onChange as (next: PatternCondition) => void)(next as PatternCondition);
+  };
+
   return (
     <div className="min-w-0 space-y-2 rounded-md border border-latte-surface1/80 bg-latte-base/65 p-2.5">
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-2">
         <Select
           ariaLabel={`条件${index + 1}の種類`}
           triggerClassName="h-9"
+          listClassName="max-h-none overflow-visible"
           value={condition.mode}
-          options={allModeOptions}
+          options={modeOptions}
           onChange={(next) =>
-            onChange(
-              switchConditionMode(condition, next as PatternCondition["mode"]),
+            emitChange(
+              switchConditionMode(
+                condition,
+                next as EditableCondition["mode"],
+                scope,
+              ),
             )
           }
         />
@@ -142,7 +193,7 @@ export const PatternConditionEditor = ({
               max={60}
               value={condition.count}
               onChange={(event) =>
-                onChange({
+                emitChange({
                   ...condition,
                   count: Math.max(
                     1,
@@ -158,7 +209,7 @@ export const PatternConditionEditor = ({
               options={cardOptions}
               value={condition.uids}
               onChange={(next) =>
-                onChange({
+                emitChange({
                   ...condition,
                   uids: next,
                 })
@@ -169,8 +220,8 @@ export const PatternConditionEditor = ({
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="grid min-w-0 gap-2 sm:grid-cols-[8.5rem_8.5rem]">
-            <label className="space-y-1.5 text-xs text-latte-subtext0">
+          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_max-content] sm:items-end">
+            <label className="min-w-0 space-y-1.5 text-xs text-latte-subtext0">
               判定
               <Select
                 ariaLabel={`条件${index + 1}の判定`}
@@ -178,14 +229,14 @@ export const PatternConditionEditor = ({
                 value={condition.operator}
                 options={countOperatorOptions}
                 onChange={(next) =>
-                  onChange({
+                  emitChange({
                     ...condition,
                     operator: next === "eq" ? "eq" : "gte",
                   })
                 }
               />
             </label>
-            <label className="space-y-1.5 text-xs text-latte-subtext0">
+            <label className="min-w-0 space-y-1.5 text-xs text-latte-subtext0">
               しきい値
               <Input
                 className="h-9"
@@ -194,7 +245,7 @@ export const PatternConditionEditor = ({
                 max={60}
                 value={condition.threshold}
                 onChange={(event) =>
-                  onChange({
+                  emitChange({
                     ...condition,
                     threshold: Math.max(
                       0,
@@ -207,14 +258,14 @@ export const PatternConditionEditor = ({
                 }
               />
             </label>
-            <div className="flex min-w-0 items-end sm:col-span-2 sm:justify-end">
+            <div className="flex min-w-0 items-end sm:justify-start">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-9 w-full px-2 text-[11px] sm:w-auto sm:px-3 sm:text-xs"
+                className="h-9 w-full whitespace-nowrap px-2 text-[11px] sm:w-auto sm:px-3 sm:text-xs"
                 onClick={() =>
-                  onChange({
+                  emitChange({
                     ...condition,
                     rules: [...condition.rules, { mode: "cap1", uids: [] }],
                   })
@@ -229,15 +280,16 @@ export const PatternConditionEditor = ({
             {condition.rules.map((rule, ruleIndex) => (
               <div
                 key={`${index}-rule-${ruleIndex}`}
-                className="grid min-w-0 grid-cols-[5.5rem_minmax(0,1fr)_2rem] items-center gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/72 p-2"
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/72 p-2 sm:grid-cols-[max-content_minmax(0,1fr)_2rem] sm:items-center"
               >
                 <Select
                   ariaLabel={`条件${index + 1}ルール${ruleIndex + 1}の集計方式`}
-                  triggerClassName="h-9"
+                  className="col-start-1 row-start-1 min-w-0 sm:w-[8.5rem]"
+                  triggerClassName="h-9 whitespace-nowrap"
                   value={rule.mode}
                   options={countRuleModeOptions}
                   onChange={(next) =>
-                    onChange({
+                    emitChange({
                       ...condition,
                       rules: condition.rules.map((target, idx) =>
                         idx === ruleIndex
@@ -251,28 +303,32 @@ export const PatternConditionEditor = ({
                   }
                 />
 
-                <MultiSelect
-                  options={cardOptions}
-                  value={rule.uids}
-                  onChange={(next) =>
-                    onChange({
-                      ...condition,
-                      rules: condition.rules.map((target, idx) =>
-                        idx === ruleIndex ? { ...target, uids: next } : target,
-                      ),
-                    })
-                  }
-                  placeholder="ルール対象を選択"
-                />
+                <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+                  <MultiSelect
+                    options={cardOptions}
+                    value={rule.uids}
+                    onChange={(next) =>
+                      emitChange({
+                        ...condition,
+                        rules: condition.rules.map((target, idx) =>
+                          idx === ruleIndex
+                            ? { ...target, uids: next }
+                            : target,
+                        ),
+                      })
+                    }
+                    placeholder="ルール対象を選択"
+                  />
+                </div>
 
                 <Button
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8"
+                  className="col-start-2 row-start-1 h-8 w-8 justify-self-end sm:col-start-3 sm:row-start-1"
                   aria-label="ルール削除"
                   onClick={() =>
-                    onChange({
+                    emitChange({
                       ...condition,
                       rules:
                         condition.rules.length <= 1

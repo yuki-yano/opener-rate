@@ -1,4 +1,5 @@
 import type {
+  BaseMatchCountCondition,
   BaseCondition,
   Card,
   CountCondition,
@@ -45,9 +46,20 @@ export type CompiledCountCondition = Omit<CountCondition, "rules"> & {
   rules: CompiledCountRule[];
 };
 
+export type CompiledBaseMatchCountCondition = Omit<
+  BaseMatchCountCondition,
+  "rules"
+> & {
+  rules: CompiledCountRule[];
+};
+
 export type CompiledPatternCondition =
   | CompiledBaseCondition
   | CompiledCountCondition;
+
+export type CompiledSubPatternTriggerCondition =
+  | CompiledPatternCondition
+  | CompiledBaseMatchCountCondition;
 
 export type CompiledPattern = Omit<Pattern, "conditions"> & {
   conditions: CompiledPatternCondition[];
@@ -57,7 +69,7 @@ export type CompiledSubPattern = Omit<
   SubPattern,
   "triggerConditions" | "triggerSourceUids"
 > & {
-  triggerConditions: CompiledPatternCondition[];
+  triggerConditions: CompiledSubPatternTriggerCondition[];
   triggerSourceIndices: number[];
 };
 
@@ -71,6 +83,7 @@ export type EvaluationResult = {
   matchedPatternUids: string[];
   matchedLabelUids: string[];
   penetrationByDisruptionKey: Record<string, number>;
+  matchedCardCountsByPatternUid: Record<string, Record<number, number>>;
 };
 
 export type ThresholdCheck = {

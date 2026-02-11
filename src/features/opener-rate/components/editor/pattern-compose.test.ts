@@ -53,6 +53,25 @@ describe("resolveComposeEntries", () => {
       { disruptionCategoryUid: "lock", totalAmount: 2 },
     ]);
   });
+
+  it("includes manual penetration amount by category", () => {
+    const mainSource = createSource();
+    const filterSource = createSource({
+      value: "inline_filter",
+      label: "手動フィルタ",
+    });
+
+    const entries = resolveComposeEntries(
+      mainSource,
+      filterSource,
+      ["negate", "lock"],
+      { negate: 2 },
+    );
+
+    expect(entries).toEqual([
+      { disruptionCategoryUid: "negate", totalAmount: 2 },
+    ]);
+  });
 });
 
 describe("buildComposedSubPattern", () => {
@@ -142,5 +161,51 @@ describe("buildComposedSubPattern", () => {
     });
 
     expect(result).toBeNull();
+  });
+
+  it("builds sub pattern with inline-style filter (no penetration effect)", () => {
+    const mainSource = createSource({
+      value: "pattern:p-main",
+      label: "メイン: 初動A/B",
+      basePatternUids: ["p-main"],
+      effects: [
+        {
+          type: "add_penetration",
+          disruptionCategoryUids: ["cat-negate"],
+          amount: 2,
+        },
+      ],
+    });
+    const inlineFilterSource = createSource({
+      value: "inline_filter",
+      label: "手動フィルタ",
+      conditions: [{ mode: "required", count: 1, uids: ["yokuru"] }],
+      triggerSourceUids: ["yokuru"],
+      effects: [],
+    });
+
+    const result = buildComposedSubPattern({
+      uid: "sp-inline",
+      name: "手動フィルタ合成",
+      mainSource,
+      filterSource: inlineFilterSource,
+      selectedCategoryUids: ["cat-negate"],
+      selectedLabelUids: [],
+      manualPenetrationAmountByCategory: { "cat-negate": 1 },
+    });
+
+    expect(result).not.toBeNull();
+    expect(result).toMatchObject({
+      basePatternUids: ["p-main"],
+      triggerConditions: [{ mode: "required", count: 1, uids: ["yokuru"] }],
+      triggerSourceUids: ["yokuru"],
+    });
+    expect(result?.effects).toEqual([
+      {
+        type: "add_penetration",
+        disruptionCategoryUids: ["cat-negate"],
+        amount: 3,
+      },
+    ]);
   });
 });

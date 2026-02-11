@@ -529,6 +529,7 @@ export const SubPatternEditor = () => {
                             className="min-w-0"
                           >
                             <PatternConditionEditor
+                              scope="sub_pattern"
                               condition={condition}
                               index={conditionIndex}
                               cardOptions={cardOptions}

@@ -6,9 +6,25 @@ import type {
   EvaluationResult,
 } from "./types";
 
+type MatchedCardCounts = Record<number, number>;
+
+const addUsageCount = (
+  usage: MatchedCardCounts,
+  index: number,
+  delta: number,
+) => {
+  const next = (usage[index] ?? 0) + delta;
+  if (next <= 0) {
+    delete usage[index];
+    return;
+  }
+  usage[index] = next;
+};
+
 const canSatisfyBaseConditions = (
   conditions: CompiledBaseCondition[],
   availableCounts: number[],
+  usage?: MatchedCardCounts,
 ): boolean => {
   if (conditions.length === 0) return true;
 
@@ -23,9 +39,15 @@ const canSatisfyBaseConditions = (
     for (const index of condition.indices) {
       if ((availableCounts[index] ?? 0) <= 0) continue;
       availableCounts[index] -= 1;
+      if (usage != null) {
+        addUsageCount(usage, index, 1);
+      }
       if (visit(conditionIndex, slotIndex + 1)) {
         availableCounts[index] += 1;
         return true;
+      }
+      if (usage != null) {
+        addUsageCount(usage, index, -1);
       }
       availableCounts[index] += 1;
     }
@@ -61,35 +83,50 @@ const checkCountCondition = (
   return total >= condition.threshold;
 };
 
-export const evaluateCompiledConditions = (
+type ConditionEvaluationDetail = {
+  isMatched: boolean;
+  matchedCardCounts: MatchedCardCounts;
+};
+
+const evaluateCompiledConditionsWithDetail = (
   conditions: CompiledPatternCondition[],
   context: EvaluationContext,
-): boolean => {
+): ConditionEvaluationDetail => {
   const required: CompiledBaseCondition[] = [];
+  const requiredDistinctSelections: number[][] = [];
   const leaveDeck: CompiledBaseCondition[] = [];
+  const matchedCardCounts: MatchedCardCounts = {};
 
   for (const condition of conditions) {
     switch (condition.mode) {
       case "draw_total":
       case "remain_total": {
-        if (!checkCountCondition(context, condition)) return false;
+        if (!checkCountCondition(context, condition)) {
+          return { isMatched: false, matchedCardCounts: {} };
+        }
         break;
       }
       case "not_drawn": {
         const isDrawn = condition.indices.some(
           (index) => (context.handCounts[index] ?? 0) > 0,
         );
-        if (isDrawn) return false;
+        if (isDrawn) {
+          return { isMatched: false, matchedCardCounts: {} };
+        }
         break;
       }
       case "required_distinct": {
-        let distinctCount = 0;
+        const selected: number[] = [];
         for (const index of condition.indices) {
-          if ((context.handCounts[index] ?? 0) > 0) {
-            distinctCount += 1;
-          }
+          if ((context.handCounts[index] ?? 0) <= 0) continue;
+          if (selected.includes(index)) continue;
+          selected.push(index);
+          if (selected.length >= condition.count) break;
         }
-        if (distinctCount < condition.count) return false;
+        if (selected.length < condition.count) {
+          return { isMatched: false, matchedCardCounts: {} };
+        }
+        requiredDistinctSelections.push(selected);
         break;
       }
       case "required": {
@@ -101,43 +138,77 @@ export const evaluateCompiledConditions = (
         break;
       }
       default: {
-        return false;
+        return { isMatched: false, matchedCardCounts: {} };
       }
     }
   }
 
   if (required.length > 0) {
     const copy = context.handCounts.slice();
-    if (!canSatisfyBaseConditions(required, copy)) return false;
+    if (!canSatisfyBaseConditions(required, copy, matchedCardCounts)) {
+      return { isMatched: false, matchedCardCounts: {} };
+    }
+  }
+
+  for (const selection of requiredDistinctSelections) {
+    for (const index of selection) {
+      const current = matchedCardCounts[index] ?? 0;
+      if (current < 1) {
+        matchedCardCounts[index] = 1;
+      }
+    }
   }
 
   if (leaveDeck.length > 0) {
     const copy = context.deckCounts.slice();
-    if (!canSatisfyBaseConditions(leaveDeck, copy)) return false;
+    if (!canSatisfyBaseConditions(leaveDeck, copy)) {
+      return { isMatched: false, matchedCardCounts: {} };
+    }
   }
 
-  return true;
+  return {
+    isMatched: true,
+    matchedCardCounts,
+  };
+};
+
+export const evaluateCompiledConditions = (
+  conditions: CompiledPatternCondition[],
+  context: EvaluationContext,
+): boolean =>
+  evaluateCompiledConditionsWithDetail(conditions, context).isMatched;
+
+const evaluatePatternWithDetail = (
+  pattern: CompiledPattern,
+  context: EvaluationContext,
+) => {
+  if (!pattern.active) {
+    return { isMatched: false, matchedCardCounts: {} as MatchedCardCounts };
+  }
+
+  return evaluateCompiledConditionsWithDetail(pattern.conditions, context);
 };
 
 export const evaluatePattern = (
   pattern: CompiledPattern,
   context: EvaluationContext,
-): boolean => {
-  if (!pattern.active) return false;
-  return evaluateCompiledConditions(pattern.conditions, context);
-};
+): boolean => evaluatePatternWithDetail(pattern, context).isMatched;
 
 export const evaluatePatterns = (
   patterns: CompiledPattern[],
   context: EvaluationContext,
 ): EvaluationResult => {
   const matchedPatternUids: string[] = [];
+  const matchedCardCountsByPatternUid: Record<string, MatchedCardCounts> = {};
   const matchedLabelUids = new Set<string>();
   const penetrationByDisruptionKey: Record<string, number> = {};
 
   for (const pattern of patterns) {
-    if (!evaluatePattern(pattern, context)) continue;
+    const detail = evaluatePatternWithDetail(pattern, context);
+    if (!detail.isMatched) continue;
+
     matchedPatternUids.push(pattern.uid);
+    matchedCardCountsByPatternUid[pattern.uid] = detail.matchedCardCounts;
     for (const label of pattern.labels) {
       matchedLabelUids.add(label.uid);
     }
@@ -159,6 +230,7 @@ export const evaluatePatterns = (
   return {
     isSuccess: matchedPatternUids.length > 0 || matchedLabelUids.size > 0,
     matchedPatternUids,
+    matchedCardCountsByPatternUid,
     matchedLabelUids: Array.from(matchedLabelUids),
     penetrationByDisruptionKey,
   };

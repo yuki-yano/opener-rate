@@ -1,17 +1,29 @@
-import type { PatternCondition } from "../../shared/apiSchemas";
 import type {
+  PatternCondition,
+  SubPatternTriggerCondition,
+} from "../../shared/apiSchemas";
+import type {
+  CompiledBaseMatchCountCondition,
   CompiledCountRule,
   CompiledPattern,
   CompiledPatternCondition,
+  CompiledSubPatternTriggerCondition,
   NormalizedDeck,
 } from "./types";
 
 const isCountCondition = (
-  condition: PatternCondition,
+  condition: PatternCondition | SubPatternTriggerCondition,
 ): condition is Extract<
-  PatternCondition,
+  PatternCondition | SubPatternTriggerCondition,
   { mode: "draw_total" | "remain_total" }
 > => condition.mode === "draw_total" || condition.mode === "remain_total";
+
+const isBaseMatchCountCondition = (
+  condition: SubPatternTriggerCondition,
+): condition is Extract<
+  SubPatternTriggerCondition,
+  { mode: "base_match_total" }
+> => condition.mode === "base_match_total";
 
 export const toIndices = (uidToIndex: Map<string, number>, uids: string[]) => {
   const indices: number[] = [];
@@ -25,7 +37,10 @@ export const toIndices = (uidToIndex: Map<string, number>, uids: string[]) => {
 
 const compileCountRules = (
   uidToIndex: Map<string, number>,
-  condition: Extract<PatternCondition, { mode: "draw_total" | "remain_total" }>,
+  condition: Extract<
+    PatternCondition | SubPatternTriggerCondition,
+    { mode: "draw_total" | "remain_total" | "base_match_total" }
+  >,
 ): CompiledCountRule[] =>
   condition.rules.map((rule) => ({
     mode: rule.mode,
@@ -54,6 +69,29 @@ export const compilePatternConditions = (
   conditions: PatternCondition[],
 ): CompiledPatternCondition[] =>
   conditions.map((condition) => compileCondition(uidToIndex, condition));
+
+const compileSubPatternTriggerCondition = (
+  uidToIndex: Map<string, number>,
+  condition: SubPatternTriggerCondition,
+): CompiledSubPatternTriggerCondition => {
+  if (isBaseMatchCountCondition(condition)) {
+    const compiled: CompiledBaseMatchCountCondition = {
+      ...condition,
+      rules: compileCountRules(uidToIndex, condition),
+    };
+    return compiled;
+  }
+
+  return compileCondition(uidToIndex, condition);
+};
+
+export const compileSubPatternTriggerConditions = (
+  uidToIndex: Map<string, number>,
+  conditions: SubPatternTriggerCondition[],
+): CompiledSubPatternTriggerCondition[] =>
+  conditions.map((condition) =>
+    compileSubPatternTriggerCondition(uidToIndex, condition),
+  );
 
 export const compilePatterns = (
   normalized: NormalizedDeck,
