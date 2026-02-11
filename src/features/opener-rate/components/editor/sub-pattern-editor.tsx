@@ -268,7 +268,7 @@ export const SubPatternEditor = () => {
       description="基礎パターン成立後に追加効果を適用します。"
       actions={
         <>
-          <PatternComposeDialogTrigger defaultDestination="sub_pattern" />
+          <PatternComposeDialogTrigger />
           <Button
             size="icon"
             variant="outline"

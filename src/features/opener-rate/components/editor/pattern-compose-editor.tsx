@@ -12,10 +12,6 @@ import {
   Input,
   Select,
 } from "../../../../components/ui";
-import type {
-  PatternCondition,
-  SubPatternEffect,
-} from "../../../../shared/apiSchemas";
 import type { MultiSelectOption } from "../common/multi-select";
 import { MultiSelect } from "../common/multi-select";
 import {
@@ -25,101 +21,39 @@ import {
   subPatternsAtom,
 } from "../../state";
 import { createLocalId } from "./create-local-id";
-
-type ComposeDestination = "pattern" | "sub_pattern";
-type ComposeSource = {
-  value: string;
-  label: string;
-  conditions: PatternCondition[];
-  basePatternUids: string[];
-  triggerSourceUids: string[];
-  effects: SubPatternEffect[];
-};
-
-type PatternComposeDialogTriggerProps = {
-  defaultDestination: ComposeDestination;
-};
-
-const composeDestinationOptions = [
-  { value: "sub_pattern", label: "サブパターンに追加" },
-  { value: "pattern", label: "メインパターンに追加" },
-] as const;
+import {
+  buildComposedSubPattern,
+  resolveComposeEntries,
+  type ComposeSource,
+} from "./pattern-compose";
 
 const createDefaultSubPatternName = (index: number) =>
   `サブパターン${index + 1}`;
 const createDefaultPatternName = (index: number) => `パターン${index + 1}`;
 
-const resolveCategoryPenetrationAmount = (
-  source: ComposeSource,
-  disruptionCategoryUid: string,
-) =>
-  source.effects.reduce((total, effect) => {
-    if (effect.type !== "add_penetration") return total;
-    if (!effect.disruptionCategoryUids.includes(disruptionCategoryUid)) {
-      return total;
-    }
-    return total + effect.amount;
-  }, 0);
-
-const resolveComposeEntries = (
-  sourceA: ComposeSource,
-  sourceB: ComposeSource,
-  categoryUids: string[],
-) =>
-  Array.from(new Set(categoryUids))
-    .map((disruptionCategoryUid) => {
-      const amountA = resolveCategoryPenetrationAmount(
-        sourceA,
-        disruptionCategoryUid,
-      );
-      const amountB = resolveCategoryPenetrationAmount(
-        sourceB,
-        disruptionCategoryUid,
-      );
-      return {
-        disruptionCategoryUid,
-        totalAmount: amountA + amountB,
-      };
-    })
-    .filter((entry) => entry.totalAmount > 0);
-
-export const PatternComposeDialogTrigger = ({
-  defaultDestination,
-}: PatternComposeDialogTriggerProps) => {
-  const [patterns, setPatterns] = useAtom(patternsAtom);
+export const PatternComposeDialogTrigger = () => {
+  const patterns = useAtomValue(patternsAtom);
   const [subPatterns, setSubPatterns] = useAtom(subPatternsAtom);
   const disruptionCategories = useAtomValue(disruptionCategoriesAtom);
   const labels = useAtomValue(labelsAtom);
 
-  const [composeSourceAUid, setComposeSourceAUid] = useState("");
-  const [composeSourceBUid, setComposeSourceBUid] = useState("");
-  const [composeDestination, setComposeDestination] =
-    useState<ComposeDestination>(defaultDestination);
+  const [composeMainSourceUid, setComposeMainSourceUid] = useState("");
+  const [composeFilterSourceUid, setComposeFilterSourceUid] = useState("");
   const [composeCategoryUids, setComposeCategoryUids] = useState<string[]>([]);
   const [composeLabelUids, setComposeLabelUids] = useState<string[]>([]);
   const [composeName, setComposeName] = useState("");
   const [isDialogOpen, setIsDialogOpen] = useState(false);
 
-  const defaultDestinationLabel =
-    defaultDestination === "pattern" ? "メイン" : "サブ";
-
-  const resetComposeForm = (
-    destination: ComposeDestination = defaultDestination,
-  ) => {
-    setComposeSourceAUid("");
-    setComposeSourceBUid("");
-    setComposeDestination(destination);
+  const resetComposeForm = () => {
+    setComposeMainSourceUid("");
+    setComposeFilterSourceUid("");
     setComposeCategoryUids([]);
     setComposeLabelUids([]);
     setComposeName("");
   };
   const handleDialogOpenChange = (nextOpen: boolean) => {
     setIsDialogOpen(nextOpen);
-    if (nextOpen) {
-      resetComposeForm(defaultDestination);
-      return;
-    }
-    resetComposeForm(defaultDestination);
+    resetComposeForm();
   };
 
   const penetrationCategoryOptions = useMemo<MultiSelectOption[]>(
@@ -143,29 +77,22 @@ export const PatternComposeDialogTrigger = ({
     [labels],
   );
   const composeSources = useMemo<ComposeSource[]>(() => {
-    const hasPenetrationEffect = (effects: SubPatternEffect[]) =>
-      effects.some((effect) => effect.type === "add_penetration");
-
-    const fromPatterns = patterns
-      .filter((pattern) => hasPenetrationEffect(pattern.effects ?? []))
-      .map((pattern, index) => ({
-        value: `pattern:${pattern.uid}`,
-        label: `メイン: ${pattern.name.trim() || createDefaultPatternName(index)}`,
-        conditions: pattern.conditions,
-        basePatternUids: [pattern.uid],
-        triggerSourceUids: [],
-        effects: pattern.effects ?? [],
-      }));
-    const fromSubPatterns = subPatterns
-      .filter((subPattern) => hasPenetrationEffect(subPattern.effects))
-      .map((subPattern, index) => ({
-        value: `sub_pattern:${subPattern.uid}`,
-        label: `サブ: ${subPattern.name.trim() || createDefaultSubPatternName(index)}`,
-        conditions: subPattern.triggerConditions,
-        basePatternUids: subPattern.basePatternUids,
-        triggerSourceUids: subPattern.triggerSourceUids,
-        effects: subPattern.effects,
-      }));
+    const fromPatterns = patterns.map((pattern, index) => ({
+      value: `pattern:${pattern.uid}`,
+      label: `メイン: ${pattern.name.trim() || createDefaultPatternName(index)}`,
+      conditions: pattern.conditions,
+      basePatternUids: [pattern.uid],
+      triggerSourceUids: [],
+      effects: pattern.effects ?? [],
+    }));
+    const fromSubPatterns = subPatterns.map((subPattern, index) => ({
+      value: `sub_pattern:${subPattern.uid}`,
+      label: `サブ: ${subPattern.name.trim() || createDefaultSubPatternName(index)}`,
+      conditions: subPattern.triggerConditions,
+      basePatternUids: subPattern.basePatternUids,
+      triggerSourceUids: subPattern.triggerSourceUids,
+      effects: subPattern.effects,
+    }));
     return [...fromPatterns, ...fromSubPatterns];
   }, [patterns, subPatterns]);
   const composeSourceOptions = useMemo<MultiSelectOption[]>(
@@ -193,15 +120,15 @@ export const PatternComposeDialogTrigger = ({
     [labelOptions],
   );
 
-  const effectiveComposeSourceAUid = availableComposeSourceUids.has(
-    composeSourceAUid,
+  const effectiveComposeMainSourceUid = availableComposeSourceUids.has(
+    composeMainSourceUid,
   )
-    ? composeSourceAUid
+    ? composeMainSourceUid
     : "";
-  const effectiveComposeSourceBUid = availableComposeSourceUids.has(
-    composeSourceBUid,
+  const effectiveComposeFilterSourceUid = availableComposeSourceUids.has(
+    composeFilterSourceUid,
   )
-    ? composeSourceBUid
+    ? composeFilterSourceUid
     : "";
   const selectedComposeCategoryUids = Array.from(
     new Set(composeCategoryUids),
@@ -213,25 +140,25 @@ export const PatternComposeDialogTrigger = ({
   const canSelectComposeSources = composeSourceOptions.length >= 2;
   const canSelectComposeCategory = penetrationCategoryOptions.length > 0;
   const isComposeLocked = !canSelectComposeSources || !canSelectComposeCategory;
-  const selectedComposeSourceA = composeSourceByValue.get(
-    effectiveComposeSourceAUid,
+  const selectedMainComposeSource = composeSourceByValue.get(
+    effectiveComposeMainSourceUid,
   );
-  const selectedComposeSourceB = composeSourceByValue.get(
-    effectiveComposeSourceBUid,
+  const selectedFilterComposeSource = composeSourceByValue.get(
+    effectiveComposeFilterSourceUid,
   );
   const hasComposeSourceSelection =
-    effectiveComposeSourceAUid.length > 0 &&
-    effectiveComposeSourceBUid.length > 0 &&
-    effectiveComposeSourceAUid !== effectiveComposeSourceBUid &&
-    selectedComposeSourceA != null &&
-    selectedComposeSourceB != null;
+    effectiveComposeMainSourceUid.length > 0 &&
+    effectiveComposeFilterSourceUid.length > 0 &&
+    effectiveComposeMainSourceUid !== effectiveComposeFilterSourceUid &&
+    selectedMainComposeSource != null &&
+    selectedFilterComposeSource != null;
   const composeEffectiveEntries =
     hasComposeSourceSelection &&
-    selectedComposeSourceA &&
-    selectedComposeSourceB
+    selectedMainComposeSource &&
+    selectedFilterComposeSource
       ? resolveComposeEntries(
-          selectedComposeSourceA,
-          selectedComposeSourceB,
+          selectedMainComposeSource,
+          selectedFilterComposeSource,
           selectedComposeCategoryUids,
         )
       : [];
@@ -247,88 +174,34 @@ export const PatternComposeDialogTrigger = ({
 
   const handleCompose = () => {
     if (
-      effectiveComposeSourceAUid.length === 0 ||
-      effectiveComposeSourceBUid.length === 0
+      effectiveComposeMainSourceUid.length === 0 ||
+      effectiveComposeFilterSourceUid.length === 0
     ) {
       return;
     }
-    if (effectiveComposeSourceAUid === effectiveComposeSourceBUid) return;
-    if (selectedComposeCategoryUids.length === 0) return;
-    const trimmedName = composeName.trim();
-    if (trimmedName.length === 0) return;
-
-    const sourceA = composeSourceByValue.get(effectiveComposeSourceAUid);
-    const sourceB = composeSourceByValue.get(effectiveComposeSourceBUid);
-    if (sourceA == null || sourceB == null) return;
-
-    const composeEntries = resolveComposeEntries(
-      sourceA,
-      sourceB,
-      selectedComposeCategoryUids,
-    );
-    if (composeEntries.length === 0) return;
-
-    const union = (left: string[], right: string[]) =>
-      Array.from(new Set([...left, ...right]));
-    const nextComposePenetrationEffects = composeEntries.map((entry) => ({
-      type: "add_penetration" as const,
-      disruptionCategoryUids: [entry.disruptionCategoryUid],
-      amount: entry.totalAmount,
-    }));
-
-    if (composeDestination === "pattern") {
-      const nextPatternUid = createLocalId("pattern");
-      setPatterns((current) => [
-        ...current,
-        {
-          uid: nextPatternUid,
-          name: trimmedName,
-          active: true,
-          excludeFromOverall: false,
-          conditions: [...sourceA.conditions, ...sourceB.conditions],
-          labels: selectedComposeLabelUids.map((uid) => ({ uid })),
-          effects: nextComposePenetrationEffects,
-          memo: `合成元: ${sourceA.label} / ${sourceB.label}`,
-        },
-      ]);
-      setIsDialogOpen(false);
-      resetComposeForm(defaultDestination);
+    if (effectiveComposeMainSourceUid === effectiveComposeFilterSourceUid) {
       return;
     }
+    if (selectedComposeCategoryUids.length === 0) return;
+    const mainSource = composeSourceByValue.get(effectiveComposeMainSourceUid);
+    const filterSource = composeSourceByValue.get(
+      effectiveComposeFilterSourceUid,
+    );
+    if (mainSource == null || filterSource == null) return;
 
-    const nextSubPatternUid = createLocalId("sub_pattern");
-    setSubPatterns((current) => [
-      ...current,
-      {
-        uid: nextSubPatternUid,
-        name: trimmedName,
-        active: true,
-        basePatternUids: union(
-          sourceA.basePatternUids,
-          sourceB.basePatternUids,
-        ),
-        triggerConditions: [...sourceA.conditions, ...sourceB.conditions],
-        triggerSourceUids: union(
-          sourceA.triggerSourceUids,
-          sourceB.triggerSourceUids,
-        ),
-        applyLimit: "once_per_trial",
-        effects: [
-          ...(selectedComposeLabelUids.length > 0
-            ? [
-                {
-                  type: "add_label" as const,
-                  labelUids: selectedComposeLabelUids,
-                },
-              ]
-            : []),
-          ...nextComposePenetrationEffects,
-        ],
-        memo: `合成元: ${sourceA.label} / ${sourceB.label}`,
-      },
-    ]);
+    const nextSubPattern = buildComposedSubPattern({
+      uid: createLocalId("sub_pattern"),
+      name: composeName,
+      mainSource,
+      filterSource,
+      selectedCategoryUids: selectedComposeCategoryUids,
+      selectedLabelUids: selectedComposeLabelUids,
+    });
+    if (nextSubPattern == null) return;
+
+    setSubPatterns((current) => [...current, nextSubPattern]);
     setIsDialogOpen(false);
-    resetComposeForm(defaultDestination);
+    resetComposeForm();
   };
 
   return (
@@ -346,9 +219,7 @@ export const PatternComposeDialogTrigger = ({
         <DialogHeader>
           <DialogTitle>貫通合成ジェネレーター</DialogTitle>
           <DialogDescription>
-            メイン/サブを横断して合成できます。起動時の登録先は
-            {defaultDestinationLabel}
-            です。
+            1つ目をメイン、2つ目をフィルタとして評価するサブパターンを生成します。
           </DialogDescription>
         </DialogHeader>
 
@@ -356,7 +227,7 @@ export const PatternComposeDialogTrigger = ({
           <div className="space-y-0.5">
             {isComposeLocked ? (
               <p className="text-[11px] text-latte-overlay1">
-                利用条件: 貫通効果を持つパターン2件以上 + 妨害カテゴリ1件以上
+                利用条件: 合成元2件以上 + 妨害カテゴリ1件以上
               </p>
             ) : null}
             {!isComposeLocked &&
@@ -364,7 +235,7 @@ export const PatternComposeDialogTrigger = ({
             selectedComposeCategoryUids.length > 0 &&
             !hasComposePenetrationTarget ? (
               <p className="text-[11px] text-latte-overlay1">
-                選択中のカテゴリには、2パターン合算で加算効果がありません。
+                選択中の妨害カテゴリでは、メイン/フィルタ合算の貫通効果がありません。
               </p>
             ) : null}
             {!isComposeLocked &&
@@ -372,75 +243,59 @@ export const PatternComposeDialogTrigger = ({
             hasComposePenetrationTarget &&
             hasComposeSkippedCategories ? (
               <p className="text-[11px] text-latte-overlay1">
-                一部カテゴリは加算効果がないため、生成対象から除外されます。
+                一部妨害カテゴリは加算効果がないため、生成対象から除外されます。
               </p>
             ) : null}
             {!isComposeLocked && composeName.trim().length === 0 ? (
               <p className="text-[11px] text-latte-overlay1">
-                合成パターン名は必須です。
+                生成サブパターン名は必須です。
               </p>
             ) : null}
           </div>
           <div className="grid gap-2 sm:grid-cols-2">
             <label className="space-y-1 text-[11px] text-latte-subtext0">
-              合成元A
+              メイン元（1つ目）
               <Select
-                ariaLabel="合成元A"
+                ariaLabel="メイン元"
                 disabled={!canSelectComposeSources}
                 triggerClassName="h-9"
-                value={effectiveComposeSourceAUid}
+                value={effectiveComposeMainSourceUid}
                 options={composeSourceOptions}
-                onChange={setComposeSourceAUid}
+                onChange={setComposeMainSourceUid}
                 placeholder="メイン/サブを選択"
               />
             </label>
             <label className="space-y-1 text-[11px] text-latte-subtext0">
-              合成元B
+              フィルタ元（2つ目）
               <Select
-                ariaLabel="合成元B"
+                ariaLabel="フィルタ元"
                 disabled={!canSelectComposeSources}
                 triggerClassName="h-9"
-                value={effectiveComposeSourceBUid}
+                value={effectiveComposeFilterSourceUid}
                 options={composeSourceOptions}
-                onChange={setComposeSourceBUid}
+                onChange={setComposeFilterSourceUid}
                 placeholder="メイン/サブを選択"
               />
             </label>
           </div>
-          <div className="grid gap-2 sm:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2">
             <label className="space-y-1 text-[11px] text-latte-subtext0">
-              貫通カテゴリ（複数可）
+              妨害カテゴリ（複数可）
               <MultiSelect
                 disabled={!canSelectComposeCategory}
                 options={penetrationCategoryOptions}
                 value={selectedComposeCategoryUids}
                 onChange={setComposeCategoryUids}
-                placeholder="カテゴリを選択"
+                placeholder="妨害カテゴリを選択"
               />
             </label>
             <label className="space-y-1 text-[11px] text-latte-subtext0">
-              生成先
-              <Select
-                ariaLabel="合成生成先"
-                disabled={isComposeLocked}
-                triggerClassName="h-9"
-                value={composeDestination}
-                options={composeDestinationOptions.map((option) => ({
-                  value: option.value,
-                  label: option.label,
-                }))}
-                onChange={(value) =>
-                  setComposeDestination(value as ComposeDestination)
-                }
-              />
-            </label>
-            <label className="space-y-1 text-[11px] text-latte-subtext0">
-              合成パターン名（必須）
+              生成サブパターン名（必須）
               <Input
                 className="h-9"
                 disabled={isComposeLocked}
                 value={composeName}
-                placeholder="合成パターン名を入力"
+                placeholder="生成サブパターン名を入力"
                 onChange={(event) => setComposeName(event.target.value)}
               />
             </label>
@@ -463,7 +318,7 @@ export const PatternComposeDialogTrigger = ({
               disabled={!canRunCompose}
               onClick={handleCompose}
             >
-              合成生成
+              サブパターン生成
             </Button>
           </div>
         </div>

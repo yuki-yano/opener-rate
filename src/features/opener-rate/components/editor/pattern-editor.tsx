@@ -33,7 +33,6 @@ import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
 import { createDuplicatedPattern } from "./duplicate-pattern";
 import { PatternConditionEditor } from "./pattern-condition-editor";
-import { PatternComposeDialogTrigger } from "./pattern-compose-editor";
 
 const createDefaultCondition = () => ({
   mode: "required" as const,
@@ -233,7 +232,6 @@ export const PatternEditor = () => {
       description="成功条件を定義します。条件種別ごとに詳細ルールを編集できます。"
       actions={
         <>
-          <PatternComposeDialogTrigger defaultDestination="pattern" />
           <Button
             size="icon"
             variant="outline"
