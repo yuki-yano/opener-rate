@@ -284,6 +284,7 @@ export const PatternComposeDialogTrigger = ({
           uid: nextPatternUid,
           name: trimmedName,
           active: true,
+          excludeFromOverall: false,
           conditions: [...sourceA.conditions, ...sourceB.conditions],
           labels: selectedComposeLabelUids.map((uid) => ({ uid })),
           effects: nextComposePenetrationEffects,

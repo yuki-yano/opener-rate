@@ -168,6 +168,7 @@ export const PatternEditor = () => {
         uid,
         name: createDefaultPatternName(current.length),
         active: true,
+        excludeFromOverall: false,
         conditions: [createDefaultCondition()],
         labels: [],
         effects: [],
@@ -254,6 +255,7 @@ export const PatternEditor = () => {
           const isNameEmpty = pattern.name.trim().length === 0;
           const isMemoExpanded = expandedMemoUids.includes(pattern.uid);
           const isPatternExpanded = !collapsedPatternUids.includes(pattern.uid);
+          const isExcludedFromOverall = pattern.excludeFromOverall === true;
           const patternEffects = pattern.effects ?? [];
           const summaryLabels = pattern.labels
             .map((label) =>
@@ -528,7 +530,8 @@ export const PatternEditor = () => {
                                     current.map((target) => {
                                       if (target.uid !== pattern.uid)
                                         return target;
-                                      const currentEffects = target.effects ?? [];
+                                      const currentEffects =
+                                        target.effects ?? [];
                                       return {
                                         ...target,
                                         effects: currentEffects.map(
@@ -558,7 +561,8 @@ export const PatternEditor = () => {
                                     current.map((target) => {
                                       if (target.uid !== pattern.uid)
                                         return target;
-                                      const currentEffects = target.effects ?? [];
+                                      const currentEffects =
+                                        target.effects ?? [];
                                       return {
                                         ...target,
                                         effects: currentEffects.filter(
@@ -591,7 +595,10 @@ export const PatternEditor = () => {
                                               (entry, idx) =>
                                                 idx === effectIndex &&
                                                 entry.type === "add_label"
-                                                  ? { ...entry, labelUids: next }
+                                                  ? {
+                                                      ...entry,
+                                                      labelUids: next,
+                                                    }
                                                   : entry,
                                             ),
                                           };
@@ -662,7 +669,8 @@ export const PatternEditor = () => {
                                                           Math.min(
                                                             20,
                                                             toInt(
-                                                              event.target.value,
+                                                              event.target
+                                                                .value,
                                                               entry.amount,
                                                             ),
                                                           ),
@@ -687,6 +695,23 @@ export const PatternEditor = () => {
                       </div>
                     )}
                   </div>
+                  <Checkbox
+                    checked={isExcludedFromOverall}
+                    onChange={(event) =>
+                      setPatterns((current) =>
+                        current.map((target) =>
+                          target.uid === pattern.uid
+                            ? {
+                                ...target,
+                                excludeFromOverall: event.target.checked,
+                              }
+                            : target,
+                        ),
+                      )
+                    }
+                    label="合計初動率に計算しない"
+                    className="h-8 border-latte-surface1/70 bg-latte-mantle/55"
+                  />
                   {isMemoExpanded ? (
                     <div className="rounded-md border border-latte-surface1/75 bg-latte-base/60 p-2">
                       <Textarea
@@ -711,6 +736,7 @@ export const PatternEditor = () => {
                   <span>条件: {pattern.conditions.length}</span>
                   <span>ラベル: {summaryLabels.length}</span>
                   <span>効果: {patternEffects.length}</span>
+                  {isExcludedFromOverall ? <span>集計除外</span> : null}
                 </div>
               )}
             </div>

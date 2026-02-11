@@ -4,6 +4,144 @@ import type { CalculateInput } from "../../shared/apiSchemas";
 import { calculateOpenerRateDomain } from "./calculate";
 
 describe("calculateOpenerRateDomain", () => {
+  it("excludes flagged patterns from overall probability", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 2, firstHand: 1 },
+      cards: [
+        { uid: "a", name: "A", count: 1, memo: "" },
+        { uid: "b", name: "B", count: 1, memo: "" },
+      ],
+      patterns: [
+        {
+          uid: "p-excluded",
+          name: "除外パターン",
+          active: true,
+          excludeFromOverall: true,
+          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+        {
+          uid: "p-counted",
+          name: "集計対象パターン",
+          active: true,
+          excludeFromOverall: false,
+          conditions: [{ mode: "required", count: 1, uids: ["b"] }],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 10000,
+      },
+    });
+
+    expect(result.overallProbability).toBe("50.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-excluded", rate: "50.00" },
+      { uid: "p-counted", rate: "50.00" },
+    ]);
+  });
+
+  it("does not count labels from excluded pattern for overall probability", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 2, firstHand: 1 },
+      cards: [
+        { uid: "a", name: "A", count: 1, memo: "" },
+        { uid: "b", name: "B", count: 1, memo: "" },
+      ],
+      patterns: [
+        {
+          uid: "p-excluded",
+          name: "除外パターン",
+          active: true,
+          excludeFromOverall: true,
+          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+          labels: [{ uid: "l-excluded" }],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [{ uid: "l-excluded", name: "除外ラベル", memo: "" }],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 10000,
+      },
+    });
+
+    expect(result.overallProbability).toBe("0.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-excluded", rate: "50.00" },
+    ]);
+    expect(result.labelSuccessRates).toEqual([
+      { uid: "l-excluded", rate: "50.00" },
+    ]);
+  });
+
+  it("does not count sub-pattern effects from excluded base pattern for overall probability", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 2, firstHand: 1 },
+      cards: [
+        { uid: "a", name: "A", count: 1, memo: "" },
+        { uid: "b", name: "B", count: 1, memo: "" },
+      ],
+      patterns: [
+        {
+          uid: "p-excluded",
+          name: "除外パターン",
+          active: true,
+          excludeFromOverall: true,
+          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp-from-excluded",
+          name: "除外起点サブ",
+          active: true,
+          basePatternUids: ["p-excluded"],
+          triggerConditions: [],
+          triggerSourceUids: [],
+          applyLimit: "once_per_trial",
+          effects: [{ type: "add_label", labelUids: ["l-sub"] }],
+          memo: "",
+        },
+      ],
+      labels: [{ uid: "l-sub", name: "サブラベル", memo: "" }],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 10000,
+      },
+    });
+
+    expect(result.overallProbability).toBe("0.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-excluded", rate: "50.00" },
+    ]);
+    expect(result.labelSuccessRates).toEqual([{ uid: "l-sub", rate: "50.00" }]);
+  });
+
   it("computes exact probability for required condition", () => {
     const result = calculateOpenerRateDomain({
       deck: { cardCount: 40, firstHand: 5 },

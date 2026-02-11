@@ -32,6 +32,45 @@ const toRateString = (success: bigint, total: bigint) => {
   return (Number(scaled) / 100).toFixed(2);
 };
 
+const collectCountablePatternEffects = (
+  matchedPatternUids: string[],
+  compiledPatternByUid: Map<string, CompiledPattern>,
+) => {
+  const countableMatchedPatternUids: string[] = [];
+  const countableMatchedLabelUids = new Set<string>();
+  const penetrationByDisruptionKey: Record<string, number> = {};
+
+  for (const patternUid of matchedPatternUids) {
+    const pattern = compiledPatternByUid.get(patternUid);
+    if (pattern == null) continue;
+    if (pattern.excludeFromOverall) continue;
+
+    countableMatchedPatternUids.push(patternUid);
+    for (const label of pattern.labels) {
+      countableMatchedLabelUids.add(label.uid);
+    }
+    for (const effect of pattern.effects ?? []) {
+      if (effect.type === "add_label") {
+        for (const labelUid of effect.labelUids) {
+          countableMatchedLabelUids.add(labelUid);
+        }
+        continue;
+      }
+      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
+        const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        penetrationByDisruptionKey[disruptionCategoryUid] =
+          current + effect.amount;
+      }
+    }
+  }
+
+  return {
+    countableMatchedPatternUids,
+    countableMatchedLabelUids,
+    penetrationByDisruptionKey,
+  };
+};
+
 export const calculateByExact = (params: {
   normalized: NormalizedDeck;
   compiledPatterns: CompiledPattern[];
@@ -47,6 +86,9 @@ export const calculateByExact = (params: {
     .map((entry) => entry.index);
 
   const patternOrder = normalized.patterns.map((pattern) => pattern.uid);
+  const compiledPatternByUid = new Map(
+    compiledPatterns.map((pattern) => [pattern.uid, pattern]),
+  );
   const labelOrder = normalized.labels.map((label) => label.uid);
   const patternIndexByUid = new Map(
     patternOrder.map((uid, index) => [uid, index]),
@@ -76,14 +118,27 @@ export const calculateByExact = (params: {
         context: { handCounts, deckCounts },
         matchedPatternUids: evaluation.matchedPatternUids,
       });
+      const countablePatternEffects = collectCountablePatternEffects(
+        evaluation.matchedPatternUids,
+        compiledPatternByUid,
+      );
+      const countableSubPatternEvaluation = evaluateSubPatterns({
+        compiledSubPatterns,
+        context: { handCounts, deckCounts },
+        matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
+      });
       const matchedLabelUids = new Set([
         ...evaluation.matchedLabelUids,
         ...subPatternEvaluation.addedLabelUids,
       ]);
+      const countableMatchedLabelUids = new Set([
+        ...countablePatternEffects.countableMatchedLabelUids,
+        ...countableSubPatternEvaluation.addedLabelUids,
+      ]);
       totalCombinations += weight;
       if (
-        evaluation.matchedPatternUids.length > 0 ||
-        matchedLabelUids.size > 0
+        countablePatternEffects.countableMatchedPatternUids.length > 0 ||
+        countableMatchedLabelUids.size > 0
       ) {
         overallSuccess += weight;
       }

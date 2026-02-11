@@ -15,8 +15,55 @@ const toRateString = (successCount: number, total: number) => {
   return ((successCount / total) * 100).toFixed(2);
 };
 
-const scoreEvaluation = (evaluation: ReturnType<typeof evaluatePatterns>) =>
-  (evaluation.isSuccess ? 1_000_000 : 0) +
+const collectCountablePatternEffects = (
+  matchedPatternUids: string[],
+  compiledPatternByUid: Map<string, CompiledPattern>,
+) => {
+  const countableMatchedPatternUids: string[] = [];
+  const countableMatchedLabelUids = new Set<string>();
+  const penetrationByDisruptionKey: Record<string, number> = {};
+
+  for (const patternUid of matchedPatternUids) {
+    const pattern = compiledPatternByUid.get(patternUid);
+    if (pattern == null) continue;
+    if (pattern.excludeFromOverall) continue;
+
+    countableMatchedPatternUids.push(patternUid);
+    for (const label of pattern.labels) {
+      countableMatchedLabelUids.add(label.uid);
+    }
+    for (const effect of pattern.effects ?? []) {
+      if (effect.type === "add_label") {
+        for (const labelUid of effect.labelUids) {
+          countableMatchedLabelUids.add(labelUid);
+        }
+        continue;
+      }
+      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
+        const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        penetrationByDisruptionKey[disruptionCategoryUid] =
+          current + effect.amount;
+      }
+    }
+  }
+
+  return {
+    countableMatchedPatternUids,
+    countableMatchedLabelUids,
+    penetrationByDisruptionKey,
+  };
+};
+
+const scoreEvaluation = (
+  evaluation: ReturnType<typeof evaluatePatterns>,
+  compiledPatternByUid: Map<string, CompiledPattern>,
+) =>
+  (collectCountablePatternEffects(
+    evaluation.matchedPatternUids,
+    compiledPatternByUid,
+  ).countableMatchedPatternUids.length > 0
+    ? 1_000_000
+    : 0) +
   evaluation.matchedPatternUids.length * 1000 +
   evaluation.matchedLabelUids.length;
 
@@ -150,6 +197,7 @@ const mergePenetrationByDisruptionKey = (
 const runPotResolution = (
   normalized: NormalizedDeck,
   compiledPatterns: CompiledPattern[],
+  compiledPatternByUid: Map<string, CompiledPattern>,
   handCounts: number[],
   deckCounts: number[],
   remainingDeckOrder: number[],
@@ -184,7 +232,7 @@ const runPotResolution = (
           handCounts: candidateHand,
           deckCounts: candidateDeck,
         });
-        const score = scoreEvaluation(evaluation);
+        const score = scoreEvaluation(evaluation, compiledPatternByUid);
         if (score > bestScore) {
           bestScore = score;
           bestRevealPosition = revealPosition;
@@ -246,6 +294,9 @@ export const calculateBySimulation = (params: {
 
   const labelOrder = normalized.labels.map((label) => label.uid);
   const patternOrder = normalized.patterns.map((pattern) => pattern.uid);
+  const compiledPatternByUid = new Map(
+    compiledPatterns.map((pattern) => [pattern.uid, pattern]),
+  );
   const labelIndexByUid = new Map(labelOrder.map((uid, index) => [uid, index]));
   const patternIndexByUid = new Map(
     patternOrder.map((uid, index) => [uid, index]),
@@ -275,6 +326,7 @@ export const calculateBySimulation = (params: {
     runPotResolution(
       normalized,
       compiledPatterns,
+      compiledPatternByUid,
       handCounts,
       deckCounts,
       remainingDeckOrder,
@@ -289,13 +341,27 @@ export const calculateBySimulation = (params: {
       context: { handCounts, deckCounts },
       matchedPatternUids: evaluation.matchedPatternUids,
     });
+    const countablePatternEffects = collectCountablePatternEffects(
+      evaluation.matchedPatternUids,
+      compiledPatternByUid,
+    );
+    const countableSubPatternEvaluation = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: { handCounts, deckCounts },
+      matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
+    });
     const matchedLabelUids = new Set([
       ...evaluation.matchedLabelUids,
       ...subPatternEvaluation.addedLabelUids,
     ]);
+    const countableMatchedLabelUids = new Set([
+      ...countablePatternEffects.countableMatchedLabelUids,
+      ...countableSubPatternEvaluation.addedLabelUids,
+    ]);
 
     const baseSuccess =
-      evaluation.matchedPatternUids.length > 0 || matchedLabelUids.size > 0;
+      countablePatternEffects.countableMatchedPatternUids.length > 0 ||
+      countableMatchedLabelUids.size > 0;
     let isSuccess = baseSuccess;
 
     if (vsEnabled) {
@@ -311,8 +377,8 @@ export const calculateBySimulation = (params: {
         }
       } else {
         const totalPenetrationByDisruptionKey = mergePenetrationByDisruptionKey(
-          evaluation.penetrationByDisruptionKey,
-          subPatternEvaluation.penetrationByDisruptionKey,
+          countablePatternEffects.penetrationByDisruptionKey,
+          countableSubPatternEvaluation.penetrationByDisruptionKey,
         );
         const penetrated = canPenetrateAllDisruptions(
           totalPenetrationByDisruptionKey,

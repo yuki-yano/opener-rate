@@ -88,6 +88,7 @@ export const patternSchema = z.object({
   uid: z.string().min(1),
   name: z.string().trim().min(1, "パターン名は必須です"),
   active: z.boolean(),
+  excludeFromOverall: z.boolean().optional(),
   conditions: z.array(patternConditionSchema),
   labels: z.array(z.object({ uid: z.string().min(1) })),
   effects: z.array(subPatternEffectSchema).optional(),
