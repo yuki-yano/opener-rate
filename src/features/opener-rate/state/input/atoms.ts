@@ -199,7 +199,6 @@ export const deckNameAtom = atom(
     set(
       locationAtom,
       {
-        ...current,
         searchParams: nextSearchParams,
       },
       { replace: true },
