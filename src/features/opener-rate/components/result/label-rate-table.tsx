@@ -31,7 +31,7 @@ const resolveRateDiff = (
   if (Math.abs(diff) < diffEpsilon) return null;
 
   return {
-    className: diff > 0 ? "text-latte-green" : "text-latte-red",
+    className: diff > 0 ? "text-ui-green" : "text-ui-red",
     text: `${diff > 0 ? "+" : "-"}${Math.abs(diff).toFixed(2)}%`,
   };
 };
@@ -77,7 +77,7 @@ export const LabelRateTable = () => {
       description="ラベル単位の成功率を表示します。"
     >
       {labels.length === 0 ? (
-        <p className="text-xs text-latte-subtext0">ラベルがありません。</p>
+        <p className="text-xs text-ui-subtext0">ラベルがありません。</p>
       ) : null}
 
       <div className="space-y-2">
@@ -89,13 +89,13 @@ export const LabelRateTable = () => {
           return (
             <div
               key={label.uid}
-              className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface0/70 bg-latte-mantle px-3 py-2.5"
+              className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5"
             >
-              <span className="text-xs tabular-nums text-latte-overlay1">
+              <span className="text-xs tabular-nums text-ui-overlay1">
                 {index + 1}
               </span>
               <div className="min-w-0">
-                <p className="truncate text-sm text-latte-text">
+                <p className="truncate text-sm text-ui-text">
                   {label.name.trim() || "名称未設定"}
                 </p>
               </div>

@@ -88,11 +88,11 @@ export const OpenerRateScreen = () => {
   }, []);
 
   return (
-    <div className="relative min-h-[100svh] bg-latte-base text-latte-text md:min-h-screen">
+    <div className="relative min-h-[100svh] bg-ui-base text-ui-text md:min-h-screen">
       <div className="relative z-10">
-        <header className="border-b border-latte-surface0/90 bg-latte-base">
+        <header className="border-b border-ui-surface0/90 bg-ui-base">
           <div className="mx-auto w-full max-w-7xl px-4 py-4">
-            <h1 className="text-3xl font-bold tracking-tight text-latte-text">
+            <h1 className="text-3xl font-bold tracking-tight text-ui-text">
               初動率計算機
             </h1>
           </div>

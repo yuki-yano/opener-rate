@@ -302,7 +302,7 @@ export const PatternComposeDialogTrigger = () => {
         className="h-8 px-3 text-xs"
         onClick={() => handleDialogOpenChange(true)}
       >
-        <FlaskConical className="mr-1.5 h-3.5 w-3.5 text-latte-blue" />
+        <FlaskConical className="mr-1.5 h-3.5 w-3.5 text-ui-blue" />
         合成
       </Button>
       <DialogContent className="p-4 sm:p-6">
@@ -313,17 +313,17 @@ export const PatternComposeDialogTrigger = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2 rounded-md border border-latte-surface0 bg-latte-crust p-3.5">
+        <div className="space-y-2 rounded-md border border-ui-surface0 bg-ui-crust p-3.5">
           <div className="space-y-0.5">
             {isComposeLocked ? (
-              <p className="text-[11px] text-latte-overlay1">
+              <p className="text-[11px] text-ui-overlay1">
                 利用条件: 合成元1件以上 + 妨害カテゴリ1件以上
               </p>
             ) : null}
             {!isComposeLocked &&
             filterInputMode === "inline" &&
             inlineFilterConditions.length === 0 ? (
-              <p className="text-[11px] text-latte-overlay1">
+              <p className="text-[11px] text-ui-overlay1">
                 手動フィルタでは条件を1件以上設定してください。
               </p>
             ) : null}
@@ -331,7 +331,7 @@ export const PatternComposeDialogTrigger = () => {
             hasComposeSourceSelection &&
             selectedComposeCategoryUids.length > 0 &&
             !hasComposePenetrationTarget ? (
-              <p className="text-[11px] text-latte-overlay1">
+              <p className="text-[11px] text-ui-overlay1">
                 選択中の妨害カテゴリでは、メイン/フィルタ合算の貫通効果がありません。
               </p>
             ) : null}
@@ -339,18 +339,18 @@ export const PatternComposeDialogTrigger = () => {
             hasComposeSourceSelection &&
             hasComposePenetrationTarget &&
             hasComposeSkippedCategories ? (
-              <p className="text-[11px] text-latte-overlay1">
+              <p className="text-[11px] text-ui-overlay1">
                 一部妨害カテゴリは加算効果がないため、生成対象から除外されます。
               </p>
             ) : null}
             {!isComposeLocked && composeName.trim().length === 0 ? (
-              <p className="text-[11px] text-latte-overlay1">
+              <p className="text-[11px] text-ui-overlay1">
                 生成サブパターン名は必須です。
               </p>
             ) : null}
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
-            <label className="space-y-1 text-[11px] text-latte-subtext0">
+            <label className="space-y-1 text-[11px] text-ui-subtext0">
               フィルタ入力方法
               <Select
                 ariaLabel="フィルタ入力方法"
@@ -366,7 +366,7 @@ export const PatternComposeDialogTrigger = () => {
                 }
               />
             </label>
-            <label className="space-y-1 text-[11px] text-latte-subtext0">
+            <label className="space-y-1 text-[11px] text-ui-subtext0">
               メイン元（1つ目）
               <Select
                 ariaLabel="メイン元"
@@ -379,7 +379,7 @@ export const PatternComposeDialogTrigger = () => {
               />
             </label>
             {filterInputMode === "existing" ? (
-              <label className="space-y-1 text-[11px] text-latte-subtext0">
+              <label className="space-y-1 text-[11px] text-ui-subtext0">
                 フィルタ元（2つ目）
                 <Select
                   ariaLabel="フィルタ元"
@@ -392,7 +392,7 @@ export const PatternComposeDialogTrigger = () => {
                 />
               </label>
             ) : (
-              <label className="space-y-1 text-[11px] text-latte-subtext0">
+              <label className="space-y-1 text-[11px] text-ui-subtext0">
                 フィルタ対象カード（任意）
                 <MultiSelect
                   options={cardOptions}
@@ -405,9 +405,9 @@ export const PatternComposeDialogTrigger = () => {
             )}
           </div>
           {filterInputMode === "inline" ? (
-            <div className="space-y-1.5 rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
+            <div className="space-y-1.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] text-latte-subtext0">
+                <p className="text-[11px] text-ui-subtext0">
                   手動フィルタ条件
                 </p>
                 <Button
@@ -449,7 +449,7 @@ export const PatternComposeDialogTrigger = () => {
             </div>
           ) : null}
           <div className="grid gap-2 sm:grid-cols-3">
-            <label className="space-y-1 text-[11px] text-latte-subtext0">
+            <label className="space-y-1 text-[11px] text-ui-subtext0">
               妨害カテゴリ（複数可）
               <MultiSelect
                 disabled={!canSelectComposeCategory}
@@ -459,7 +459,7 @@ export const PatternComposeDialogTrigger = () => {
                 placeholder="妨害カテゴリを選択"
               />
             </label>
-            <label className="space-y-1 text-[11px] text-latte-subtext0">
+            <label className="space-y-1 text-[11px] text-ui-subtext0">
               手動貫通加算（カテゴリごと）
               <Input
                 className="h-9"
@@ -484,7 +484,7 @@ export const PatternComposeDialogTrigger = () => {
                 }
               />
             </label>
-            <label className="space-y-1 text-[11px] text-latte-subtext0">
+            <label className="space-y-1 text-[11px] text-ui-subtext0">
               生成サブパターン名（必須）
               <Input
                 className="h-9"
@@ -495,7 +495,7 @@ export const PatternComposeDialogTrigger = () => {
               />
             </label>
           </div>
-          <label className="space-y-1 text-[11px] text-latte-subtext0">
+          <label className="space-y-1 text-[11px] text-ui-subtext0">
             合成結果に付与するラベル（任意）
             <MultiSelect
               options={labelOptions}

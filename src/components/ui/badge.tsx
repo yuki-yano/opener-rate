@@ -16,13 +16,13 @@ export const Badge = ({
       className={cn(
         "inline-flex items-center rounded-md border px-2.5 py-0.5 text-xs font-medium",
         variant === "default" &&
-          "border-latte-blue/35 bg-latte-blue/12 text-latte-blue",
+          "border-ui-blue/35 bg-ui-blue/12 text-ui-blue",
         variant === "muted" &&
-          "border-latte-surface0 bg-latte-crust text-latte-subtext1",
+          "border-ui-surface0 bg-ui-crust text-ui-subtext1",
         variant === "danger" &&
-          "border-latte-red/35 bg-latte-red/12 text-latte-red",
+          "border-ui-red/35 bg-ui-red/12 text-ui-red",
         variant === "success" &&
-          "border-latte-green/35 bg-latte-green/12 text-latte-green",
+          "border-ui-green/35 bg-ui-green/12 text-ui-green",
         className,
       )}
       {...props}

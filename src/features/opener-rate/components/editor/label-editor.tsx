@@ -50,7 +50,7 @@ export const LabelEditor = () => {
       }
     >
       {labels.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
           ラベルがありません。「ラベル追加」から作成してください。
         </p>
       ) : null}
@@ -65,10 +65,10 @@ export const LabelEditor = () => {
           const isMemoExpanded = expandedMemoUids.includes(label.uid);
 
           return (
-            <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
+            <div className="space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                 <Input
-                  className="border-latte-surface0/80 bg-latte-mantle text-latte-text placeholder:text-latte-overlay1"
+                  className="border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
                   value={label.name}
                   placeholder="ラベル名（必須）"
                   onChange={(event) =>
@@ -86,7 +86,7 @@ export const LabelEditor = () => {
                     type="button"
                     variant="ghost"
                     size="icon"
-                    className={isMemoExpanded ? "text-latte-blue" : undefined}
+                    className={isMemoExpanded ? "text-ui-blue" : undefined}
                     aria-label="メモ表示切り替え"
                     onClick={() => toggleMemo(label.uid)}
                   >
@@ -106,17 +106,17 @@ export const LabelEditor = () => {
                       );
                     }}
                   >
-                    <Trash2 className="h-4 w-4 text-latte-red" />
+                    <Trash2 className="h-4 w-4 text-ui-red" />
                   </Button>
                 </div>
               </div>
               {isNameEmpty ? (
-                <p className="text-xs text-latte-red">
+                <p className="text-xs text-ui-red">
                   ラベル名は必須です。空欄のままでは計算できません。
                 </p>
               ) : null}
               {isMemoExpanded ? (
-                <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
+                <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
                   <Textarea
                     value={label.memo}
                     placeholder="メモ"

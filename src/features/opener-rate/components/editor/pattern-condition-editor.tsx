@@ -152,7 +152,7 @@ export const PatternConditionEditor = ({
   };
 
   return (
-    <div className="min-w-0 space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle p-2.5">
+    <div className="min-w-0 space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle p-2.5">
       <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-2">
         <Select
           ariaLabel={`条件${index + 1}の種類`}
@@ -178,13 +178,13 @@ export const PatternConditionEditor = ({
           aria-label="条件削除"
           onClick={onRemove}
         >
-          <Trash2 className="h-4 w-4 text-latte-red" />
+          <Trash2 className="h-4 w-4 text-ui-red" />
         </Button>
       </div>
 
       {!isCountCondition(condition) ? (
         <div className="grid min-w-0 gap-2 sm:grid-cols-[6.5rem_minmax(0,1fr)]">
-          <label className="space-y-1.5 text-xs text-latte-subtext0">
+          <label className="space-y-1.5 text-xs text-ui-subtext0">
             必要枚数
             <Input
               className="h-9"
@@ -203,7 +203,7 @@ export const PatternConditionEditor = ({
               }
             />
           </label>
-          <label className="min-w-0 space-y-1.5 text-xs text-latte-subtext0">
+          <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
             対象カード
             <MultiSelect
               options={cardOptions}
@@ -221,7 +221,7 @@ export const PatternConditionEditor = ({
       ) : (
         <div className="space-y-2">
           <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_max-content] sm:items-end">
-            <label className="min-w-0 space-y-1.5 text-xs text-latte-subtext0">
+            <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
               判定
               <Select
                 ariaLabel={`条件${index + 1}の判定`}
@@ -236,7 +236,7 @@ export const PatternConditionEditor = ({
                 }
               />
             </label>
-            <label className="min-w-0 space-y-1.5 text-xs text-latte-subtext0">
+            <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
               しきい値
               <Input
                 className="h-9"
@@ -280,7 +280,7 @@ export const PatternConditionEditor = ({
             {condition.rules.map((rule, ruleIndex) => (
               <div
                 key={`${index}-rule-${ruleIndex}`}
-                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5 sm:grid-cols-[max-content_minmax(0,1fr)_2rem] sm:items-center"
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5 sm:grid-cols-[max-content_minmax(0,1fr)_2rem] sm:items-center"
               >
                 <Select
                   ariaLabel={`条件${index + 1}ルール${ruleIndex + 1}の集計方式`}
@@ -339,7 +339,7 @@ export const PatternConditionEditor = ({
                     })
                   }
                 >
-                  <Trash2 className="h-4 w-4 text-latte-red" />
+                  <Trash2 className="h-4 w-4 text-ui-red" />
                 </Button>
               </div>
             ))}

@@ -74,7 +74,7 @@ export const VsSimulationEditor = () => {
         </Button>
       }
     >
-      <div className="rounded-md border border-latte-surface0/80 bg-latte-mantle px-3 py-2.5 text-xs text-latte-subtext0">
+      <div className="rounded-md border border-ui-surface0/80 bg-ui-mantle px-3 py-2.5 text-xs text-ui-subtext0">
         <p>入力ガイド</p>
         <p className="mt-1">枚数: 相手デッキに入っているその妨害札の枚数</p>
         <p>
@@ -95,7 +95,7 @@ export const VsSimulationEditor = () => {
       />
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1.5 text-xs text-latte-subtext0">
+        <label className="space-y-1.5 text-xs text-ui-subtext0">
           相手デッキ枚数
           <Input
             type="number"
@@ -116,7 +116,7 @@ export const VsSimulationEditor = () => {
             }
           />
         </label>
-        <label className="space-y-1.5 text-xs text-latte-subtext0">
+        <label className="space-y-1.5 text-xs text-ui-subtext0">
           相手初手枚数
           <Input
             type="number"
@@ -140,12 +140,12 @@ export const VsSimulationEditor = () => {
       </div>
 
       {vs.opponentDisruptions.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
           妨害札がありません。「妨害札追加」から作成してください。
         </p>
       ) : null}
       {disruptionCards.length === 0 ? (
-        <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-3 text-xs text-latte-subtext0">
+        <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-3 text-xs text-ui-subtext0">
           妨害カード一覧が空です。先に妨害カードを登録してください。
         </p>
       ) : null}
@@ -169,9 +169,9 @@ export const VsSimulationEditor = () => {
           const isNameEmpty = resolvedName.trim().length === 0;
 
           return (
-            <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
+            <div className="space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3">
               <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_7rem_auto] sm:items-end">
-                <div className="space-y-1 text-[11px] text-latte-subtext0">
+                <div className="space-y-1 text-[11px] text-ui-subtext0">
                   <p>妨害カード</p>
                   <Select
                     ariaLabel="妨害カード選択"
@@ -202,7 +202,7 @@ export const VsSimulationEditor = () => {
                     }
                   />
                 </div>
-                <label className="space-y-1 text-[11px] text-latte-subtext0">
+                <label className="space-y-1 text-[11px] text-ui-subtext0">
                   枚数
                   <Input
                     type="number"
@@ -245,17 +245,17 @@ export const VsSimulationEditor = () => {
                     }))
                   }
                 >
-                  <Trash2 className="h-4 w-4 text-latte-red" />
+                  <Trash2 className="h-4 w-4 text-ui-red" />
                 </Button>
               </div>
 
               {isNameEmpty ? (
-                <div className="space-y-1 text-xs text-latte-red">
+                <div className="space-y-1 text-xs text-ui-red">
                   {isNameEmpty ? <p>妨害札名は必須です。</p> : null}
                 </div>
               ) : null}
               {disruption.disruptionCategoryUid != null ? (
-                <p className="text-[11px] text-latte-subtext0">
+                <p className="text-[11px] text-ui-subtext0">
                   カテゴリ:{" "}
                   {disruptionCategoryByUid.get(disruption.disruptionCategoryUid)
                     ?.name ?? "未設定"}

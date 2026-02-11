@@ -38,7 +38,7 @@ export const DeckEditor = () => {
       title="デッキ設定"
       description="デッキ枚数、初手枚数、計算モードを設定します。"
     >
-      <label className="space-y-1.5 text-xs text-latte-subtext0">
+      <label className="space-y-1.5 text-xs text-ui-subtext0">
         デッキ名（OGP）
         <Input
           value={deckName}
@@ -48,7 +48,7 @@ export const DeckEditor = () => {
       </label>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1.5 text-xs text-latte-subtext0">
+        <label className="space-y-1.5 text-xs text-ui-subtext0">
           デッキ枚数
           <Input
             type="number"
@@ -63,7 +63,7 @@ export const DeckEditor = () => {
             }
           />
         </label>
-        <label className="space-y-1.5 text-xs text-latte-subtext0">
+        <label className="space-y-1.5 text-xs text-ui-subtext0">
           初手枚数
           <Input
             type="number"
@@ -81,10 +81,10 @@ export const DeckEditor = () => {
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-latte-subtext0">壺設定</p>
+        <p className="text-xs text-ui-subtext0">壺設定</p>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
-          <label className="space-y-1.5 text-xs text-latte-subtext0">
+          <label className="space-y-1.5 text-xs text-ui-subtext0">
             金満で謙虚な壺 枚数
             <Input
               type="number"
@@ -109,7 +109,7 @@ export const DeckEditor = () => {
             />
           </label>
 
-          <label className="space-y-1.5 text-xs text-latte-subtext0">
+          <label className="space-y-1.5 text-xs text-ui-subtext0">
             除外コスト
             <Select
               ariaLabel="除外コスト"
@@ -128,7 +128,7 @@ export const DeckEditor = () => {
           </label>
         </div>
 
-        <label className="space-y-1.5 text-xs text-latte-subtext0">
+        <label className="space-y-1.5 text-xs text-ui-subtext0">
           強欲で貪欲な壺 / 強欲で金満な壺 枚数
           <Input
             type="number"
@@ -157,7 +157,7 @@ export const DeckEditor = () => {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1.5 text-xs text-latte-subtext0">
+        <label className="space-y-1.5 text-xs text-ui-subtext0">
           計算モード
           <Select
             ariaLabel="計算モード"
@@ -168,7 +168,7 @@ export const DeckEditor = () => {
             }
           />
         </label>
-        <label className="space-y-1.5 text-xs text-latte-subtext0">
+        <label className="space-y-1.5 text-xs text-ui-subtext0">
           試行回数
           <Input
             type="number"

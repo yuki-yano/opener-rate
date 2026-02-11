@@ -1,5 +1,5 @@
 /** @type {import("tailwindcss").Config} */
-const withAlpha = (variable) => `rgb(var(--ctp-${variable}) / <alpha-value>)`;
+const withAlpha = (variable) => `rgb(var(--theme-${variable}) / <alpha-value>)`;
 
 export default {
   content: ["./index.html", "./src/**/*.{ts,tsx}"],
@@ -9,7 +9,7 @@ export default {
         sans: ["var(--font-body)"],
       },
       colors: {
-        latte: {
+        ui: {
           base: withAlpha("base"),
           mantle: withAlpha("mantle"),
           crust: withAlpha("crust"),
@@ -34,7 +34,7 @@ export default {
       },
       boxShadow: {
         panel:
-          "0 1px 3px rgb(var(--ctp-shadow) / 0.1), 0 1px 2px rgb(var(--ctp-shadow) / 0.06)",
+          "0 1px 3px rgb(var(--theme-shadow) / 0.1), 0 1px 2px rgb(var(--theme-shadow) / 0.06)",
       },
     },
   },

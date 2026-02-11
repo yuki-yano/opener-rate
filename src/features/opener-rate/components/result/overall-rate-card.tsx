@@ -41,7 +41,7 @@ const resolveRateDiff = (
   if (Math.abs(diff) < diffEpsilon) return null;
 
   return {
-    className: diff > 0 ? "text-latte-green" : "text-latte-red",
+    className: diff > 0 ? "text-ui-green" : "text-ui-red",
     text: `${diff > 0 ? "+" : "-"}${Math.abs(diff).toFixed(2)}%`,
   };
 };
@@ -116,22 +116,22 @@ export const OverallRateCard = () => {
       actions={
         <Button
           size="sm"
-          className="border-latte-surface0 bg-latte-surface0 text-latte-text ring-1 ring-latte-blue/28 hover:bg-latte-surface1/85 active:bg-latte-surface1"
+          className="border-ui-surface0 bg-white text-ui-text ring-1 ring-ui-blue/28 hover:bg-ui-mantle active:bg-ui-mantle/90"
           onClick={() => {
             void runCalculate();
           }}
           disabled={!canCalculate || isCalculating}
         >
-          <Calculator className="mr-1.5 h-4 w-4 text-latte-blue" />
+          <Calculator className="mr-1.5 h-4 w-4 text-ui-blue" />
           {isCalculating ? "計算中..." : "計算する"}
         </Button>
       }
     >
-      <div className="rounded-md border border-latte-surface0/80 bg-latte-mantle px-4 py-3.5">
-        <p className="text-xs tracking-[0.08em] text-latte-subtext0">
+      <div className="rounded-md border border-ui-surface0/80 bg-ui-mantle px-4 py-3.5">
+        <p className="text-xs tracking-[0.08em] text-ui-subtext0">
           全体成功率
         </p>
-        <p className="mt-1 text-3xl font-semibold tabular-nums text-latte-text">
+        <p className="mt-1 text-3xl font-semibold tabular-nums text-ui-text">
           {result?.overallProbability ?? "0.00"}%
           {overallRateDiff ? (
             <span className={`ml-2 text-sm ${overallRateDiff.className}`}>
@@ -145,15 +145,21 @@ export const OverallRateCard = () => {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2">
-          <p className="text-xs tracking-wider text-latte-subtext0">
-            パターン別成立率
-          </p>
+        <div className="flex items-center justify-between gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 px-2.5 py-2">
+          <div className="space-y-0.5">
+            <p className="text-xs tracking-wider text-ui-subtext0">
+              パターン別成立率
+            </p>
+            <p className="text-[11px] text-ui-overlay1">
+              {patterns.length > 0 ? `${patterns.length}件` : "パターンなし"}・
+              {isPatternRatesExpanded ? "表示中" : "非表示"}
+            </p>
+          </div>
           <Button
             type="button"
             size="sm"
-            variant="ghost"
-            className="h-7 gap-1 px-2 text-[11px] text-latte-subtext0"
+            variant="outline"
+            className="h-8 gap-1.5 px-2.5 text-xs"
             aria-expanded={isPatternRatesExpanded}
             onClick={() => setIsPatternRatesExpanded((current) => !current)}
           >
@@ -162,12 +168,12 @@ export const OverallRateCard = () => {
             ) : (
               <ChevronRight className="h-3.5 w-3.5" />
             )}
-            {isPatternRatesExpanded ? "閉じる" : "開く"}
+            {isPatternRatesExpanded ? "一覧を隠す" : "一覧を表示"}
           </Button>
         </div>
         {isPatternRatesExpanded ? (
           patterns.length === 0 ? (
-            <p className="text-xs text-latte-subtext0">
+            <p className="text-xs text-ui-subtext0">
               パターンがありません。
             </p>
           ) : (
@@ -179,12 +185,12 @@ export const OverallRateCard = () => {
               return (
                 <div
                   key={pattern.uid}
-                  className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface0/70 bg-latte-mantle px-3 py-2.5"
+                  className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5"
                 >
-                  <span className="text-xs tabular-nums text-latte-overlay1">
+                  <span className="text-xs tabular-nums text-ui-overlay1">
                     {index + 1}
                   </span>
-                  <p className="truncate text-sm text-latte-text">
+                  <p className="truncate text-sm text-ui-text">
                     {pattern.name.trim() || "名称未設定"}
                   </p>
                   <div className="flex items-center gap-2">
@@ -204,27 +210,27 @@ export const OverallRateCard = () => {
 
       {result?.vsBreakdown ? (
         <div className="space-y-2">
-          <p className="text-xs tracking-wider text-latte-subtext0">
+          <p className="text-xs tracking-wider text-ui-subtext0">
             対妨害シミュレーション内訳
           </p>
           <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-md border border-latte-surface0/70 bg-latte-mantle px-3 py-2.5">
-              <p className="text-[11px] text-latte-subtext0">妨害なし成功</p>
-              <p className="mt-1 text-base font-semibold tabular-nums text-latte-text">
+            <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5">
+              <p className="text-[11px] text-ui-subtext0">妨害なし成功</p>
+              <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
                 {result.vsBreakdown.noDisruptionSuccessRate}%
               </p>
             </div>
-            <div className="rounded-md border border-latte-surface0/70 bg-latte-mantle px-3 py-2.5">
-              <p className="text-[11px] text-latte-subtext0">
+            <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5">
+              <p className="text-[11px] text-ui-subtext0">
                 妨害あり突破成功
               </p>
-              <p className="mt-1 text-base font-semibold tabular-nums text-latte-text">
+              <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
                 {result.vsBreakdown.disruptedButPenetratedRate}%
               </p>
             </div>
-            <div className="rounded-md border border-latte-surface0/70 bg-latte-mantle px-3 py-2.5">
-              <p className="text-[11px] text-latte-subtext0">妨害あり失敗</p>
-              <p className="mt-1 text-base font-semibold tabular-nums text-latte-text">
+            <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5">
+              <p className="text-[11px] text-ui-subtext0">妨害あり失敗</p>
+              <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
                 {result.vsBreakdown.disruptedAndFailedRate}%
               </p>
             </div>
@@ -233,13 +239,13 @@ export const OverallRateCard = () => {
       ) : null}
 
       {deckExceeded ? (
-        <p className="rounded-md border border-latte-red/40 bg-latte-red/12 px-3 py-2 text-xs text-latte-red">
+        <p className="rounded-md border border-ui-red/40 bg-ui-red/12 px-3 py-2 text-xs text-ui-red">
           デッキ枚数を超過しています（合計 {totalCardCount} 枚）。
         </p>
       ) : null}
 
       {errorMessage ? (
-        <p className="rounded-md border border-latte-red/40 bg-latte-red/12 px-3 py-2 text-xs text-latte-red">
+        <p className="rounded-md border border-ui-red/40 bg-ui-red/12 px-3 py-2 text-xs text-ui-red">
           {errorMessage}
         </p>
       ) : null}

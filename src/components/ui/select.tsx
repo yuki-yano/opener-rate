@@ -56,14 +56,14 @@ export const Select = ({
             disabled={disabled}
             className={cn(
               "h-10 w-full justify-between px-3 text-left text-sm font-normal",
-              !selectedOption && "text-latte-overlay1",
+              !selectedOption && "text-ui-overlay1",
               triggerClassName,
             )}
           >
             <span className="truncate">
               {selectedOption?.label ?? placeholder}
             </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-latte-overlay1" />
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 text-ui-overlay1" />
           </Button>
         </PopoverTrigger>
 
@@ -92,10 +92,10 @@ export const Select = ({
                   aria-selected={selected}
                   disabled={option.disabled}
                   className={cn(
-                    "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-latte-text transition",
-                    "hover:bg-latte-crust",
-                    "focus-visible:bg-latte-crust focus-visible:outline-none",
-                    selected && "bg-latte-crust",
+                    "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-ui-text transition",
+                    "hover:bg-ui-crust",
+                    "focus-visible:bg-ui-crust focus-visible:outline-none",
+                    selected && "bg-ui-crust",
                     option.disabled && "cursor-not-allowed opacity-50",
                   )}
                   onClick={() => {
@@ -106,9 +106,9 @@ export const Select = ({
                 >
                   <span
                     className={cn(
-                      "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-latte-surface1",
+                      "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-ui-surface1",
                       selected &&
-                        "border-latte-blue bg-latte-blue/16 text-latte-blue",
+                        "border-ui-blue bg-ui-blue/16 text-ui-blue",
                     )}
                   >
                     <Check

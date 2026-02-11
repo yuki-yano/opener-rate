@@ -13,35 +13,35 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --ctp-base: 247 250 252;
-  --ctp-mantle: 255 255 255;
-  --ctp-crust: 237 242 247;
-  --ctp-text: 26 32 44;
-  --ctp-subtext1: 45 55 72;
-  --ctp-subtext0: 74 85 104;
-  --ctp-surface0: 226 232 240;
-  --ctp-surface1: 203 213 224;
-  --ctp-surface2: 160 174 192;
-  --ctp-overlay0: 113 128 150;
-  --ctp-overlay1: 74 85 104;
-  --ctp-overlay2: 45 55 72;
-  --ctp-blue: 49 130 206;
-  --ctp-lavender: 66 153 225;
-  --ctp-peach: 66 153 225;
-  --ctp-red: 229 62 62;
-  --ctp-green: 56 161 105;
-  --ctp-yellow: 214 158 46;
-  --ctp-mauve: 128 90 213;
-  --ctp-maroon: 197 48 48;
-  --ctp-shadow: 15 23 42;
+  --theme-base: 247 250 252;
+  --theme-mantle: 255 255 255;
+  --theme-crust: 237 242 247;
+  --theme-text: 26 32 44;
+  --theme-subtext1: 45 55 72;
+  --theme-subtext0: 74 85 104;
+  --theme-surface0: 226 232 240;
+  --theme-surface1: 203 213 224;
+  --theme-surface2: 160 174 192;
+  --theme-overlay0: 113 128 150;
+  --theme-overlay1: 74 85 104;
+  --theme-overlay2: 45 55 72;
+  --theme-blue: 49 130 206;
+  --theme-lavender: 66 153 225;
+  --theme-peach: 66 153 225;
+  --theme-red: 229 62 62;
+  --theme-green: 56 161 105;
+  --theme-yellow: 214 158 46;
+  --theme-mauve: 128 90 213;
+  --theme-maroon: 197 48 48;
+  --theme-shadow: 15 23 42;
 }
 
 body {
   margin: 0;
   min-height: 100vh;
   min-height: 100svh;
-  background-color: rgb(var(--ctp-base));
-  color: rgb(var(--ctp-text));
+  background-color: rgb(var(--theme-base));
+  color: rgb(var(--theme-text));
   font-family: var(--font-body);
 }
 
@@ -54,8 +54,8 @@ a {
 }
 
 ::selection {
-  background-color: rgb(var(--ctp-blue) / 0.18);
-  color: rgb(var(--ctp-text));
+  background-color: rgb(var(--theme-blue) / 0.18);
+  color: rgb(var(--theme-text));
 }
 
 button {

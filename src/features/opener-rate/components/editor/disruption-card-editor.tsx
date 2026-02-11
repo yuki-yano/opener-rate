@@ -87,7 +87,7 @@ export const DisruptionCardEditor = () => {
         }
       >
         {disruptionCategories.length === 0 ? (
-          <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
+          <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
             妨害カテゴリがありません。「妨害カテゴリ追加」から作成してください。
           </p>
         ) : null}
@@ -104,7 +104,7 @@ export const DisruptionCardEditor = () => {
             );
 
             return (
-              <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
+              <div className="space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                   <Input
                     value={category.name}
@@ -124,7 +124,7 @@ export const DisruptionCardEditor = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className={isMemoExpanded ? "text-latte-blue" : undefined}
+                      className={isMemoExpanded ? "text-ui-blue" : undefined}
                       aria-label="メモ表示切り替え"
                       onClick={() =>
                         setExpandedCategoryMemoUids((current) =>
@@ -161,19 +161,19 @@ export const DisruptionCardEditor = () => {
                         );
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-latte-red" />
+                      <Trash2 className="h-4 w-4 text-ui-red" />
                     </Button>
                   </div>
                 </div>
 
                 {isNameEmpty ? (
-                  <p className="text-xs text-latte-red">
+                  <p className="text-xs text-ui-red">
                     妨害カテゴリ名は必須です。
                   </p>
                 ) : null}
 
                 {isMemoExpanded ? (
-                  <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
+                  <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
                     <Textarea
                       value={category.memo}
                       placeholder="メモ"
@@ -212,7 +212,7 @@ export const DisruptionCardEditor = () => {
         }
       >
         {disruptionCards.length === 0 ? (
-          <p className="rounded-md border border-dashed border-latte-surface0/80 bg-latte-crust/45 px-3 py-4 text-xs text-latte-subtext0">
+          <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
             妨害カードがありません。「妨害カード追加」から作成してください。
           </p>
         ) : null}
@@ -229,7 +229,7 @@ export const DisruptionCardEditor = () => {
             );
 
             return (
-              <div className="space-y-2 rounded-md border border-latte-surface0/80 bg-latte-mantle py-3 pl-9 pr-3">
+              <div className="space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3">
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
                   <Input
                     value={disruptionCard.name}
@@ -249,7 +249,7 @@ export const DisruptionCardEditor = () => {
                       type="button"
                       variant="ghost"
                       size="icon"
-                      className={isMemoExpanded ? "text-latte-blue" : undefined}
+                      className={isMemoExpanded ? "text-ui-blue" : undefined}
                       aria-label="メモ表示切り替え"
                       onClick={() =>
                         setExpandedCardMemoUids((current) =>
@@ -281,13 +281,13 @@ export const DisruptionCardEditor = () => {
                         );
                       }}
                     >
-                      <Trash2 className="h-4 w-4 text-latte-red" />
+                      <Trash2 className="h-4 w-4 text-ui-red" />
                     </Button>
                   </div>
                 </div>
 
                 <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                  <label className="space-y-1 text-[11px] text-latte-subtext0">
+                  <label className="space-y-1 text-[11px] text-ui-subtext0">
                     妨害カテゴリ（任意）
                     <Select
                       ariaLabel="妨害カテゴリ"
@@ -326,13 +326,13 @@ export const DisruptionCardEditor = () => {
                 </div>
 
                 {isNameEmpty ? (
-                  <p className="text-xs text-latte-red">
+                  <p className="text-xs text-ui-red">
                     妨害カード名は必須です。
                   </p>
                 ) : null}
 
                 {isMemoExpanded ? (
-                  <div className="rounded-md border border-latte-surface0/70 bg-latte-crust/60 p-2.5">
+                  <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
                     <Textarea
                       value={disruptionCard.memo}
                       placeholder="メモ"

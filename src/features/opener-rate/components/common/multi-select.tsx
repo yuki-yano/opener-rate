@@ -81,7 +81,7 @@ export const MultiSelect = ({
             disabled={disabled}
             className={cn(
               "h-auto min-h-9 w-full justify-between py-1.5 text-left text-sm font-medium",
-              selectedOptions.length === 0 && "text-latte-overlay1",
+              selectedOptions.length === 0 && "text-ui-overlay1",
             )}
           >
             <span className="min-w-0 flex-1">
@@ -92,7 +92,7 @@ export const MultiSelect = ({
                   {selectedOptions.map((option) => (
                     <span
                       key={`selected-${option.value}`}
-                      className="inline-flex max-w-full items-center rounded-md border border-latte-surface0/70 bg-latte-base/84 px-1.5 py-0.5 text-sm font-medium leading-5 text-latte-subtext0"
+                      className="inline-flex max-w-full items-center rounded-md border border-ui-surface0/70 bg-ui-base/84 px-1.5 py-0.5 text-sm font-medium leading-5 text-ui-subtext0"
                     >
                       <span className="break-all">{option.label}</span>
                     </span>
@@ -100,7 +100,7 @@ export const MultiSelect = ({
                 </span>
               )}
             </span>
-            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 self-center text-latte-overlay1" />
+            <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 self-center text-ui-overlay1" />
           </Button>
         </PopoverTrigger>
         <PopoverContent
@@ -111,14 +111,14 @@ export const MultiSelect = ({
           onOpenAutoFocus={(event) => event.preventDefault()}
           className="max-h-[min(80dvh,32rem)] w-[min(var(--radix-popover-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)] overflow-hidden p-0"
         >
-          <Command className="bg-latte-mantle text-latte-text">
+          <Command className="bg-ui-mantle text-ui-text">
             {enableBulkActions ? (
-              <div className="flex items-center justify-end gap-1 border-b border-latte-surface0/70 px-2 py-1.5">
+              <div className="flex items-center justify-end gap-1 border-b border-ui-surface0/70 px-2 py-1.5">
                 <button
                   type="button"
                   onClick={handleSelectAll}
                   disabled={disabled || !canSelectAll}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-latte-blue transition hover:bg-latte-crust/60 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-blue transition hover:bg-ui-crust/60 disabled:cursor-not-allowed disabled:text-ui-overlay0 disabled:hover:bg-transparent"
                 >
                   {selectAllLabel}
                 </button>
@@ -126,7 +126,7 @@ export const MultiSelect = ({
                   type="button"
                   onClick={handleClearAll}
                   disabled={disabled || !canClearAll}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-latte-subtext0 transition hover:bg-latte-crust/60 disabled:cursor-not-allowed disabled:text-latte-overlay0 disabled:hover:bg-transparent"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-subtext0 transition hover:bg-ui-crust/60 disabled:cursor-not-allowed disabled:text-ui-overlay0 disabled:hover:bg-transparent"
                 >
                   {clearAllLabel}
                 </button>
@@ -138,7 +138,7 @@ export const MultiSelect = ({
               onWheelCapture={(event) => event.stopPropagation()}
               onTouchMoveCapture={(event) => event.stopPropagation()}
             >
-              <Command.Empty className="px-2 py-3 text-xs text-latte-subtext0">
+              <Command.Empty className="px-2 py-3 text-xs text-ui-subtext0">
                 {emptyText}
               </Command.Empty>
               <Command.Group>
@@ -149,13 +149,13 @@ export const MultiSelect = ({
                       key={option.value}
                       value={toSearchableValue(option)}
                       onSelect={() => handleToggle(option.value)}
-                      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition data-[selected=true]:bg-latte-crust/70"
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition data-[selected=true]:bg-ui-crust/70"
                     >
                       <span
                         className={cn(
-                          "inline-flex h-4 w-4 items-center justify-center rounded border border-latte-surface1",
+                          "inline-flex h-4 w-4 items-center justify-center rounded border border-ui-surface1",
                           selected &&
-                            "border-latte-blue bg-latte-blue/16 text-latte-blue",
+                            "border-ui-blue bg-ui-blue/16 text-ui-blue",
                         )}
                       >
                         <Check

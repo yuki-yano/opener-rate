@@ -35,12 +35,12 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
   return (
     <section
       className={cn(
-        "space-y-3 rounded-md border border-latte-surface0/80 bg-latte-mantle p-4 shadow-panel",
+        "space-y-3 rounded-md border border-ui-surface0/80 bg-ui-mantle p-4 shadow-panel",
         className,
       )}
     >
       <div className="flex flex-col gap-2 lg:flex-row lg:items-center">
-        <span className="text-sm font-semibold tracking-[0.08em] text-latte-text">
+        <span className="text-sm font-semibold tracking-[0.08em] text-ui-text">
           共有URL
         </span>
         <div className="grid min-w-0 flex-1 grid-cols-[minmax(0,1fr)_auto] gap-2">
@@ -55,7 +55,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md text-latte-subtext0 hover:text-latte-blue"
+              className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md text-ui-subtext0 hover:text-ui-blue"
               aria-label="URLをコピー"
               onClick={async () => {
                 const text = url.trim();
@@ -93,7 +93,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
       </div>
 
       {shortUrlError ? (
-        <p className="rounded-md border border-latte-red/40 bg-latte-red/12 px-3 py-2 text-xs text-latte-red">
+        <p className="rounded-md border border-ui-red/40 bg-ui-red/12 px-3 py-2 text-xs text-ui-red">
           {shortUrlError}
         </p>
       ) : null}
