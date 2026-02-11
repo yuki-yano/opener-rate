@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button, Input } from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
 import {
+  isShortUrlGenerationLockedAtom,
   runShareCurrentUrlAtom,
   shortUrlErrorAtom,
   shortUrlInputAtom,
@@ -19,6 +20,9 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
   const url = useAtomValue(shortUrlInputAtom);
   const shortUrlLoading = useAtomValue(shortUrlLoadingAtom);
   const shortUrlError = useAtomValue(shortUrlErrorAtom);
+  const isShortUrlGenerationLocked = useAtomValue(
+    isShortUrlGenerationLockedAtom,
+  );
   const runShareCurrentUrl = useSetAtom(runShareCurrentUrlAtom);
   const [copied, setCopied] = useState(false);
 
@@ -70,9 +74,13 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
             onClick={() => {
               void runShareCurrentUrl();
             }}
-            disabled={shortUrlLoading}
+            disabled={shortUrlLoading || isShortUrlGenerationLocked}
           >
-            {shortUrlLoading ? "作成中..." : "共有"}
+            {shortUrlLoading
+              ? "作成中..."
+              : isShortUrlGenerationLocked
+                ? "共有済み"
+                : "共有"}
           </Button>
         </div>
       </div>

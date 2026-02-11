@@ -6,10 +6,12 @@ import { calculateInputAtom } from "../derived/atoms";
 import {
   calculationResultAtom,
   isCalculatingAtom,
+  previousCalculationResultAtom,
   savedInputAtom,
   shortUrlCacheAtom,
   shortUrlErrorAtom,
   shortUrlInputAtom,
+  shortUrlLockedUntilChangeAtom,
   shortUrlLoadingAtom,
   shortUrlResultAtom,
   transportErrorAtom,
@@ -33,11 +35,17 @@ export const markSavedSnapshotAtom = atom(
 
 export const clearCalculationStateAtom = atom(null, (_get, set) => {
   set(calculationResultAtom, null);
+  set(previousCalculationResultAtom, null);
   set(transportErrorAtom, null);
   set(isCalculatingAtom, false);
 });
 
 export const runCalculateAtom = atom(null, async (get, set) => {
+  const currentResult = get(calculationResultAtom);
+  if (currentResult?.mode === "exact") {
+    set(previousCalculationResultAtom, currentResult);
+  }
+
   const input = get(calculateInputAtom);
   set(isCalculatingAtom, true);
   set(transportErrorAtom, null);
@@ -69,6 +77,7 @@ export const runCreateShortUrlAtom = atom(
       const response = await openerRateApi.createShortUrl(url);
       set(shortUrlResultAtom, response.shortenUrl);
       set(shortUrlInputAtom, response.shortenUrl);
+      set(shortUrlLockedUntilChangeAtom, false);
       set(shortUrlCacheAtom, (prev) => ({
         ...prev,
         [url]: response.shortenUrl,
@@ -89,8 +98,26 @@ export const runShareCurrentUrlAtom = atom(null, async (get, set) => {
     set(shortUrlInputAtom, cachedShortUrl);
     set(shortUrlResultAtom, cachedShortUrl);
     set(shortUrlErrorAtom, null);
+    set(shortUrlLockedUntilChangeAtom, false);
     return;
   }
 
   await set(runCreateShortUrlAtom, currentUrl);
 });
+
+export const seedSharedUrlAsGeneratedAtom = atom(
+  null,
+  (_get, set, sharedUrl: string) => {
+    const url = sharedUrl.trim();
+    if (url.length === 0) return;
+
+    set(shortUrlInputAtom, url);
+    set(shortUrlResultAtom, url);
+    set(shortUrlErrorAtom, null);
+    set(shortUrlLockedUntilChangeAtom, true);
+    set(shortUrlCacheAtom, (prev) => ({
+      ...prev,
+      [url]: url,
+    }));
+  },
+);

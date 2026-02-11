@@ -1,7 +1,11 @@
 import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 
-import { markSavedSnapshotAtom, runCalculateAtom } from "../state";
+import {
+  markSavedSnapshotAtom,
+  runCalculateAtom,
+  seedSharedUrlAsGeneratedAtom,
+} from "../state";
 import { installWindowStateBridge } from "../state/window-state-bridge";
 import { CardListEditor } from "./editor/card-list-editor";
 import { DeckEditor } from "./editor/deck-editor";
@@ -46,6 +50,7 @@ const hasUrlState = () => {
 export const OpenerRateScreen = () => {
   const markSavedSnapshot = useSetAtom(markSavedSnapshotAtom);
   const runCalculate = useSetAtom(runCalculateAtom);
+  const seedSharedUrlAsGenerated = useSetAtom(seedSharedUrlAsGeneratedAtom);
 
   useEffect(() => {
     markSavedSnapshot();
@@ -56,10 +61,11 @@ export const OpenerRateScreen = () => {
     if (!hasUrlState()) return;
 
     const currentUrl = window.location.href;
+    seedSharedUrlAsGenerated(currentUrl);
     if (autoCalculatedUrls.has(currentUrl)) return;
     autoCalculatedUrls.add(currentUrl);
     void runCalculate();
-  }, [runCalculate]);
+  }, [runCalculate, seedSharedUrlAsGenerated]);
 
   useEffect(() => {
     return installWindowStateBridge();

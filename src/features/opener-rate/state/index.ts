@@ -3,6 +3,7 @@ export {
   calculateInputAtom,
   deckSizeExceededAtom,
   isDirtyAtom,
+  isShortUrlGenerationLockedAtom,
   totalCardCountAtom,
   validationResultAtom,
 } from "./derived/atoms";
@@ -12,6 +13,7 @@ export {
   runCalculateAtom,
   runCreateShortUrlAtom,
   runShareCurrentUrlAtom,
+  seedSharedUrlAsGeneratedAtom,
 } from "./effects/atoms";
 export {
   cardsAtom,
@@ -33,9 +35,11 @@ export {
   calculationResultAtom,
   isCalculatingAtom,
   isSectionCollapsedAtom,
+  previousCalculationResultAtom,
   savedInputAtom,
   shortUrlErrorAtom,
   shortUrlInputAtom,
+  shortUrlLockedUntilChangeAtom,
   shortUrlLoadingAtom,
   shortUrlResultAtom,
   transportErrorAtom,

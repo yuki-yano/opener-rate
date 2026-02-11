@@ -2,15 +2,56 @@ import { useAtomValue } from "jotai";
 import { useMemo } from "react";
 
 import { Badge } from "../../../../components/ui";
-import { calculationResultAtom, labelsAtom } from "../../state";
+import {
+  calculationResultAtom,
+  labelsAtom,
+  previousCalculationResultAtom,
+} from "../../state";
 import { SectionCard } from "../layout/section-card";
 
 const rateBadgeClassName =
   "min-w-[4.75rem] justify-center rounded-md border-latte-blue/45 bg-latte-blue/18 px-2.5 py-1 text-sm font-semibold tabular-nums text-latte-blue";
+const diffEpsilon = 0.005;
+
+type RateDiff = {
+  className: string;
+  text: string;
+};
+
+const resolveRateDiff = (
+  currentRate: string,
+  previousRate?: string,
+): RateDiff | null => {
+  const current = Number.parseFloat(currentRate);
+  if (!Number.isFinite(current)) return null;
+
+  const previousValue = Number.parseFloat(previousRate ?? "0");
+  const previous = Number.isFinite(previousValue) ? previousValue : 0;
+  const diff = current - previous;
+  if (Math.abs(diff) < diffEpsilon) return null;
+
+  return {
+    className: diff > 0 ? "text-latte-green" : "text-latte-red",
+    text: `${diff > 0 ? "+" : "-"}${Math.abs(diff).toFixed(2)}%`,
+  };
+};
 
 export const LabelRateTable = () => {
   const labels = useAtomValue(labelsAtom);
   const result = useAtomValue(calculationResultAtom);
+  const previousResult = useAtomValue(previousCalculationResultAtom);
+  const isExactDiffEnabled =
+    result?.mode === "exact" && previousResult?.mode === "exact";
+  const previousLabelRateMap = useMemo(
+    () =>
+      new Map(
+        (previousResult?.labelSuccessRates ?? []).map((entry) => [
+          entry.uid,
+          entry.rate,
+        ]),
+      ),
+    [previousResult?.labelSuccessRates],
+  );
 
   const sortedLabels = useMemo(() => {
     const rateMap = new Map(
@@ -40,22 +81,35 @@ export const LabelRateTable = () => {
       ) : null}
 
       <div className="space-y-2">
-        {sortedLabels.map(({ label, rate }, index) => (
-          <div
-            key={label.uid}
-            className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/70 px-3 py-2"
-          >
-            <span className="text-xs tabular-nums text-latte-overlay1">
-              {index + 1}
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-sm text-latte-text">
-                {label.name.trim() || "名称未設定"}
-              </p>
+        {sortedLabels.map(({ label, rate }, index) => {
+          const rateDiff = isExactDiffEnabled
+            ? resolveRateDiff(rate, previousLabelRateMap.get(label.uid))
+            : null;
+
+          return (
+            <div
+              key={label.uid}
+              className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/70 px-3 py-2"
+            >
+              <span className="text-xs tabular-nums text-latte-overlay1">
+                {index + 1}
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-sm text-latte-text">
+                  {label.name.trim() || "名称未設定"}
+                </p>
+              </div>
+              <div className="flex items-center gap-2">
+                {rateDiff ? (
+                  <span className={`text-xs ${rateDiff.className}`}>
+                    ({rateDiff.text})
+                  </span>
+                ) : null}
+                <Badge className={rateBadgeClassName}>{rate}%</Badge>
+              </div>
             </div>
-            <Badge className={rateBadgeClassName}>{rate}%</Badge>
-          </div>
-        ))}
+          );
+        })}
       </div>
     </SectionCard>
   );

@@ -16,7 +16,7 @@ import {
   potAtom,
   simulationTrialsAtom,
 } from "../input/atoms";
-import { savedInputAtom } from "../ui/atoms";
+import { savedInputAtom, shortUrlLockedUntilChangeAtom } from "../ui/atoms";
 
 const stableStringify = (value: unknown) => JSON.stringify(value);
 
@@ -83,3 +83,7 @@ export const isDirtyAtom = atom((get) => {
   if (saved == null) return false;
   return stableStringify(current) !== stableStringify(saved);
 });
+
+export const isShortUrlGenerationLockedAtom = atom(
+  (get) => get(shortUrlLockedUntilChangeAtom) && !get(isDirtyAtom),
+);
