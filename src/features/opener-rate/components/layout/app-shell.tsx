@@ -12,10 +12,10 @@ export const AppShell = ({
   rightColumn,
 }: AppShellProps) => {
   return (
-    <div className="relative min-h-screen overflow-x-hidden bg-latte-base text-latte-text">
-      <div className="pointer-events-none absolute inset-0 opacity-70">
-        <div className="absolute left-[-8rem] top-[-6rem] h-64 w-64 rounded-full bg-latte-lavender/10 blur-3xl" />
-        <div className="absolute bottom-[-8rem] right-[-10rem] h-80 w-80 rounded-full bg-latte-blue/10 blur-3xl" />
+    <div className="relative min-h-[100svh] overflow-x-clip bg-latte-base text-latte-text md:min-h-screen">
+      <div className="pointer-events-none absolute inset-0 overflow-hidden opacity-70">
+        <div className="absolute left-[-8rem] top-[-6rem] h-64 w-64 rounded-full bg-latte-lavender/10 blur-2xl md:blur-3xl" />
+        <div className="absolute bottom-[-8rem] right-[-10rem] h-80 w-80 rounded-full bg-latte-blue/10 blur-2xl md:blur-3xl" />
       </div>
 
       <div className="relative z-10">
