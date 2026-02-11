@@ -8,17 +8,30 @@ import {
   Trash2,
 } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
-import { Button, Checkbox, Input, Textarea } from "../../../../components/ui";
+import {
+  Button,
+  Checkbox,
+  Input,
+  Select,
+  Textarea,
+} from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
+import type { SubPatternEffect } from "../../../../shared/apiSchemas";
 import type { MultiSelectOption } from "../common/multi-select";
 import { MultiSelect } from "../common/multi-select";
-import { cardsAtom, labelsAtom, patternsAtom } from "../../state";
+import {
+  cardsAtom,
+  disruptionCategoriesAtom,
+  labelsAtom,
+  patternsAtom,
+} from "../../state";
 import { SortableList } from "../common/sortable-list";
 import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
 import { PatternConditionEditor } from "./pattern-condition-editor";
+import { PatternComposeDialogTrigger } from "./pattern-compose-editor";
 
 const createDefaultCondition = () => ({
   mode: "required" as const,
@@ -28,8 +41,61 @@ const createDefaultCondition = () => ({
 
 const createDefaultPatternName = (index: number) => `パターン${index + 1}`;
 
+const effectTypeOptions = [
+  {
+    value: "add_label",
+    label: "ラベル付与",
+  },
+  {
+    value: "add_penetration",
+    label: "貫通値加算",
+  },
+];
+
+const toInt = (value: string, fallback: number) => {
+  const parsed = Number.parseInt(value, 10);
+  if (Number.isNaN(parsed)) return fallback;
+  return parsed;
+};
+
+const createDefaultEffect = (): SubPatternEffect => {
+  return {
+    type: "add_label",
+    labelUids: [],
+  };
+};
+
+const createDefaultPenetrationEffect = (): SubPatternEffect => {
+  return {
+    type: "add_penetration",
+    disruptionCategoryUids: [],
+    amount: 1,
+  };
+};
+
+const switchEffectType = (
+  current: SubPatternEffect,
+  nextType: SubPatternEffect["type"],
+): SubPatternEffect => {
+  if (nextType === "add_label") {
+    if (current.type === "add_label") {
+      return current;
+    }
+    return {
+      type: "add_label",
+      labelUids: [],
+    };
+  }
+
+  if (current.type === "add_penetration") {
+    return current;
+  }
+  return createDefaultPenetrationEffect();
+};
+
 export const PatternEditor = () => {
   const [patterns, setPatterns] = useAtom(patternsAtom);
+  const disruptionCategories = useAtomValue(disruptionCategoriesAtom);
   const labels = useAtomValue(labelsAtom);
   const cards = useAtomValue(cardsAtom);
   const [expandedMemoUids, setExpandedMemoUids] = useState<string[]>([]);
@@ -56,6 +122,43 @@ export const PatternEditor = () => {
         label: card.name,
       }));
   }, [cards]);
+  const penetrationCategoryOptions = useMemo<MultiSelectOption[]>(
+    () =>
+      disruptionCategories
+        .filter((category) => category.name.trim().length > 0)
+        .map((category) => ({
+          value: category.uid,
+          label: category.name,
+        })),
+    [disruptionCategories],
+  );
+  useEffect(() => {
+    const availableCategoryUids = new Set(
+      penetrationCategoryOptions.map((option) => option.value),
+    );
+    setPatterns((current) => {
+      let hasChanges = false;
+      const next = current.map((pattern) => {
+        const currentEffects = pattern.effects ?? [];
+        let hasEffectChanges = false;
+        const effects = currentEffects.map((effect) => {
+          if (effect.type !== "add_penetration") return effect;
+          const filtered = effect.disruptionCategoryUids.filter((uid) =>
+            availableCategoryUids.has(uid),
+          );
+          if (filtered.length === effect.disruptionCategoryUids.length) {
+            return effect;
+          }
+          hasEffectChanges = true;
+          return { ...effect, disruptionCategoryUids: filtered };
+        });
+        if (!hasEffectChanges) return pattern;
+        hasChanges = true;
+        return { ...pattern, effects };
+      });
+      return hasChanges ? next : current;
+    });
+  }, [penetrationCategoryOptions, setPatterns]);
 
   const handleAddPattern = () => {
     const uid = createLocalId("pattern");
@@ -67,6 +170,7 @@ export const PatternEditor = () => {
         active: true,
         conditions: [createDefaultCondition()],
         labels: [],
+        effects: [],
         memo: "",
       },
     ]);
@@ -105,6 +209,7 @@ export const PatternEditor = () => {
       description="成功条件を定義します。条件種別ごとに詳細ルールを編集できます。"
       actions={
         <>
+          <PatternComposeDialogTrigger defaultDestination="pattern" />
           <Button
             size="icon"
             variant="outline"
@@ -149,6 +254,7 @@ export const PatternEditor = () => {
           const isNameEmpty = pattern.name.trim().length === 0;
           const isMemoExpanded = expandedMemoUids.includes(pattern.uid);
           const isPatternExpanded = !collapsedPatternUids.includes(pattern.uid);
+          const patternEffects = pattern.effects ?? [];
           const summaryLabels = pattern.labels
             .map((label) =>
               labelOptions.find((entry) => entry.value === label.uid),
@@ -372,6 +478,215 @@ export const PatternEditor = () => {
                       ))}
                     </div>
                   </div>
+                  <div className="space-y-2 rounded-md border border-latte-surface1/75 bg-latte-base/60 p-2">
+                    <div className="flex items-center justify-between gap-2">
+                      <p className="text-xs text-latte-subtext0">効果</p>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="h-8 px-2.5 text-xs"
+                        onClick={() =>
+                          setPatterns((current) =>
+                            current.map((target) =>
+                              target.uid === pattern.uid
+                                ? {
+                                    ...target,
+                                    effects: [
+                                      ...(target.effects ?? []),
+                                      createDefaultEffect(),
+                                    ],
+                                  }
+                                : target,
+                            ),
+                          )
+                        }
+                      >
+                        効果追加
+                      </Button>
+                    </div>
+
+                    {patternEffects.length === 0 ? (
+                      <p className="text-xs text-latte-overlay1">
+                        効果がありません。「効果追加」から作成してください。
+                      </p>
+                    ) : (
+                      <div className="space-y-2">
+                        {patternEffects.map((effect, effectIndex) => (
+                          <div
+                            key={`${pattern.uid}-effect-${effectIndex}`}
+                            className="grid min-w-0 gap-2 rounded-md border border-latte-surface1/70 bg-latte-crust/72 p-2"
+                          >
+                            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
+                              <Select
+                                ariaLabel={`効果${effectIndex + 1}種類`}
+                                triggerClassName="h-9"
+                                value={effect.type}
+                                options={effectTypeOptions}
+                                onChange={(next) =>
+                                  setPatterns((current) =>
+                                    current.map((target) => {
+                                      if (target.uid !== pattern.uid)
+                                        return target;
+                                      const currentEffects = target.effects ?? [];
+                                      return {
+                                        ...target,
+                                        effects: currentEffects.map(
+                                          (entry, idx) =>
+                                            idx === effectIndex
+                                              ? switchEffectType(
+                                                  entry,
+                                                  next === "add_label"
+                                                    ? "add_label"
+                                                    : "add_penetration",
+                                                )
+                                              : entry,
+                                        ),
+                                      };
+                                    }),
+                                  )
+                                }
+                              />
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 justify-self-end sm:col-start-3 sm:justify-self-auto"
+                                aria-label="効果削除"
+                                onClick={() =>
+                                  setPatterns((current) =>
+                                    current.map((target) => {
+                                      if (target.uid !== pattern.uid)
+                                        return target;
+                                      const currentEffects = target.effects ?? [];
+                                      return {
+                                        ...target,
+                                        effects: currentEffects.filter(
+                                          (_, idx) => idx !== effectIndex,
+                                        ),
+                                      };
+                                    }),
+                                  )
+                                }
+                              >
+                                <Trash2 className="h-4 w-4 text-latte-red" />
+                              </Button>
+                              {effect.type === "add_label" ? (
+                                <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+                                  <MultiSelect
+                                    options={labelOptions}
+                                    value={effect.labelUids}
+                                    placeholder="付与ラベルを選択"
+                                    emptyText="有効なラベルがありません"
+                                    onChange={(next) =>
+                                      setPatterns((current) =>
+                                        current.map((target) => {
+                                          if (target.uid !== pattern.uid)
+                                            return target;
+                                          const currentEffects =
+                                            target.effects ?? [];
+                                          return {
+                                            ...target,
+                                            effects: currentEffects.map(
+                                              (entry, idx) =>
+                                                idx === effectIndex &&
+                                                entry.type === "add_label"
+                                                  ? { ...entry, labelUids: next }
+                                                  : entry,
+                                            ),
+                                          };
+                                        }),
+                                      )
+                                    }
+                                  />
+                                </div>
+                              ) : (
+                                <div className="col-span-2 row-start-2 grid min-w-0 gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+                                  <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_8rem]">
+                                    <MultiSelect
+                                      options={penetrationCategoryOptions}
+                                      value={effect.disruptionCategoryUids}
+                                      placeholder="対象妨害カテゴリを選択"
+                                      emptyText="有効な妨害カテゴリがありません"
+                                      onChange={(next) =>
+                                        setPatterns((current) =>
+                                          current.map((target) => {
+                                            if (target.uid !== pattern.uid)
+                                              return target;
+                                            const currentEffects =
+                                              target.effects ?? [];
+                                            return {
+                                              ...target,
+                                              effects: currentEffects.map(
+                                                (entry, idx) =>
+                                                  idx === effectIndex &&
+                                                  entry.type ===
+                                                    "add_penetration"
+                                                    ? {
+                                                        ...entry,
+                                                        disruptionCategoryUids:
+                                                          next,
+                                                      }
+                                                    : entry,
+                                              ),
+                                            };
+                                          }),
+                                        )
+                                      }
+                                    />
+                                    <Input
+                                      className="h-9"
+                                      type="number"
+                                      min={1}
+                                      max={20}
+                                      value={effect.amount}
+                                      placeholder="加算量"
+                                      onChange={(event) =>
+                                        setPatterns((current) =>
+                                          current.map((target) => {
+                                            if (target.uid !== pattern.uid)
+                                              return target;
+                                            const currentEffects =
+                                              target.effects ?? [];
+                                            return {
+                                              ...target,
+                                              effects: currentEffects.map(
+                                                (entry, idx) =>
+                                                  idx === effectIndex &&
+                                                  entry.type ===
+                                                    "add_penetration"
+                                                    ? {
+                                                        ...entry,
+                                                        amount: Math.max(
+                                                          1,
+                                                          Math.min(
+                                                            20,
+                                                            toInt(
+                                                              event.target.value,
+                                                              entry.amount,
+                                                            ),
+                                                          ),
+                                                        ),
+                                                      }
+                                                    : entry,
+                                              ),
+                                            };
+                                          }),
+                                        )
+                                      }
+                                    />
+                                  </div>
+                                  <p className="text-[11px] text-latte-subtext0">
+                                    対象妨害カテゴリは複数選択できます。
+                                  </p>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                   {isMemoExpanded ? (
                     <div className="rounded-md border border-latte-surface1/75 bg-latte-base/60 p-2">
                       <Textarea
@@ -395,6 +710,7 @@ export const PatternEditor = () => {
                 <div className="flex flex-wrap items-center gap-2 rounded-md border border-latte-surface1/70 bg-latte-base/58 px-2.5 py-2 text-xs text-latte-subtext0">
                   <span>条件: {pattern.conditions.length}</span>
                   <span>ラベル: {summaryLabels.length}</span>
+                  <span>効果: {patternEffects.length}</span>
                 </div>
               )}
             </div>

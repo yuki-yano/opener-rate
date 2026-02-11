@@ -21,6 +21,7 @@ describe("calculateOpenerRateDomain", () => {
             },
           ],
           labels: [],
+          effects: [],
           memo: "",
         },
       ],
@@ -67,6 +68,7 @@ describe("calculateOpenerRateDomain", () => {
             },
           ],
           labels: [],
+          effects: [],
           memo: "",
         },
       ],
@@ -108,6 +110,7 @@ describe("calculateOpenerRateDomain", () => {
             },
           ],
           labels: [],
+          effects: [],
           memo: "",
         },
       ],
@@ -151,6 +154,48 @@ describe("calculateOpenerRateDomain", () => {
     ]);
   });
 
+  it("promotes label by pattern effect when pattern is matched", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 2, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          effects: [{ type: "add_label", labelUids: ["l-pattern"] }],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [{ uid: "l-pattern", name: "パターン付与ラベル", memo: "" }],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 10000,
+      },
+    });
+
+    expect(result.overallProbability).toBe("50.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-base", rate: "50.00" },
+    ]);
+    expect(result.labelSuccessRates).toEqual([
+      { uid: "l-pattern", rate: "50.00" },
+    ]);
+  });
+
   it("computes vs breakdown with disruption penetration", () => {
     const result = calculateOpenerRateDomain({
       deck: { cardCount: 1, firstHand: 1 },
@@ -168,6 +213,7 @@ describe("calculateOpenerRateDomain", () => {
             },
           ],
           labels: [],
+          effects: [],
           memo: "",
         },
       ],
@@ -231,6 +277,69 @@ describe("calculateOpenerRateDomain", () => {
     });
   });
 
+  it("applies pattern penetration effect in vs simulation", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-negate"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "d-negate",
+            disruptionCardUid: "dc-negate",
+            disruptionCategoryUid: "cat-negate",
+            name: "無効妨害",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    expect(result.mode).toBe("simulation");
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "100.00",
+      disruptedAndFailedRate: "0.00",
+    });
+  });
+
   it("applies oncePerName in vs disruption count", () => {
     const baseInput: CalculateInput = {
       deck: { cardCount: 1, firstHand: 1 },
@@ -248,6 +357,7 @@ describe("calculateOpenerRateDomain", () => {
             },
           ],
           labels: [],
+          effects: [],
           memo: "",
         },
       ],
@@ -348,6 +458,7 @@ describe("calculateOpenerRateDomain", () => {
             },
           ],
           labels: [],
+          effects: [],
           memo: "",
         },
       ],

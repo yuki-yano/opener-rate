@@ -25,10 +25,12 @@ const createUniqueKey = async (bindings: Bindings): Promise<string | null> => {
 const isLocalRequestOrigin = (origin: string) => {
   try {
     const { hostname } = new URL(origin);
-    return hostname === "localhost" ||
+    return (
+      hostname === "localhost" ||
       hostname === "127.0.0.1" ||
       hostname === "0.0.0.0" ||
-      hostname === "::1";
+      hostname === "::1"
+    );
   } catch {
     return false;
   }

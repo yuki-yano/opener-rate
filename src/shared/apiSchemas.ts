@@ -67,15 +67,6 @@ export const patternConditionSchema = z.discriminatedUnion("mode", [
   countConditionSchema,
 ]);
 
-export const patternSchema = z.object({
-  uid: z.string().min(1),
-  name: z.string().trim().min(1, "パターン名は必須です"),
-  active: z.boolean(),
-  conditions: z.array(patternConditionSchema),
-  labels: z.array(z.object({ uid: z.string().min(1) })),
-  memo: z.string(),
-});
-
 export const subPatternApplyLimitSchema = z.enum([
   "once_per_trial",
   "once_per_distinct_uid",
@@ -92,6 +83,16 @@ export const subPatternEffectSchema = z.discriminatedUnion("type", [
     amount: z.number().int().min(1).max(20),
   }),
 ]);
+
+export const patternSchema = z.object({
+  uid: z.string().min(1),
+  name: z.string().trim().min(1, "パターン名は必須です"),
+  active: z.boolean(),
+  conditions: z.array(patternConditionSchema),
+  labels: z.array(z.object({ uid: z.string().min(1) })),
+  effects: z.array(subPatternEffectSchema).optional(),
+  memo: z.string(),
+});
 
 export const subPatternSchema = z.object({
   uid: z.string().min(1),

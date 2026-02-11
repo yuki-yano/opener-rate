@@ -69,8 +69,7 @@ export const evaluateSubPatterns = (
       }
 
       for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
-        const current =
-          penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
         const next = current + effect.amount * applyCount;
         penetrationByDisruptionKey[disruptionCategoryUid] = next;
       }

@@ -136,6 +136,17 @@ const canPenetrateAllDisruptions = (
     },
   );
 
+const mergePenetrationByDisruptionKey = (
+  left: Record<string, number>,
+  right: Record<string, number>,
+) => {
+  const merged: Record<string, number> = { ...left };
+  for (const [key, value] of Object.entries(right)) {
+    merged[key] = (merged[key] ?? 0) + value;
+  }
+  return merged;
+};
+
 const runPotResolution = (
   normalized: NormalizedDeck,
   compiledPatterns: CompiledPattern[],
@@ -299,8 +310,12 @@ export const calculateBySimulation = (params: {
           noDisruptionSuccessCount += 1;
         }
       } else {
-        const penetrated = canPenetrateAllDisruptions(
+        const totalPenetrationByDisruptionKey = mergePenetrationByDisruptionKey(
+          evaluation.penetrationByDisruptionKey,
           subPatternEvaluation.penetrationByDisruptionKey,
+        );
+        const penetrated = canPenetrateAllDisruptions(
+          totalPenetrationByDisruptionKey,
           opponentDisruption.strengthByDisruptionKey,
         );
         if (baseSuccess && penetrated) {

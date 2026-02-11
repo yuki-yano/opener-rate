@@ -15,10 +15,7 @@ import {
   vsSimulationInputSchema,
 } from "../../../shared/apiSchemas";
 import type { VsSimulationInput } from "../../../shared/apiSchemas";
-import {
-  runCalculateAtom,
-  markSavedSnapshotAtom,
-} from "./effects/atoms";
+import { runCalculateAtom, markSavedSnapshotAtom } from "./effects/atoms";
 import {
   cardsAtom,
   deckAtom,
@@ -42,7 +39,7 @@ const defaultVsState: VsSimulationInput = {
 };
 
 const defaultMode = "exact" as const;
-const defaultSimulationTrials = 10000;
+const defaultSimulationTrials = 100000;
 
 const draftCardSchema = cardSchema.extend({
   name: z.string(),
@@ -113,8 +110,7 @@ const normalizeImportedState = (raw: unknown): ExportedState | null => {
       ...latest.data,
       disruptionCategories: latest.data.disruptionCategories ?? [],
       mode: latest.data.mode ?? defaultMode,
-      simulationTrials:
-        latest.data.simulationTrials ?? defaultSimulationTrials,
+      simulationTrials: latest.data.simulationTrials ?? defaultSimulationTrials,
       vs: latest.data.vs ?? defaultVsState,
     };
   }
@@ -185,7 +181,10 @@ export const installWindowStateBridge = () => {
       store.set(patternsAtom, normalized.patterns);
       store.set(subPatternsAtom, normalized.subPatterns);
       store.set(labelsAtom, normalized.labels);
-      store.set(disruptionCategoriesAtom, normalized.disruptionCategories ?? []);
+      store.set(
+        disruptionCategoriesAtom,
+        normalized.disruptionCategories ?? [],
+      );
       store.set(disruptionCardsAtom, normalized.disruptionCards);
       store.set(potAtom, normalized.pot);
       store.set(vsAtom, normalized.vs ?? defaultVsState);

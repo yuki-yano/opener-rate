@@ -14,8 +14,7 @@ import { SortableList } from "../common/sortable-list";
 import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
 
-const createDefaultCategoryName = (index: number) =>
-  `妨害カテゴリ${index + 1}`;
+const createDefaultCategoryName = (index: number) => `妨害カテゴリ${index + 1}`;
 const createDefaultDisruptionName = (index: number) => `妨害カード${index + 1}`;
 
 export const DisruptionCardEditor = () => {
@@ -130,7 +129,9 @@ export const DisruptionCardEditor = () => {
                       onClick={() =>
                         setExpandedCategoryMemoUids((current) =>
                           current.includes(category.uid)
-                            ? current.filter((target) => target !== category.uid)
+                            ? current.filter(
+                                (target) => target !== category.uid,
+                              )
                             : [...current, category.uid],
                         )
                       }
@@ -147,7 +148,9 @@ export const DisruptionCardEditor = () => {
                           current.filter((target) => target !== category.uid),
                         );
                         setDisruptionCategories((current) =>
-                          current.filter((target) => target.uid !== category.uid),
+                          current.filter(
+                            (target) => target.uid !== category.uid,
+                          ),
                         );
                         setDisruptionCards((current) =>
                           current.map((target) =>

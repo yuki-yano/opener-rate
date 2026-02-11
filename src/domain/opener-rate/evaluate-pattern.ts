@@ -133,6 +133,7 @@ export const evaluatePatterns = (
 ): EvaluationResult => {
   const matchedPatternUids: string[] = [];
   const matchedLabelUids = new Set<string>();
+  const penetrationByDisruptionKey: Record<string, number> = {};
 
   for (const pattern of patterns) {
     if (!evaluatePattern(pattern, context)) continue;
@@ -140,11 +141,25 @@ export const evaluatePatterns = (
     for (const label of pattern.labels) {
       matchedLabelUids.add(label.uid);
     }
+    for (const effect of pattern.effects ?? []) {
+      if (effect.type === "add_label") {
+        for (const labelUid of effect.labelUids) {
+          matchedLabelUids.add(labelUid);
+        }
+        continue;
+      }
+      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
+        const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        penetrationByDisruptionKey[disruptionCategoryUid] =
+          current + effect.amount;
+      }
+    }
   }
 
   return {
     isSuccess: matchedPatternUids.length > 0 || matchedLabelUids.size > 0,
     matchedPatternUids,
     matchedLabelUids: Array.from(matchedLabelUids),
+    penetrationByDisruptionKey,
   };
 };

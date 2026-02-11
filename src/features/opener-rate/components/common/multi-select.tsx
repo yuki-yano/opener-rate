@@ -109,7 +109,7 @@ export const MultiSelect = ({
           sideOffset={6}
           collisionPadding={12}
           onOpenAutoFocus={(event) => event.preventDefault()}
-          className="w-[min(var(--radix-popover-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)] p-0"
+          className="max-h-[min(80dvh,32rem)] w-[min(var(--radix-popover-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)] overflow-hidden p-0"
         >
           <Command className="bg-latte-mantle text-latte-text">
             {enableBulkActions ? (
@@ -132,7 +132,12 @@ export const MultiSelect = ({
                 </button>
               </div>
             ) : null}
-            <Command.List className="max-h-56 overflow-y-auto p-1">
+            <Command.List
+              className="max-h-[min(60dvh,24rem)] overflow-y-auto overscroll-contain p-1 [touch-action:pan-y]"
+              style={{ WebkitOverflowScrolling: "touch" }}
+              onWheelCapture={(event) => event.stopPropagation()}
+              onTouchMoveCapture={(event) => event.stopPropagation()}
+            >
               <Command.Empty className="px-2 py-3 text-xs text-latte-subtext0">
                 {emptyText}
               </Command.Empty>

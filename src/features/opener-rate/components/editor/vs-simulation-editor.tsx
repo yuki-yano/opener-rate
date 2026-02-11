@@ -3,7 +3,11 @@ import { useAtom, useAtomValue } from "jotai";
 import { useMemo } from "react";
 
 import { Button, Checkbox, Input, Select } from "../../../../components/ui";
-import { disruptionCardsAtom, disruptionCategoriesAtom, vsAtom } from "../../state";
+import {
+  disruptionCardsAtom,
+  disruptionCategoriesAtom,
+  vsAtom,
+} from "../../state";
 import { SortableList } from "../common/sortable-list";
 import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
@@ -26,7 +30,11 @@ export const VsSimulationEditor = () => {
   );
   const disruptionCategoryByUid = useMemo(
     () =>
-      new Map(disruptionCategories.map((category) => [category.uid, category] as const)),
+      new Map(
+        disruptionCategories.map(
+          (category) => [category.uid, category] as const,
+        ),
+      ),
     [disruptionCategories],
   );
 
@@ -185,7 +193,8 @@ export const VsSimulationEditor = () => {
                               disruptionCardUid: selected.uid,
                               name: selected.name,
                               oncePerName: selected.oncePerName,
-                              disruptionCategoryUid: selected.disruptionCategoryUid,
+                              disruptionCategoryUid:
+                                selected.disruptionCategoryUid,
                             };
                           },
                         ),

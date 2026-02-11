@@ -70,6 +70,7 @@ export type EvaluationResult = {
   isSuccess: boolean;
   matchedPatternUids: string[];
   matchedLabelUids: string[];
+  penetrationByDisruptionKey: Record<string, number>;
 };
 
 export type ThresholdCheck = {

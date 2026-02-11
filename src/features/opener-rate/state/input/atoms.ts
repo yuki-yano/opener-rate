@@ -44,7 +44,7 @@ const defaultPotState: PotState = {
   },
 };
 
-export const defaultSimulationTrials = 10000;
+export const defaultSimulationTrials = 100000;
 const defaultVsState: VsSimulationInput = {
   enabled: false,
   opponentDeckSize: 40,

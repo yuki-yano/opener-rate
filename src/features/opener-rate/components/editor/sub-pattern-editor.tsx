@@ -13,11 +13,6 @@ import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Checkbox,
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
   Input,
   Select,
   Textarea,
@@ -40,6 +35,7 @@ import {
 } from "../../state";
 import { createLocalId } from "./create-local-id";
 import { PatternConditionEditor } from "./pattern-condition-editor";
+import { PatternComposeDialogTrigger } from "./pattern-compose-editor";
 
 const createDefaultCondition = () => ({
   mode: "required" as const,
@@ -118,11 +114,6 @@ export const SubPatternEditor = () => {
   const [collapsedUids, setCollapsedUids] = useState<string[]>(() =>
     subPatterns.map((subPattern) => subPattern.uid),
   );
-  const [composeSourceAUid, setComposeSourceAUid] = useState("");
-  const [composeSourceBUid, setComposeSourceBUid] = useState("");
-  const [composeCategoryUids, setComposeCategoryUids] = useState<string[]>([]);
-  const [composeName, setComposeName] = useState("");
-  const [isComposeDialogOpen, setIsComposeDialogOpen] = useState(false);
 
   const patternOptions = useMemo<MultiSelectOption[]>(
     () =>
@@ -167,40 +158,6 @@ export const SubPatternEditor = () => {
         })),
     [disruptionCategories],
   );
-  const penetrationSubPatternOptions = useMemo<MultiSelectOption[]>(
-    () =>
-      subPatterns
-        .filter((subPattern) =>
-          subPattern.effects.some(
-            (effect) => effect.type === "add_penetration",
-          ),
-        )
-        .map((subPattern, index) => ({
-          value: subPattern.uid,
-          label: subPattern.name.trim() || `サブパターン${index + 1}`,
-        })),
-    [subPatterns],
-  );
-  useEffect(() => {
-    const availableSourceUids = new Set(
-      penetrationSubPatternOptions.map((option) => option.value),
-    );
-    setComposeSourceAUid((current) =>
-      current.length > 0 && !availableSourceUids.has(current) ? "" : current,
-    );
-    setComposeSourceBUid((current) =>
-      current.length > 0 && !availableSourceUids.has(current) ? "" : current,
-    );
-  }, [penetrationSubPatternOptions]);
-  useEffect(() => {
-    const availableCategoryUids = new Set(
-      penetrationCategoryOptions.map((option) => option.value),
-    );
-    setComposeCategoryUids((current) => {
-      const filtered = current.filter((uid) => availableCategoryUids.has(uid));
-      return filtered.length === current.length ? current : filtered;
-    });
-  }, [penetrationCategoryOptions]);
   useEffect(() => {
     const availableCategoryUids = new Set(
       penetrationCategoryOptions.map((option) => option.value),
@@ -281,134 +238,6 @@ export const SubPatternEditor = () => {
   const handleCollapseAll = () => {
     setCollapsedUids(subPatterns.map((subPattern) => subPattern.uid));
   };
-  const subPatternByUid = useMemo(
-    () =>
-      new Map(subPatterns.map((subPattern) => [subPattern.uid, subPattern])),
-    [subPatterns],
-  );
-
-  const resolveCategoryPenetrationAmount = (
-    subPattern: SubPattern,
-    disruptionCategoryUid: string,
-  ) =>
-    subPattern.effects.reduce((total, effect) => {
-      if (effect.type !== "add_penetration") return total;
-      const matched = effect.disruptionCategoryUids.includes(
-        disruptionCategoryUid,
-      );
-      if (!matched) return total;
-      return total + effect.amount;
-    }, 0);
-  const resolveComposeEntries = (
-    sourceA: SubPattern,
-    sourceB: SubPattern,
-    categoryUids: string[],
-  ) =>
-    Array.from(new Set(categoryUids))
-      .map((disruptionCategoryUid) => {
-        const amountA = resolveCategoryPenetrationAmount(
-          sourceA,
-          disruptionCategoryUid,
-        );
-        const amountB = resolveCategoryPenetrationAmount(
-          sourceB,
-          disruptionCategoryUid,
-        );
-        return {
-          disruptionCategoryUid,
-          totalAmount: amountA + amountB,
-        };
-      })
-      .filter((entry) => entry.totalAmount > 0);
-
-  const handleComposePenetrationSubPattern = () => {
-    if (composeSourceAUid.length === 0 || composeSourceBUid.length === 0)
-      return;
-    if (composeSourceAUid === composeSourceBUid) return;
-    if (composeCategoryUids.length === 0) return;
-    const trimmedName = composeName.trim();
-    if (trimmedName.length === 0) return;
-
-    const sourceA = subPatternByUid.get(composeSourceAUid);
-    const sourceB = subPatternByUid.get(composeSourceBUid);
-    if (sourceA == null || sourceB == null) return;
-
-    const composeEntries = resolveComposeEntries(
-      sourceA,
-      sourceB,
-      composeCategoryUids,
-    );
-    if (composeEntries.length === 0) return;
-
-    const nextUid = createLocalId("sub_pattern");
-    const name = trimmedName;
-
-    const union = (left: string[], right: string[]) =>
-      Array.from(new Set([...left, ...right]));
-
-    setSubPatterns((current) => [
-      ...current,
-      {
-        uid: nextUid,
-        name,
-        active: true,
-        basePatternUids: union(
-          sourceA.basePatternUids,
-          sourceB.basePatternUids,
-        ),
-        triggerConditions: [
-          ...sourceA.triggerConditions,
-          ...sourceB.triggerConditions,
-        ],
-        triggerSourceUids: union(
-          sourceA.triggerSourceUids,
-          sourceB.triggerSourceUids,
-        ),
-        applyLimit: "once_per_trial",
-        effects: [
-          ...composeEntries.map((entry) => ({
-            type: "add_penetration" as const,
-            disruptionCategoryUids: [entry.disruptionCategoryUid],
-            amount: entry.totalAmount,
-          })),
-        ],
-        memo: `合成元: ${sourceA.name} / ${sourceB.name}`,
-      },
-    ]);
-    setCollapsedUids((current) =>
-      current.filter((target) => target !== nextUid),
-    );
-    setComposeName("");
-  };
-  const canSelectComposeSources = penetrationSubPatternOptions.length >= 2;
-  const canSelectComposeCategory = penetrationCategoryOptions.length > 0;
-  const isComposeLocked = !canSelectComposeSources || !canSelectComposeCategory;
-  const selectedComposeSourceA = subPatternByUid.get(composeSourceAUid);
-  const selectedComposeSourceB = subPatternByUid.get(composeSourceBUid);
-  const selectedComposeCategoryUids = Array.from(new Set(composeCategoryUids));
-  const hasComposeSourceSelection =
-    composeSourceAUid.length > 0 &&
-    composeSourceBUid.length > 0 &&
-    composeSourceAUid !== composeSourceBUid &&
-    selectedComposeSourceA != null &&
-    selectedComposeSourceB != null;
-  const composeEffectiveEntries =
-    hasComposeSourceSelection && selectedComposeSourceA && selectedComposeSourceB
-      ? resolveComposeEntries(
-          selectedComposeSourceA,
-          selectedComposeSourceB,
-          selectedComposeCategoryUids,
-        )
-      : [];
-  const hasComposePenetrationTarget = composeEffectiveEntries.length > 0;
-  const hasComposeSkippedCategories =
-    selectedComposeCategoryUids.length > composeEffectiveEntries.length;
-  const canRunCompose =
-    !isComposeLocked &&
-    hasComposeSourceSelection &&
-    selectedComposeCategoryUids.length > 0 &&
-    composeName.trim().length > 0 &&
-    hasComposePenetrationTarget;
 
   return (
     <SectionCard
@@ -416,14 +245,7 @@ export const SubPatternEditor = () => {
       description="基礎パターン成立後に追加効果を適用します。"
       actions={
         <>
-          <Button
-            type="button"
-            variant="outline"
-            className="h-8 px-3 text-xs"
-            onClick={() => setIsComposeDialogOpen(true)}
-          >
-            合成ジェネレーター
-          </Button>
+          <PatternComposeDialogTrigger defaultDestination="sub_pattern" />
           <Button
             size="icon"
             variant="outline"
@@ -454,107 +276,6 @@ export const SubPatternEditor = () => {
         </>
       }
     >
-      <Dialog open={isComposeDialogOpen} onOpenChange={setIsComposeDialogOpen}>
-        <DialogContent className="max-h-[calc(100vh-2rem)] overflow-y-auto p-4 sm:p-6">
-          <DialogHeader>
-            <DialogTitle>貫通合成ジェネレーター</DialogTitle>
-            <DialogDescription>
-              2つの貫通サブパターンを合成し、選択カテゴリごとの合算貫通サブパターンを追加します。
-            </DialogDescription>
-          </DialogHeader>
-
-          <div className="space-y-2 rounded-md border border-latte-surface1/80 bg-latte-base/55 p-3">
-            <div className="space-y-0.5">
-              {isComposeLocked ? (
-                <p className="text-[11px] text-latte-overlay1">
-                  利用条件: 貫通サブパターン2件以上 + 妨害カテゴリ1件以上
-                </p>
-              ) : null}
-              {!isComposeLocked &&
-              hasComposeSourceSelection &&
-              selectedComposeCategoryUids.length > 0 &&
-              !hasComposePenetrationTarget ? (
-                <p className="text-[11px] text-latte-overlay1">
-                  選択中のカテゴリには、2サブパターン合算で加算効果がありません。
-                </p>
-              ) : null}
-              {!isComposeLocked &&
-              hasComposeSourceSelection &&
-              hasComposePenetrationTarget &&
-              hasComposeSkippedCategories ? (
-                <p className="text-[11px] text-latte-overlay1">
-                  一部カテゴリは加算効果がないため、生成対象から除外されます。
-                </p>
-              ) : null}
-              {!isComposeLocked && composeName.trim().length === 0 ? (
-                <p className="text-[11px] text-latte-overlay1">
-                  合成パターン名は必須です。
-                </p>
-              ) : null}
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="space-y-1 text-[11px] text-latte-subtext0">
-                合成元A
-                <Select
-                  ariaLabel="合成元A"
-                  disabled={!canSelectComposeSources}
-                  triggerClassName="h-9"
-                  value={composeSourceAUid}
-                  options={penetrationSubPatternOptions}
-                  onChange={setComposeSourceAUid}
-                  placeholder="サブパターンを選択"
-                />
-              </label>
-              <label className="space-y-1 text-[11px] text-latte-subtext0">
-                合成元B
-                <Select
-                  ariaLabel="合成元B"
-                  disabled={!canSelectComposeSources}
-                  triggerClassName="h-9"
-                  value={composeSourceBUid}
-                  options={penetrationSubPatternOptions}
-                  onChange={setComposeSourceBUid}
-                  placeholder="サブパターンを選択"
-                />
-              </label>
-            </div>
-            <div className="grid gap-2 sm:grid-cols-2">
-              <label className="space-y-1 text-[11px] text-latte-subtext0">
-                貫通カテゴリ（複数可）
-                <MultiSelect
-                  disabled={!canSelectComposeCategory}
-                  options={penetrationCategoryOptions}
-                  value={selectedComposeCategoryUids}
-                  onChange={setComposeCategoryUids}
-                  placeholder="カテゴリを選択"
-                />
-              </label>
-              <label className="space-y-1 text-[11px] text-latte-subtext0">
-                合成パターン名（必須）
-                <Input
-                  className="h-9"
-                  disabled={isComposeLocked}
-                  value={composeName}
-                  placeholder="合成パターン名を入力"
-                  onChange={(event) => setComposeName(event.target.value)}
-                />
-              </label>
-            </div>
-            <div className="flex justify-end">
-              <Button
-                type="button"
-                variant="outline"
-                className="h-9 px-3 text-xs"
-                disabled={!canRunCompose}
-                onClick={handleComposePenetrationSubPattern}
-              >
-                合成生成
-              </Button>
-            </div>
-          </div>
-        </DialogContent>
-      </Dialog>
-
       {subPatterns.length === 0 ? (
         <p className="rounded-md border border-dashed border-latte-surface1 px-3 py-4 text-xs text-latte-subtext0">
           サブパターンがありません。「サブパターン追加」から作成してください。

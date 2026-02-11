@@ -14,6 +14,7 @@ describe("apiSchemas", () => {
           active: true,
           memo: "",
           labels: [],
+          effects: [],
           conditions: [
             {
               mode: "draw_total",
@@ -79,6 +80,7 @@ describe("apiSchemas", () => {
           active: true,
           memo: "",
           labels: [{ uid: "l1" }],
+          effects: [],
           conditions: [
             {
               mode: "required",
@@ -117,6 +119,7 @@ describe("apiSchemas", () => {
           active: true,
           memo: "",
           labels: [],
+          effects: [],
           conditions: [
             {
               mode: "required",
@@ -170,6 +173,7 @@ describe("apiSchemas", () => {
           active: true,
           memo: "",
           labels: [],
+          effects: [],
           conditions: [
             {
               mode: "required",
@@ -229,6 +233,7 @@ describe("apiSchemas", () => {
           active: true,
           memo: "",
           labels: [],
+          effects: [],
           conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
         },
       ],
