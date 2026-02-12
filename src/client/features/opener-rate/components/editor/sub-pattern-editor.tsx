@@ -17,6 +17,14 @@ import {
 } from "../../state";
 import { createLocalId } from "./create-local-id";
 import { createDuplicatedSubPattern } from "./duplicate-pattern";
+import {
+  createDefaultRequiredCondition,
+  removeItemByUid,
+  removeUid,
+  toNamedOptions,
+  toggleUid,
+  updateItemByUid,
+} from "./editor-collection-utils";
 import { EditorEmptyState, editorFieldLabelClassName } from "./editor-ui";
 import { EffectListEditor } from "./effect-list-editor";
 import { ExpandableEditorCard } from "./expandable-editor-card";
@@ -27,12 +35,6 @@ import {
 } from "./effect-utils";
 import { PatternConditionEditor } from "./pattern-condition-editor";
 import { PatternComposeDialogTrigger } from "./pattern-compose-editor";
-
-const createDefaultCondition = () => ({
-  mode: "required" as const,
-  count: 1,
-  uids: [],
-});
 
 const createDefaultSubPatternName = (index: number) =>
   `サブパターン${index + 1}`;
@@ -55,46 +57,22 @@ export const SubPatternEditor = () => {
   );
 
   const patternOptions = useMemo<MultiSelectOption[]>(
-    () =>
-      patterns
-        .filter((pattern) => pattern.name.trim().length > 0)
-        .map((pattern) => ({
-          value: pattern.uid,
-          label: pattern.name,
-        })),
+    () => toNamedOptions(patterns),
     [patterns],
   );
 
   const labelOptions = useMemo<MultiSelectOption[]>(
-    () =>
-      labels
-        .filter((label) => label.name.trim().length > 0)
-        .map((label) => ({
-          value: label.uid,
-          label: label.name,
-        })),
+    () => toNamedOptions(labels),
     [labels],
   );
 
   const cardOptions = useMemo<MultiSelectOption[]>(
-    () =>
-      cards
-        .filter((card) => card.name.trim().length > 0)
-        .map((card) => ({
-          value: card.uid,
-          label: card.name,
-        })),
+    () => toNamedOptions(cards),
     [cards],
   );
 
   const penetrationCategoryOptions = useMemo<MultiSelectOption[]>(
-    () =>
-      disruptionCategories
-        .filter((category) => category.name.trim().length > 0)
-        .map((category) => ({
-          value: category.uid,
-          label: category.name,
-        })),
+    () => toNamedOptions(disruptionCategories),
     [disruptionCategories],
   );
   useEffect(() => {
@@ -120,11 +98,7 @@ export const SubPatternEditor = () => {
     uid: string,
     updater: (subPattern: SubPattern) => SubPattern,
   ) => {
-    setSubPatterns((current) =>
-      current.map((subPattern) =>
-        subPattern.uid === uid ? updater(subPattern) : subPattern,
-      ),
-    );
+    setSubPatterns((current) => updateItemByUid(current, uid, updater));
   };
 
   const handleAddSubPattern = () => {
@@ -136,14 +110,14 @@ export const SubPatternEditor = () => {
         name: createDefaultSubPatternName(current.length),
         active: true,
         basePatternUids: [],
-        triggerConditions: [createDefaultCondition()],
+        triggerConditions: [createDefaultRequiredCondition()],
         triggerSourceUids: [],
         applyLimit: "once_per_trial",
         effects: [createDefaultEffect()],
         memo: "",
       },
     ]);
-    setCollapsedUids((current) => current.filter((target) => target !== uid));
+    setCollapsedUids((current) => removeUid(current, uid));
   };
 
   const handleDuplicateSubPattern = (sourceUid: string) => {
@@ -162,25 +136,15 @@ export const SubPatternEditor = () => {
         }),
       ];
     });
-    setCollapsedUids((current) =>
-      current.filter((target) => target !== duplicateUid),
-    );
+    setCollapsedUids((current) => removeUid(current, duplicateUid));
   };
 
   const toggleMemo = (uid: string) => {
-    setExpandedMemoUids((current) =>
-      current.includes(uid)
-        ? current.filter((target) => target !== uid)
-        : [...current, uid],
-    );
+    setExpandedMemoUids((current) => toggleUid(current, uid));
   };
 
   const toggleCollapsed = (uid: string) => {
-    setCollapsedUids((current) =>
-      current.includes(uid)
-        ? current.filter((target) => target !== uid)
-        : [...current, uid],
-    );
+    setCollapsedUids((current) => toggleUid(current, uid));
   };
 
   const handleExpandAll = () => {
@@ -281,13 +245,11 @@ export const SubPatternEditor = () => {
               onDuplicate={() => handleDuplicateSubPattern(subPattern.uid)}
               onRemove={() => {
                 setExpandedMemoUids((current) =>
-                  current.filter((target) => target !== subPattern.uid),
+                  removeUid(current, subPattern.uid),
                 );
-                setCollapsedUids((current) =>
-                  current.filter((target) => target !== subPattern.uid),
-                );
+                setCollapsedUids((current) => removeUid(current, subPattern.uid));
                 setSubPatterns((current) =>
-                  current.filter((target) => target.uid !== subPattern.uid),
+                  removeItemByUid(current, subPattern.uid),
                 );
               }}
               onToggleCollapsed={() => toggleCollapsed(subPattern.uid)}
@@ -363,7 +325,7 @@ export const SubPatternEditor = () => {
                           ...target,
                           triggerConditions: [
                             ...target.triggerConditions,
-                            createDefaultCondition(),
+                            createDefaultRequiredCondition(),
                           ],
                         }))
                       }
