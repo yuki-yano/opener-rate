@@ -10,6 +10,7 @@ import {
   DialogHeader,
   DialogTitle,
   Input,
+  RadioCardGroup,
   Select,
 } from "../../../../components/ui";
 import type { SubPatternTriggerCondition } from "../../../../shared/apiSchemas";
@@ -305,7 +306,7 @@ export const PatternComposeDialogTrigger = () => {
         <FlaskConical className="mr-1.5 h-3.5 w-3.5 text-ui-blue" />
         合成
       </Button>
-      <DialogContent className="p-4 sm:p-6">
+      <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain p-4 sm:max-h-[calc(100dvh-2rem)] sm:p-6">
         <DialogHeader>
           <DialogTitle>貫通合成ジェネレーター</DialogTitle>
           <DialogDescription>
@@ -352,18 +353,12 @@ export const PatternComposeDialogTrigger = () => {
           <div className="grid gap-2 sm:grid-cols-3">
             <label className="space-y-1 text-[11px] text-ui-subtext0">
               フィルタ入力方法
-              <Select
-                ariaLabel="フィルタ入力方法"
-                disabled={!canSelectMainSource}
-                triggerClassName="h-9"
+              <RadioCardGroup
+                name="compose-filter-input-mode"
                 value={filterInputMode}
-                options={filterInputModeOptions.map((option) => ({
-                  value: option.value,
-                  label: option.label,
-                }))}
-                onChange={(value) =>
-                  setFilterInputMode(value === "inline" ? "inline" : "existing")
-                }
+                options={filterInputModeOptions}
+                disabled={!canSelectMainSource}
+                onChange={setFilterInputMode}
               />
             </label>
             <label className="space-y-1 text-[11px] text-ui-subtext0">

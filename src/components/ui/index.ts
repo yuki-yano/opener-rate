@@ -5,5 +5,7 @@ export * from "./checkbox";
 export * from "./dialog";
 export * from "./input";
 export * from "./popover";
+export * from "./radio-card-group";
+export * from "./radio-group";
 export * from "./select";
 export * from "./textarea";

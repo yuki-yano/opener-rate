@@ -208,6 +208,7 @@ export const deckNameAtom = atom(
 
 export const modeAtom = atom<CalculationMode>("exact");
 export const simulationTrialsAtom = atom<number>(defaultSimulationTrials);
+export const modeAutoSwitchedByVsAtom = atom(false);
 
 export const resetInputAtom = atom(null, (_get, set) => {
   set(deckAtom, defaultDeckState);
@@ -222,4 +223,5 @@ export const resetInputAtom = atom(null, (_get, set) => {
   set(deckNameAtom, "");
   set(modeAtom, "exact");
   set(simulationTrialsAtom, defaultSimulationTrials);
+  set(modeAutoSwitchedByVsAtom, false);
 });

@@ -1,12 +1,21 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue } from "jotai";
+import { useEffect } from "react";
 
-import { Input, Select, type SelectOption } from "../../../../components/ui";
+import {
+  Input,
+  RadioCardGroup,
+  Select,
+  type RadioCardOption,
+  type SelectOption,
+} from "../../../../components/ui";
 import {
   deckAtom,
   deckNameAtom,
   modeAtom,
+  modeAutoSwitchedByVsAtom,
   potAtom,
   simulationTrialsAtom,
+  vsAtom,
 } from "../../state";
 import { SectionCard } from "../layout/section-card";
 
@@ -21,10 +30,11 @@ const prosperityCostOptions: SelectOption[] = [
   { value: "6", label: "6" },
 ];
 
-const calculationModeOptions: SelectOption[] = [
-  { value: "simulation", label: "シミュレーション" },
-  { value: "exact", label: "厳密計算" },
-];
+const calculationModeOptions: readonly RadioCardOption<"exact" | "simulation">[] =
+  [
+    { value: "exact", label: "厳密計算" },
+    { value: "simulation", label: "シミュレーション" },
+  ] as const;
 
 export const DeckEditor = () => {
   const [deck, setDeck] = useAtom(deckAtom);
@@ -32,6 +42,22 @@ export const DeckEditor = () => {
   const [pot, setPot] = useAtom(potAtom);
   const [mode, setMode] = useAtom(modeAtom);
   const [simulationTrials, setSimulationTrials] = useAtom(simulationTrialsAtom);
+  const [modeAutoSwitchedByVs, setModeAutoSwitchedByVs] = useAtom(
+    modeAutoSwitchedByVsAtom,
+  );
+  const vs = useAtomValue(vsAtom);
+
+  useEffect(() => {
+    if (vs.enabled && mode === "exact") {
+      setMode("simulation");
+      setModeAutoSwitchedByVs(true);
+      return;
+    }
+    if (!vs.enabled && modeAutoSwitchedByVs) {
+      setMode("exact");
+      setModeAutoSwitchedByVs(false);
+    }
+  }, [mode, modeAutoSwitchedByVs, setMode, setModeAutoSwitchedByVs, vs.enabled]);
 
   return (
     <SectionCard
@@ -159,14 +185,25 @@ export const DeckEditor = () => {
       <div className="grid gap-3 sm:grid-cols-2">
         <label className="space-y-1.5 text-xs text-ui-subtext0">
           計算モード
-          <Select
-            ariaLabel="計算モード"
+          <RadioCardGroup
+            name="calculation-mode"
             value={mode}
-            options={calculationModeOptions}
-            onChange={(next) =>
-              setMode(next === "exact" ? "exact" : "simulation")
-            }
+            options={calculationModeOptions.map((option) => ({
+              ...option,
+              disabled: vs.enabled && option.value === "exact",
+            }))}
+            onChange={(next) => {
+              setMode(next);
+              if (!vs.enabled) {
+                setModeAutoSwitchedByVs(false);
+              }
+            }}
           />
+          {modeAutoSwitchedByVs && vs.enabled ? (
+            <p className="text-[11px] text-ui-overlay1">
+              対戦シミュレーションが有効なため、計算モードをシミュレーションへ自動変更しています。無効化すると厳密計算へ戻ります。
+            </p>
+          ) : null}
         </label>
         <label className="space-y-1.5 text-xs text-ui-subtext0">
           試行回数

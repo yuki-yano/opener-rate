@@ -24,6 +24,7 @@ export {
   disruptionCardsAtom,
   labelsAtom,
   modeAtom,
+  modeAutoSwitchedByVsAtom,
   patternsAtom,
   subPatternsAtom,
   potAtom,
