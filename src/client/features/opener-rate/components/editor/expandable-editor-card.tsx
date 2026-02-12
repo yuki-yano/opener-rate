@@ -33,6 +33,7 @@ type ExpandableEditorCardProps = {
   expandedBody: ReactNode;
   collapsedBody: ReactNode;
   expandedToggleButtonClassName?: string;
+  collapsedToggleButtonClassName?: string;
 };
 
 export const ExpandableEditorCard = ({
@@ -57,6 +58,7 @@ export const ExpandableEditorCard = ({
   expandedBody,
   collapsedBody,
   expandedToggleButtonClassName,
+  collapsedToggleButtonClassName,
 }: ExpandableEditorCardProps) => {
   return (
     <div
@@ -152,7 +154,10 @@ export const ExpandableEditorCard = ({
             type="button"
             variant="ghost"
             size="icon"
-            className="absolute left-[-1.75rem] top-1/2 z-10 h-8 w-5 -translate-y-1/2 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue"
+            className={cn(
+              "absolute left-[-1.75rem] z-10 w-5 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue",
+              collapsedToggleButtonClassName ?? "top-1/2 h-8 -translate-y-1/2",
+            )}
             aria-label="展開する"
             onClick={onToggleCollapsed}
           >
