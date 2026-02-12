@@ -207,8 +207,10 @@ export const PatternConditionEditor = ({
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-end">
-            <label className={`min-w-0 ${editorFieldLabelClassName}`}>
+          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem] sm:items-end">
+            <label
+              className={`col-start-1 row-start-1 min-w-0 ${editorFieldLabelClassName}`}
+            >
               しきい値
               <Input
                 className="h-9"
@@ -231,7 +233,9 @@ export const PatternConditionEditor = ({
                 }}
               />
             </label>
-            <label className={`min-w-0 ${editorFieldLabelClassName}`}>
+            <label
+              className={`col-start-1 row-start-2 min-w-0 sm:col-start-2 sm:row-start-1 ${editorFieldLabelClassName}`}
+            >
               判定
               <Select
                 ariaLabel={`条件${index + 1}の判定`}
@@ -246,7 +250,17 @@ export const PatternConditionEditor = ({
                 }
               />
             </label>
-            <div className="flex min-w-0 items-end sm:col-span-2 sm:justify-start">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className="col-start-2 row-start-1 h-8 w-8 self-end justify-self-end sm:col-start-3 sm:row-start-1 sm:self-auto"
+              aria-label="条件削除"
+              onClick={onRemove}
+            >
+              <Trash2 className="h-4 w-4 text-ui-red" />
+            </Button>
+            <div className="col-span-2 row-start-3 flex min-w-0 items-end sm:col-span-2 sm:col-start-1 sm:row-start-2 sm:justify-start">
               <Button
                 type="button"
                 variant="outline"
@@ -335,13 +349,7 @@ export const PatternConditionEditor = ({
         </div>
       )}
 
-      <div
-        className={
-          isCountCondition(condition)
-            ? "grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-2"
-            : "min-w-0"
-        }
-      >
+      <div className="min-w-0">
         <Select
           ariaLabel={`条件${index + 1}の種類`}
           triggerClassName="h-9"
@@ -358,18 +366,6 @@ export const PatternConditionEditor = ({
             )
           }
         />
-        {isCountCondition(condition) ? (
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className="h-8 w-8"
-            aria-label="条件削除"
-            onClick={onRemove}
-          >
-            <Trash2 className="h-4 w-4 text-ui-red" />
-          </Button>
-        ) : null}
       </div>
     </div>
   );
