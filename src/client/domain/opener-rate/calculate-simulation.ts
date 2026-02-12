@@ -14,6 +14,8 @@ import {
 } from "./calculation-shared";
 import { evaluatePatterns } from "./evaluate-pattern";
 
+type RandomSource = () => number;
+
 const scoreEvaluation = (params: {
   evaluation: ReturnType<typeof evaluatePatterns>;
   compiledPatternByUid: Map<string, CompiledPattern>;
@@ -35,7 +37,8 @@ const scoreEvaluation = (params: {
     handCounts,
     deckCounts,
   });
-  const countableMatchedLabelCount = matchedOutcome.countableMatchedLabelUids.size;
+  const countableMatchedLabelCount =
+    matchedOutcome.countableMatchedLabelUids.size;
 
   return (
     (matchedOutcome.baseSuccess ? 1_000_000 : 0) +
@@ -56,9 +59,11 @@ const createDeckOrder = (deckCounts: number[]) => {
   return deckOrder;
 };
 
-const shuffle = (array: number[]) => {
+const shuffle = (array: number[], rng: RandomSource) => {
   for (let index = array.length - 1; index > 0; index -= 1) {
-    const randomIndex = Math.floor(Math.random() * (index + 1));
+    const next = rng();
+    const clamped = Math.min(0.999999999999, Math.max(0, next));
+    const randomIndex = Math.floor(clamped * (index + 1));
     [array[index], array[randomIndex]] = [array[randomIndex], array[index]];
   }
 };
@@ -109,11 +114,16 @@ const resolveOpponentDisruptionStrength = (params: {
   opponentDeckOrderTemplate: number[];
   opponentHandSize: number;
   opponentDisruptions: OpponentDisruptionCard[];
+  rng: RandomSource;
 }) => {
-  const { opponentDeckOrderTemplate, opponentHandSize, opponentDisruptions } =
-    params;
+  const {
+    opponentDeckOrderTemplate,
+    opponentHandSize,
+    opponentDisruptions,
+    rng,
+  } = params;
   const opponentDeckOrder = opponentDeckOrderTemplate.slice();
-  shuffle(opponentDeckOrder);
+  shuffle(opponentDeckOrder, rng);
 
   const drawCount = Math.min(opponentHandSize, opponentDeckOrder.length);
   const drawnCountByUid = new Map<string, number>();
@@ -263,9 +273,11 @@ export const calculateBySimulation = (params: {
   compiledSubPatterns: CompiledSubPattern[];
   trials: number;
   mode?: CalculateOutput["mode"];
+  rng?: RandomSource;
 }): CalculateOutput => {
   const { normalized, compiledPatterns, compiledSubPatterns, trials } = params;
   const mode = params.mode ?? "simulation";
+  const rng = params.rng ?? Math.random;
 
   const deckOrderTemplate = createDeckOrder(normalized.deckCounts);
   const vs = normalized.vs;
@@ -296,7 +308,7 @@ export const calculateBySimulation = (params: {
 
   for (let trial = 0; trial < trials; trial += 1) {
     const deckOrder = deckOrderTemplate.slice();
-    shuffle(deckOrder);
+    shuffle(deckOrder, rng);
 
     const handCounts = new Array(normalized.deckCounts.length).fill(0);
     const deckCounts = normalized.deckCounts.slice();
@@ -339,6 +351,7 @@ export const calculateBySimulation = (params: {
         opponentDeckOrderTemplate,
         opponentHandSize: vs.opponentHandSize,
         opponentDisruptions: vs.opponentDisruptions,
+        rng,
       });
 
       if (!opponentDisruption.hasDisruption) {
