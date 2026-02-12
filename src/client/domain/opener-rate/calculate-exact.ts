@@ -5,11 +5,9 @@ import type {
   NormalizedDeck,
 } from "./types";
 import {
-  collectCountablePatternEffects,
+  evaluateTrialOutcome,
   toRateStringFromBigInt,
 } from "./calculation-shared";
-import { evaluatePatterns } from "./evaluate-pattern";
-import { evaluateSubPatterns } from "./evaluate-sub-pattern";
 
 const combinationMemo = new Map<string, bigint>();
 
@@ -68,47 +66,23 @@ export const calculateByExact = (params: {
       const deckCounts = normalized.deckCounts.map(
         (deckCount, index) => deckCount - (handCounts[index] ?? 0),
       );
-      const evaluation = evaluatePatterns(compiledPatterns, {
+      const outcome = evaluateTrialOutcome({
+        compiledPatterns,
+        compiledPatternByUid,
+        compiledSubPatterns,
         handCounts,
         deckCounts,
       });
-      const subPatternEvaluation = evaluateSubPatterns({
-        compiledSubPatterns,
-        context: { handCounts, deckCounts },
-        matchedPatternUids: evaluation.matchedPatternUids,
-        matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
-      });
-      const countablePatternEffects = collectCountablePatternEffects(
-        evaluation.matchedPatternUids,
-        compiledPatternByUid,
-      );
-      const countableSubPatternEvaluation = evaluateSubPatterns({
-        compiledSubPatterns,
-        context: { handCounts, deckCounts },
-        matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
-        matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
-      });
-      const matchedLabelUids = new Set([
-        ...evaluation.matchedLabelUids,
-        ...subPatternEvaluation.addedLabelUids,
-      ]);
-      const countableMatchedLabelUids = new Set([
-        ...countablePatternEffects.countableMatchedLabelUids,
-        ...countableSubPatternEvaluation.addedLabelUids,
-      ]);
       totalCombinations += weight;
-      if (
-        countablePatternEffects.countableMatchedPatternUids.length > 0 ||
-        countableMatchedLabelUids.size > 0
-      ) {
+      if (outcome.baseSuccess) {
         overallSuccess += weight;
       }
-      for (const patternUid of evaluation.matchedPatternUids) {
+      for (const patternUid of outcome.evaluation.matchedPatternUids) {
         const index = patternIndexByUid.get(patternUid);
         if (index == null) continue;
         patternSuccess[index] += weight;
       }
-      for (const labelUid of matchedLabelUids) {
+      for (const labelUid of outcome.matchedLabelUids) {
         const index = labelIndexByUid.get(labelUid);
         if (index == null) continue;
         labelSuccess[index] += weight;

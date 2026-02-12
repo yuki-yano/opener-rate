@@ -8,11 +8,11 @@ import type {
   NormalizedDeck,
 } from "./types";
 import {
-  collectCountablePatternEffects,
+  evaluateMatchedOutcome,
+  evaluateTrialOutcome,
   toRateStringFromNumber,
 } from "./calculation-shared";
 import { evaluatePatterns } from "./evaluate-pattern";
-import { evaluateSubPatterns } from "./evaluate-sub-pattern";
 
 const scoreEvaluation = (params: {
   evaluation: ReturnType<typeof evaluatePatterns>;
@@ -28,27 +28,19 @@ const scoreEvaluation = (params: {
     handCounts,
     deckCounts,
   } = params;
-  const countablePatternEffects = collectCountablePatternEffects(
-    evaluation.matchedPatternUids,
+  const matchedOutcome = evaluateMatchedOutcome({
+    evaluation,
     compiledPatternByUid,
-  );
-  const countableSubPatternEvaluation = evaluateSubPatterns({
     compiledSubPatterns,
-    context: { handCounts, deckCounts },
-    matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
-    matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
+    handCounts,
+    deckCounts,
   });
-  const countableMatchedLabelCount = new Set([
-    ...countablePatternEffects.countableMatchedLabelUids,
-    ...countableSubPatternEvaluation.addedLabelUids,
-  ]).size;
-  const hasCountableSuccess =
-    countablePatternEffects.countableMatchedPatternUids.length > 0 ||
-    countableMatchedLabelCount > 0;
+  const countableMatchedLabelCount = matchedOutcome.countableMatchedLabelUids.size;
 
   return (
-    (hasCountableSuccess ? 1_000_000 : 0) +
-    countablePatternEffects.countableMatchedPatternUids.length * 1000 +
+    (matchedOutcome.baseSuccess ? 1_000_000 : 0) +
+    matchedOutcome.countablePatternEffects.countableMatchedPatternUids.length *
+      1000 +
     countableMatchedLabelCount
   );
 };
@@ -326,38 +318,20 @@ export const calculateBySimulation = (params: {
       remainingDeckOrder,
     );
 
-    const evaluation = evaluatePatterns(compiledPatterns, {
+    const outcome = evaluateTrialOutcome({
+      compiledPatterns,
+      compiledPatternByUid,
+      compiledSubPatterns,
       handCounts,
       deckCounts,
     });
-    const subPatternEvaluation = evaluateSubPatterns({
-      compiledSubPatterns,
-      context: { handCounts, deckCounts },
-      matchedPatternUids: evaluation.matchedPatternUids,
-      matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
-    });
-    const countablePatternEffects = collectCountablePatternEffects(
-      evaluation.matchedPatternUids,
-      compiledPatternByUid,
-    );
-    const countableSubPatternEvaluation = evaluateSubPatterns({
-      compiledSubPatterns,
-      context: { handCounts, deckCounts },
-      matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
-      matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
-    });
-    const matchedLabelUids = new Set([
-      ...evaluation.matchedLabelUids,
-      ...subPatternEvaluation.addedLabelUids,
-    ]);
-    const countableMatchedLabelUids = new Set([
-      ...countablePatternEffects.countableMatchedLabelUids,
-      ...countableSubPatternEvaluation.addedLabelUids,
-    ]);
-
-    const baseSuccess =
-      countablePatternEffects.countableMatchedPatternUids.length > 0 ||
-      countableMatchedLabelUids.size > 0;
+    const { evaluation } = outcome;
+    const {
+      baseSuccess,
+      countablePatternEffects,
+      countableSubPatternEvaluation,
+      matchedLabelUids,
+    } = outcome;
     let isSuccess = baseSuccess;
 
     if (vsEnabled) {

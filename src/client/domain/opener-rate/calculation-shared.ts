@@ -1,4 +1,6 @@
-import type { CompiledPattern } from "./types";
+import { evaluatePatterns } from "./evaluate-pattern";
+import { evaluateSubPatterns } from "./evaluate-sub-pattern";
+import type { CompiledPattern, CompiledSubPattern } from "./types";
 
 export const collectCountablePatternEffects = (
   matchedPatternUids: string[],
@@ -36,6 +38,89 @@ export const collectCountablePatternEffects = (
     countableMatchedPatternUids,
     countableMatchedLabelUids,
     penetrationByDisruptionKey,
+  };
+};
+
+export const evaluateMatchedOutcome = (params: {
+  evaluation: ReturnType<typeof evaluatePatterns>;
+  compiledPatternByUid: Map<string, CompiledPattern>;
+  compiledSubPatterns: CompiledSubPattern[];
+  handCounts: number[];
+  deckCounts: number[];
+}) => {
+  const {
+    evaluation,
+    compiledPatternByUid,
+    compiledSubPatterns,
+    handCounts,
+    deckCounts,
+  } = params;
+  const subPatternEvaluation = evaluateSubPatterns({
+    compiledSubPatterns,
+    context: { handCounts, deckCounts },
+    matchedPatternUids: evaluation.matchedPatternUids,
+    matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
+  });
+  const countablePatternEffects = collectCountablePatternEffects(
+    evaluation.matchedPatternUids,
+    compiledPatternByUid,
+  );
+  const countableSubPatternEvaluation = evaluateSubPatterns({
+    compiledSubPatterns,
+    context: { handCounts, deckCounts },
+    matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
+    matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
+  });
+  const matchedLabelUids = new Set([
+    ...evaluation.matchedLabelUids,
+    ...subPatternEvaluation.addedLabelUids,
+  ]);
+  const countableMatchedLabelUids = new Set([
+    ...countablePatternEffects.countableMatchedLabelUids,
+    ...countableSubPatternEvaluation.addedLabelUids,
+  ]);
+  const baseSuccess =
+    countablePatternEffects.countableMatchedPatternUids.length > 0 ||
+    countableMatchedLabelUids.size > 0;
+
+  return {
+    baseSuccess,
+    countableMatchedLabelUids,
+    countablePatternEffects,
+    countableSubPatternEvaluation,
+    matchedLabelUids,
+    subPatternEvaluation,
+  };
+};
+
+export const evaluateTrialOutcome = (params: {
+  compiledPatterns: CompiledPattern[];
+  compiledPatternByUid: Map<string, CompiledPattern>;
+  compiledSubPatterns: CompiledSubPattern[];
+  handCounts: number[];
+  deckCounts: number[];
+}) => {
+  const {
+    compiledPatterns,
+    compiledPatternByUid,
+    compiledSubPatterns,
+    handCounts,
+    deckCounts,
+  } = params;
+  const evaluation = evaluatePatterns(compiledPatterns, {
+    handCounts,
+    deckCounts,
+  });
+
+  return {
+    evaluation,
+    ...evaluateMatchedOutcome({
+      evaluation,
+      compiledPatternByUid,
+      compiledSubPatterns,
+      handCounts,
+      deckCounts,
+    }),
   };
 };
 
