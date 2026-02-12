@@ -93,7 +93,12 @@ export const OpenerRateScreen = () => {
         <header className="border-b border-ui-surface0/90 bg-ui-base">
           <div className="mx-auto w-full max-w-7xl px-4 py-4">
             <h1 className="text-3xl font-bold tracking-tight text-ui-text">
-              初動率計算機
+              <a
+                href="/"
+                className="transition-colors hover:text-ui-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-blue/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ui-base"
+              >
+                初動率計算機
+              </a>
             </h1>
           </div>
         </header>

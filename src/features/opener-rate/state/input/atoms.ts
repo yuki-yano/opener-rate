@@ -124,47 +124,81 @@ const createHashSerializeOptions = <T>(
   serialize: (value: T) => lzstring.compressToBase64(JSON.stringify(value)),
 });
 
-export const deckAtom = atomWithHash<DeckState>(
+type HashStateAction<T> = T | ((prev: T) => T);
+type HashOptions<T> = {
+  delay?: number;
+  serialize?: (value: T) => string;
+  deserialize?: (value: string) => T;
+  subscribe?: (callback: () => void) => () => void;
+  setHash?: "default" | "replaceState" | ((searchParams: string) => void);
+};
+
+const atomWithStableHash = <T>(
+  key: string,
+  initialValue: T,
+  options?: HashOptions<T>,
+) => {
+  const baseAtom = atomWithHash<T>(key, initialValue, options);
+  return atom(
+    (get) => get(baseAtom),
+    (get, set, update: HashStateAction<T>) => {
+      const previous = get(baseAtom);
+      const next =
+        typeof update === "function"
+          ? (update as (prev: T) => T)(previous)
+          : update;
+
+      if (Object.is(next, previous)) {
+        return;
+      }
+
+      set(baseAtom, next);
+    },
+  );
+};
+
+export const deckAtom = atomWithStableHash<DeckState>(
   "deck",
   defaultDeckState,
   createHashSerializeOptions(defaultDeckState, deckStateSchema),
 );
-export const cardsAtom = atomWithHash<Card[]>(
+export const cardsAtom = atomWithStableHash<Card[]>(
   "cards",
   [],
   createHashSerializeOptions([], cardsSchema),
 );
-export const patternsAtom = atomWithHash<Pattern[]>(
+export const patternsAtom = atomWithStableHash<Pattern[]>(
   "pattern",
   [],
   createHashSerializeOptions([], patternsSchema),
 );
-export const labelsAtom = atomWithHash<Label[]>(
+export const labelsAtom = atomWithStableHash<Label[]>(
   "label",
   [],
   createHashSerializeOptions([], labelsSchema),
 );
-export const disruptionCategoriesAtom = atomWithHash<DisruptionCategory[]>(
-  "disruptionCategory",
-  [],
-  createHashSerializeOptions([], disruptionCategoriesSchema),
-);
-export const disruptionCardsAtom = atomWithHash<DisruptionCard[]>(
+export const disruptionCategoriesAtom =
+  atomWithStableHash<DisruptionCategory[]>(
+    "disruptionCategory",
+    [],
+    createHashSerializeOptions([], disruptionCategoriesSchema),
+  );
+export const disruptionCardsAtom = atomWithStableHash<DisruptionCard[]>(
   "disruptionCard",
   [],
   createHashSerializeOptions([], disruptionCardsSchema),
 );
-export const subPatternsAtom = atomWithHash<SubPattern[]>(
+export const subPatternsAtom = atomWithStableHash<SubPattern[]>(
   "subPattern",
   [],
   createHashSerializeOptions([], subPatternsSchema),
 );
-export const potAtom = atomWithHash<PotState>(
+export const potAtom = atomWithStableHash<PotState>(
   "pot",
   defaultPotState,
   createHashSerializeOptions(defaultPotState, potStateSchema),
 );
-export const vsAtom = atomWithHash<VsSimulationInput>(
+export const vsAtom = atomWithStableHash<VsSimulationInput>(
   "vs",
   defaultVsState,
   createHashSerializeOptions(defaultVsState, draftVsSchema),
