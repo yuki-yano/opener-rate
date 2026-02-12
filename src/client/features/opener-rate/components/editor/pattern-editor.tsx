@@ -425,19 +425,17 @@ export const PatternEditor = () => {
                     className="h-8 border-ui-surface0/70 bg-ui-mantle"
                   />
                   {isMemoExpanded ? (
-                    <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
-                      <Textarea
-                        value={pattern.memo}
-                        placeholder="メモ"
-                        rows={2}
-                        onChange={(event) =>
-                          updatePattern(pattern.uid, (target) => ({
-                            ...target,
-                            memo: event.target.value,
-                          }))
-                        }
-                      />
-                    </div>
+                    <Textarea
+                      value={pattern.memo}
+                      placeholder="メモ"
+                      rows={2}
+                      onChange={(event) =>
+                        updatePattern(pattern.uid, (target) => ({
+                          ...target,
+                          memo: event.target.value,
+                        }))
+                      }
+                    />
                   ) : null}
                 </div>
               }

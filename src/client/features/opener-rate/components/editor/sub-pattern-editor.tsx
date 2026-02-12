@@ -446,19 +446,17 @@ export const SubPatternEditor = () => {
                   />
 
                   {isMemoExpanded ? (
-                    <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
-                      <Textarea
-                        value={subPattern.memo}
-                        placeholder="メモ"
-                        rows={2}
-                        onChange={(event) =>
-                          updateSubPattern(subPattern.uid, (target) => ({
-                            ...target,
-                            memo: event.target.value,
-                          }))
-                        }
-                      />
-                    </div>
+                    <Textarea
+                      value={subPattern.memo}
+                      placeholder="メモ"
+                      rows={2}
+                      onChange={(event) =>
+                        updateSubPattern(subPattern.uid, (target) => ({
+                          ...target,
+                          memo: event.target.value,
+                        }))
+                      }
+                    />
                   ) : null}
                 </div>
               }
