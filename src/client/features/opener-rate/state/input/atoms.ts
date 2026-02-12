@@ -44,9 +44,7 @@ const defaultPotState: PotState = {
   },
 };
 
-export const simulationTrialOptions = [
-  1000, 10000, 100000, 1000000,
-] as const;
+export const simulationTrialOptions = [1000, 10000, 100000, 1000000] as const;
 type SimulationTrialOption = (typeof simulationTrialOptions)[number];
 const simulationTrialOptionSet = new Set<number>(simulationTrialOptions);
 
