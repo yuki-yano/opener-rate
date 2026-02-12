@@ -250,7 +250,7 @@ export const SubPatternEditor = () => {
               isActive={subPattern.active}
               isExpanded={isExpanded}
               isMemoExpanded={isMemoExpanded}
-              expandedToggleButtonClassName="top-[3.5rem] bottom-2.5 h-auto"
+              expandedToggleButtonClassName="top-0 bottom-0 h-auto"
               name={subPattern.name}
               namePlaceholder="サブパターン名（必須）"
               activeContainerClassName="border-ui-blue/65 bg-ui-crust/82"

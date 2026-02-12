@@ -130,7 +130,22 @@ export const ExpandableEditorCard = ({
       ) : null}
 
       {isExpanded ? (
-        expandedBody
+        <div className="relative">
+          {expandedBody}
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className={cn(
+              "absolute left-[-1.75rem] z-10 w-5 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue",
+              expandedToggleButtonClassName ?? "top-1/2 h-8 -translate-y-1/2",
+            )}
+            aria-label="折りたたむ"
+            onClick={onToggleCollapsed}
+          >
+            <ChevronDown className="h-4 w-4" />
+          </Button>
+        </div>
       ) : (
         <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/80 px-2.5 py-2 text-xs text-ui-subtext0">
           <Button
@@ -146,22 +161,6 @@ export const ExpandableEditorCard = ({
           {collapsedBody}
         </div>
       )}
-
-      {isExpanded ? (
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className={cn(
-            "absolute left-2 z-10 w-5 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue",
-            expandedToggleButtonClassName ?? "top-1/2 h-8 -translate-y-1/2",
-          )}
-          aria-label="折りたたむ"
-          onClick={onToggleCollapsed}
-        >
-          <ChevronDown className="h-4 w-4" />
-        </Button>
-      ) : null}
     </div>
   );
 };
