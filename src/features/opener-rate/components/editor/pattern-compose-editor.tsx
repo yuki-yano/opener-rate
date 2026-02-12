@@ -32,6 +32,8 @@ import {
   resolveComposeEntries,
   type ComposeSource,
 } from "./pattern-compose";
+import { editorCompactFieldLabelClassName } from "./editor-ui";
+import { toInt } from "./number-utils";
 
 const createDefaultSubPatternName = (index: number) =>
   `サブパターン${index + 1}`;
@@ -46,12 +48,6 @@ const filterInputModeOptions = [
   { value: "inline", label: "その場で作る" },
 ] as const;
 const dedupe = (values: string[]) => Array.from(new Set(values));
-const toInt = (value: string, fallback: number) => {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed)) return fallback;
-  return parsed;
-};
-
 export const PatternComposeDialogTrigger = () => {
   const patterns = useAtomValue(patternsAtom);
   const [subPatterns, setSubPatterns] = useAtom(subPatternsAtom);
@@ -363,7 +359,7 @@ export const PatternComposeDialogTrigger = () => {
             ) : null}
           </div>
           <div className="grid gap-2 sm:grid-cols-3">
-            <label className="space-y-1 text-[11px] text-ui-subtext0">
+            <label className={editorCompactFieldLabelClassName}>
               フィルタ入力方法
               <RadioCardGroup
                 name="compose-filter-input-mode"
@@ -373,7 +369,7 @@ export const PatternComposeDialogTrigger = () => {
                 onChange={setFilterInputMode}
               />
             </label>
-            <label className="space-y-1 text-[11px] text-ui-subtext0">
+            <label className={editorCompactFieldLabelClassName}>
               メイン元（1つ目）
               <Select
                 ariaLabel="メイン元"
@@ -386,7 +382,7 @@ export const PatternComposeDialogTrigger = () => {
               />
             </label>
             {filterInputMode === "existing" ? (
-              <label className="space-y-1 text-[11px] text-ui-subtext0">
+              <label className={editorCompactFieldLabelClassName}>
                 フィルタ元（2つ目）
                 <Select
                   ariaLabel="フィルタ元"
@@ -399,7 +395,7 @@ export const PatternComposeDialogTrigger = () => {
                 />
               </label>
             ) : (
-              <label className="space-y-1 text-[11px] text-ui-subtext0">
+              <label className={editorCompactFieldLabelClassName}>
                 フィルタ対象カード（任意）
                 <MultiSelect
                   options={cardOptions}
@@ -454,7 +450,7 @@ export const PatternComposeDialogTrigger = () => {
             </div>
           ) : null}
           <div className="grid gap-2 sm:grid-cols-3">
-            <label className="space-y-1 text-[11px] text-ui-subtext0">
+            <label className={editorCompactFieldLabelClassName}>
               妨害カテゴリ（複数可）
               <MultiSelect
                 disabled={!canSelectComposeCategory}
@@ -464,7 +460,7 @@ export const PatternComposeDialogTrigger = () => {
                 placeholder="妨害カテゴリを選択"
               />
             </label>
-            <label className="space-y-1 text-[11px] text-ui-subtext0">
+            <label className={editorCompactFieldLabelClassName}>
               手動貫通加算（カテゴリごと）
               <Input
                 className="h-9"
@@ -489,7 +485,7 @@ export const PatternComposeDialogTrigger = () => {
                 }
               />
             </label>
-            <label className="space-y-1 text-[11px] text-ui-subtext0">
+            <label className={editorCompactFieldLabelClassName}>
               生成サブパターン名（必須）
               <Input
                 className="h-9"
@@ -500,7 +496,7 @@ export const PatternComposeDialogTrigger = () => {
               />
             </label>
           </div>
-          <label className="space-y-1 text-[11px] text-ui-subtext0">
+          <label className={editorCompactFieldLabelClassName}>
             合成結果に付与するラベル（任意）
             <MultiSelect
               options={labelOptions}

@@ -13,6 +13,8 @@ import type {
   SubPatternTriggerCondition,
 } from "../../../../shared/apiSchemas";
 import { MultiSelect, type MultiSelectOption } from "../common/multi-select";
+import { editorFieldLabelClassName } from "./editor-ui";
+import { toInt } from "./number-utils";
 
 type PatternConditionEditorBaseProps = {
   index: number;
@@ -116,12 +118,6 @@ const switchConditionMode = (
   };
 };
 
-const toInt = (value: string, fallback: number) => {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed)) return fallback;
-  return parsed;
-};
-
 export const PatternConditionEditor = ({
   condition,
   index,
@@ -184,7 +180,7 @@ export const PatternConditionEditor = ({
 
       {!isCountCondition(condition) ? (
         <div className="grid min-w-0 gap-2 sm:grid-cols-[6.5rem_minmax(0,1fr)]">
-          <label className="space-y-1.5 text-xs text-ui-subtext0">
+          <label className={editorFieldLabelClassName}>
             必要枚数
             <Input
               className="h-9"
@@ -203,7 +199,7 @@ export const PatternConditionEditor = ({
               }
             />
           </label>
-          <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
+          <label className={`min-w-0 ${editorFieldLabelClassName}`}>
             対象カード
             <MultiSelect
               options={cardOptions}
@@ -221,7 +217,7 @@ export const PatternConditionEditor = ({
       ) : (
         <div className="space-y-2">
           <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_max-content] sm:items-end">
-            <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
+            <label className={`min-w-0 ${editorFieldLabelClassName}`}>
               判定
               <Select
                 ariaLabel={`条件${index + 1}の判定`}
@@ -236,7 +232,7 @@ export const PatternConditionEditor = ({
                 }
               />
             </label>
-            <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
+            <label className={`min-w-0 ${editorFieldLabelClassName}`}>
               しきい値
               <Input
                 className="h-9"

@@ -15,36 +15,11 @@ import {
   transportErrorAtom,
 } from "../../state";
 import { SectionCard } from "../layout/section-card";
-
-const rateBadgeClassName =
-  "min-w-[5rem] justify-center px-2.5 py-1 text-sm tabular-nums";
-const diffEpsilon = 0.005;
+import { resolveRateDiff } from "./rate-diff";
+import { RateRow } from "./rate-row";
 
 const toModeLabel = (mode: "exact" | "simulation") =>
   mode === "exact" ? "厳密計算" : "シミュレーション";
-
-type RateDiff = {
-  className: string;
-  text: string;
-};
-
-const resolveRateDiff = (
-  currentRate: string,
-  previousRate?: string,
-): RateDiff | null => {
-  const current = Number.parseFloat(currentRate);
-  if (!Number.isFinite(current)) return null;
-
-  const previousValue = Number.parseFloat(previousRate ?? "0");
-  const previous = Number.isFinite(previousValue) ? previousValue : 0;
-  const diff = current - previous;
-  if (Math.abs(diff) < diffEpsilon) return null;
-
-  return {
-    className: diff > 0 ? "text-ui-green" : "text-ui-red",
-    text: `${diff > 0 ? "+" : "-"}${Math.abs(diff).toFixed(2)}%`,
-  };
-};
 
 const toErrorMessage = (value: string | null) => {
   if (value == null) return null;
@@ -179,25 +154,13 @@ export const OverallRateCard = () => {
                 : null;
 
               return (
-                <div
+                <RateRow
                   key={pattern.uid}
-                  className="grid grid-cols-[2rem_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5"
-                >
-                  <span className="text-xs tabular-nums text-ui-overlay1">
-                    {index + 1}
-                  </span>
-                  <p className="truncate text-sm text-ui-text">
-                    {pattern.name.trim() || "名称未設定"}
-                  </p>
-                  <div className="flex items-center gap-2">
-                    {rateDiff ? (
-                      <span className={`text-xs ${rateDiff.className}`}>
-                        ({rateDiff.text})
-                      </span>
-                    ) : null}
-                    <Badge className={rateBadgeClassName}>{rate}%</Badge>
-                  </div>
-                </div>
+                  index={index + 1}
+                  name={pattern.name.trim() || "名称未設定"}
+                  rate={rate}
+                  diff={rateDiff}
+                />
               );
             })
           )

@@ -18,12 +18,8 @@ import {
   vsAtom,
 } from "../../state";
 import { SectionCard } from "../layout/section-card";
-
-const toInt = (value: string, fallback: number) => {
-  const next = Number.parseInt(value, 10);
-  if (Number.isNaN(next)) return fallback;
-  return next;
-};
+import { editorFieldLabelClassName } from "./editor-ui";
+import { toInt } from "./number-utils";
 
 const prosperityCostOptions: SelectOption[] = [
   { value: "3", label: "3" },
@@ -71,7 +67,7 @@ export const DeckEditor = () => {
       title="デッキ設定"
       description="デッキ枚数、初手枚数、計算モードを設定します。"
     >
-      <label className="space-y-1.5 text-xs text-ui-subtext0">
+      <label className={editorFieldLabelClassName}>
         デッキ名（OGP）
         <Input
           value={deckName}
@@ -81,7 +77,7 @@ export const DeckEditor = () => {
       </label>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1.5 text-xs text-ui-subtext0">
+        <label className={editorFieldLabelClassName}>
           デッキ枚数
           <Input
             type="number"
@@ -96,7 +92,7 @@ export const DeckEditor = () => {
             }
           />
         </label>
-        <label className="space-y-1.5 text-xs text-ui-subtext0">
+        <label className={editorFieldLabelClassName}>
           初手枚数
           <Input
             type="number"
@@ -117,7 +113,7 @@ export const DeckEditor = () => {
         <p className="text-xs text-ui-subtext0">壺設定</p>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
-          <label className="space-y-1.5 text-xs text-ui-subtext0">
+          <label className={editorFieldLabelClassName}>
             金満で謙虚な壺 枚数
             <Input
               type="number"
@@ -142,7 +138,7 @@ export const DeckEditor = () => {
             />
           </label>
 
-          <label className="space-y-1.5 text-xs text-ui-subtext0">
+          <label className={editorFieldLabelClassName}>
             除外コスト
             <Select
               ariaLabel="除外コスト"
@@ -161,7 +157,7 @@ export const DeckEditor = () => {
           </label>
         </div>
 
-        <label className="space-y-1.5 text-xs text-ui-subtext0">
+        <label className={editorFieldLabelClassName}>
           強欲で貪欲な壺 / 強欲で金満な壺 枚数
           <Input
             type="number"
@@ -190,7 +186,7 @@ export const DeckEditor = () => {
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <label className="space-y-1.5 text-xs text-ui-subtext0">
+        <label className={editorFieldLabelClassName}>
           計算モード
           <RadioCardGroup
             name="calculation-mode"
@@ -212,7 +208,7 @@ export const DeckEditor = () => {
             </p>
           ) : null}
         </label>
-        <label className="space-y-1.5 text-xs text-ui-subtext0">
+        <label className={editorFieldLabelClassName}>
           試行回数
           <Input
             type="number"

@@ -8,6 +8,10 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "../../../../components/ui";
+import {
+  selectRightRailClassName,
+  selectTriggerFocusClassName,
+} from "../../../../components/ui/select-style";
 import { cn } from "../../../../lib/cn";
 
 export type MultiSelectOption = {
@@ -81,7 +85,7 @@ export const MultiSelect = ({
             disabled={disabled}
             className={cn(
               "h-auto min-h-9 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-medium",
-              "focus:ring-ui-blue/15 focus:border-ui-surface1",
+              selectTriggerFocusClassName,
               selectedOptions.length === 0 && "text-ui-overlay1",
             )}
           >
@@ -101,7 +105,7 @@ export const MultiSelect = ({
                 </span>
               )}
             </span>
-            <span className="ml-2 inline-flex w-8 shrink-0 self-stretch items-center justify-center border-l border-ui-surface0/45 bg-ui-surface0/25 text-ui-overlay1 shadow-[inset_1px_0_0_rgb(var(--theme-surface1)/0.4)]">
+            <span className={selectRightRailClassName}>
               <ChevronsUpDown className="h-4 w-4" />
             </span>
           </Button>

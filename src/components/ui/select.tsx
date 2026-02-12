@@ -4,6 +4,10 @@ import { useMemo, useState } from "react";
 import { cn } from "../../lib/cn";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
+import {
+  selectRightRailClassName,
+  selectTriggerFocusClassName,
+} from "./select-style";
 
 export type SelectOption = {
   value: string;
@@ -56,7 +60,7 @@ export const Select = ({
             disabled={disabled}
             className={cn(
               "h-10 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-normal",
-              "focus:ring-ui-blue/15 focus:border-ui-surface1",
+              selectTriggerFocusClassName,
               !selectedOption && "text-ui-overlay1",
               triggerClassName,
             )}
@@ -64,7 +68,7 @@ export const Select = ({
             <span className="min-w-0 flex-1 self-center truncate">
               {selectedOption?.label ?? placeholder}
             </span>
-            <span className="ml-2 inline-flex w-8 shrink-0 self-stretch items-center justify-center border-l border-ui-surface0/45 bg-ui-surface0/25 text-ui-overlay1 shadow-[inset_1px_0_0_rgb(var(--theme-surface1)/0.4)]">
+            <span className={selectRightRailClassName}>
               <ChevronsUpDown className="h-4 w-4" />
             </span>
           </Button>

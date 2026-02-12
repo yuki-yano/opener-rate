@@ -1,28 +1,9 @@
-import {
-  ChevronDown,
-  ChevronRight,
-  ChevronsDown,
-  ChevronsUp,
-  Copy,
-  NotebookPen,
-  Plus,
-  Trash2,
-} from "lucide-react";
+import { ChevronsDown, ChevronsUp, Plus } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
 import { useEffect, useMemo, useState } from "react";
 
-import {
-  Button,
-  Checkbox,
-  Input,
-  Select,
-  Textarea,
-} from "../../../../components/ui";
-import { cn } from "../../../../lib/cn";
-import type {
-  SubPattern,
-  SubPatternEffect,
-} from "../../../../shared/apiSchemas";
+import { Button, Select, Textarea } from "../../../../components/ui";
+import type { SubPattern } from "../../../../shared/apiSchemas";
 import type { MultiSelectOption } from "../common/multi-select";
 import { MultiSelect } from "../common/multi-select";
 import { SortableList } from "../common/sortable-list";
@@ -36,6 +17,14 @@ import {
 } from "../../state";
 import { createLocalId } from "./create-local-id";
 import { createDuplicatedSubPattern } from "./duplicate-pattern";
+import { EditorEmptyState, editorFieldLabelClassName } from "./editor-ui";
+import { EffectListEditor } from "./effect-list-editor";
+import { ExpandableEditorCard } from "./expandable-editor-card";
+import {
+  createDefaultEffect,
+  pruneUnavailablePenetrationCategories,
+  switchEffectType,
+} from "./effect-utils";
 import { PatternConditionEditor } from "./pattern-condition-editor";
 import { PatternComposeDialogTrigger } from "./pattern-compose-editor";
 
@@ -52,58 +41,6 @@ const applyLimitOptions = [
   { value: "once_per_trial", label: "試行ごとに1回" },
   { value: "once_per_distinct_uid", label: "引いた種類ごとに1回" },
 ] as const;
-
-const effectTypeOptions = [
-  {
-    value: "add_label",
-    label: "ラベル付与",
-  },
-  {
-    value: "add_penetration",
-    label: "貫通値加算",
-  },
-];
-
-const toInt = (value: string, fallback: number) => {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed)) return fallback;
-  return parsed;
-};
-
-const createDefaultEffect = (): SubPatternEffect => {
-  return {
-    type: "add_label",
-    labelUids: [],
-  };
-};
-
-const createDefaultPenetrationEffect = (): SubPatternEffect => {
-  return {
-    type: "add_penetration",
-    disruptionCategoryUids: [],
-    amount: 1,
-  };
-};
-
-const switchEffectType = (
-  current: SubPatternEffect,
-  nextType: SubPatternEffect["type"],
-): SubPatternEffect => {
-  if (nextType === "add_label") {
-    if (current.type === "add_label") {
-      return current;
-    }
-    return {
-      type: "add_label",
-      labelUids: [],
-    };
-  }
-
-  if (current.type === "add_penetration") {
-    return current;
-  }
-  return createDefaultPenetrationEffect();
-};
 
 export const SubPatternEditor = () => {
   const [subPatterns, setSubPatterns] = useAtom(subPatternsAtom);
@@ -167,19 +104,11 @@ export const SubPatternEditor = () => {
     setSubPatterns((current) => {
       let hasChanges = false;
       const next = current.map((subPattern) => {
-        let hasEffectChanges = false;
-        const effects = subPattern.effects.map((effect) => {
-          if (effect.type !== "add_penetration") return effect;
-          const filtered = effect.disruptionCategoryUids.filter((uid) =>
-            availableCategoryUids.has(uid),
-          );
-          if (filtered.length === effect.disruptionCategoryUids.length) {
-            return effect;
-          }
-          hasEffectChanges = true;
-          return { ...effect, disruptionCategoryUids: filtered };
-        });
-        if (!hasEffectChanges) return subPattern;
+        const { effects, changed } = pruneUnavailablePenetrationCategories(
+          subPattern.effects,
+          availableCategoryUids,
+        );
+        if (!changed) return subPattern;
         hasChanges = true;
         return { ...subPattern, effects };
       });
@@ -303,9 +232,9 @@ export const SubPatternEditor = () => {
       }
     >
       {subPatterns.length === 0 ? (
-        <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
+        <EditorEmptyState>
           サブパターンがありません。「サブパターン追加」から作成してください。
-        </p>
+        </EditorEmptyState>
       ) : null}
 
       <SortableList
@@ -317,108 +246,53 @@ export const SubPatternEditor = () => {
           const isMemoExpanded = expandedMemoUids.includes(subPattern.uid);
           const isExpanded = !collapsedUids.includes(subPattern.uid);
           return (
-            <div
-              className={cn(
-                "relative min-w-0 space-y-2.5 rounded-md border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--theme-base)/0.45)]",
-                subPattern.active
-                  ? "border-ui-blue/45 bg-ui-crust/85"
-                  : "border-ui-red/45 bg-ui-crust/65",
-              )}
-            >
-              <div className="relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle px-2 py-1.5">
-                <Checkbox
-                  checked={subPattern.active}
-                  onChange={(event) =>
-                    updateSubPattern(subPattern.uid, (target) => ({
-                      ...target,
-                      active: event.target.checked,
-                    }))
-                  }
-                  aria-label="サブパターン有効切り替え"
-                  className={cn(
-                    "h-8 w-8 justify-center gap-0 border-transparent bg-ui-crust/60 px-0 shadow-none",
-                    subPattern.active ? "text-ui-blue" : "text-ui-red",
-                  )}
-                />
-
-                <Input
-                  className="h-9 border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
-                  value={subPattern.name}
-                  placeholder="サブパターン名（必須）"
-                  onChange={(event) =>
-                    updateSubPattern(subPattern.uid, (target) => ({
-                      ...target,
-                      name: event.target.value,
-                    }))
-                  }
-                />
-
-                <div className="flex shrink-0 items-center gap-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={cn(
-                      "h-8 w-8 border border-transparent",
-                      isMemoExpanded && "text-ui-blue",
-                    )}
-                    aria-label="メモ表示切り替え"
-                    onClick={() => {
-                      if (!isExpanded) {
-                        setCollapsedUids((current) =>
-                          current.filter((target) => target !== subPattern.uid),
-                        );
-                      }
-                      toggleMemo(subPattern.uid);
-                    }}
-                  >
-                    <NotebookPen className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 border border-transparent"
-                    aria-label="サブパターン複製"
-                    onClick={() => handleDuplicateSubPattern(subPattern.uid)}
-                  >
-                    <Copy className="h-4 w-4 text-ui-subtext0" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="h-8 w-8 border border-transparent"
-                    aria-label="サブパターン削除"
-                    onClick={() => {
-                      setExpandedMemoUids((current) =>
-                        current.filter((target) => target !== subPattern.uid),
-                      );
-                      setCollapsedUids((current) =>
-                        current.filter((target) => target !== subPattern.uid),
-                      );
-                      setSubPatterns((current) =>
-                        current.filter(
-                          (target) => target.uid !== subPattern.uid,
-                        ),
-                      );
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-ui-red" />
-                  </Button>
-                </div>
-              </div>
-
-              {isNameEmpty ? (
-                <p className="text-xs text-ui-red">
-                  サブパターン名は必須です。空欄のままでは計算できません。
-                </p>
-              ) : null}
-
-              {isExpanded ? (
+            <ExpandableEditorCard
+              isActive={subPattern.active}
+              isExpanded={isExpanded}
+              isMemoExpanded={isMemoExpanded}
+              name={subPattern.name}
+              namePlaceholder="サブパターン名（必須）"
+              activeContainerClassName="border-ui-blue/45 bg-ui-crust/85"
+              inactiveContainerClassName="border-ui-red/45 bg-ui-crust/65"
+              activeAriaLabel="サブパターン有効切り替え"
+              memoAriaLabel="メモ表示切り替え"
+              duplicateAriaLabel="サブパターン複製"
+              removeAriaLabel="サブパターン削除"
+              nameErrorMessage={
+                isNameEmpty
+                  ? "サブパターン名は必須です。空欄のままでは計算できません。"
+                  : undefined
+              }
+              onActiveChange={(next) =>
+                updateSubPattern(subPattern.uid, (target) => ({
+                  ...target,
+                  active: next,
+                }))
+              }
+              onNameChange={(next) =>
+                updateSubPattern(subPattern.uid, (target) => ({
+                  ...target,
+                  name: next,
+                }))
+              }
+              onToggleMemo={() => toggleMemo(subPattern.uid)}
+              onDuplicate={() => handleDuplicateSubPattern(subPattern.uid)}
+              onRemove={() => {
+                setExpandedMemoUids((current) =>
+                  current.filter((target) => target !== subPattern.uid),
+                );
+                setCollapsedUids((current) =>
+                  current.filter((target) => target !== subPattern.uid),
+                );
+                setSubPatterns((current) =>
+                  current.filter((target) => target.uid !== subPattern.uid),
+                );
+              }}
+              onToggleCollapsed={() => toggleCollapsed(subPattern.uid)}
+              expandedBody={
                 <div className="space-y-2.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
                   <div className="grid min-w-0 gap-2 lg:grid-cols-2">
-                    <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
+                    <label className={`min-w-0 ${editorFieldLabelClassName}`}>
                       対象基礎パターン
                       <MultiSelect
                         options={patternOptions}
@@ -437,7 +311,7 @@ export const SubPatternEditor = () => {
                       />
                     </label>
 
-                    <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
+                    <label className={`min-w-0 ${editorFieldLabelClassName}`}>
                       発動元カード（種類数判定）
                       <MultiSelect
                         options={cardOptions}
@@ -455,7 +329,7 @@ export const SubPatternEditor = () => {
                   </div>
 
                   <div className="grid min-w-0 gap-2 lg:grid-cols-[14rem_auto] lg:items-end">
-                    <label className="space-y-1.5 text-xs text-ui-subtext0">
+                    <label className={editorFieldLabelClassName}>
                       適用回数
                       <Select
                         ariaLabel="適用回数"
@@ -543,181 +417,67 @@ export const SubPatternEditor = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
-                    <div className="flex items-center justify-between gap-2">
-                      <p className="text-xs text-ui-subtext0">効果</p>
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="h-8 px-2.5 text-xs"
-                        onClick={() =>
-                          updateSubPattern(subPattern.uid, (target) => ({
-                            ...target,
-                            effects: [...target.effects, createDefaultEffect()],
-                          }))
-                        }
-                      >
-                        効果追加
-                      </Button>
-                    </div>
-
-                    {subPattern.effects.length === 0 ? (
-                      <p className="text-xs text-ui-overlay1">
-                        効果がありません。「効果追加」から作成してください。
-                      </p>
-                    ) : (
-                      <div className="space-y-2">
-                        {subPattern.effects.map((effect, effectIndex) => (
-                          <div
-                            key={`${subPattern.uid}-effect-${effectIndex}`}
-                            className="grid min-w-0 gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/55 p-2.5"
-                          >
-                            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
-                              <Select
-                                ariaLabel={`効果${effectIndex + 1}種類`}
-                                triggerClassName="h-9"
-                                value={effect.type}
-                                options={effectTypeOptions}
-                                onChange={(next) =>
-                                  updateSubPattern(
-                                    subPattern.uid,
-                                    (target) => ({
-                                      ...target,
-                                      effects: target.effects.map(
-                                        (entry, idx) =>
-                                          idx === effectIndex
-                                            ? switchEffectType(
-                                                entry,
-                                                next === "add_label"
-                                                  ? "add_label"
-                                                  : "add_penetration",
-                                              )
-                                            : entry,
-                                      ),
-                                    }),
-                                  )
-                                }
-                              />
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                className="h-8 w-8 justify-self-end sm:col-start-3 sm:justify-self-auto"
-                                aria-label="効果削除"
-                                onClick={() =>
-                                  updateSubPattern(
-                                    subPattern.uid,
-                                    (target) => ({
-                                      ...target,
-                                      effects: target.effects.filter(
-                                        (_, idx) => idx !== effectIndex,
-                                      ),
-                                    }),
-                                  )
-                                }
-                              >
-                                <Trash2 className="h-4 w-4 text-ui-red" />
-                              </Button>
-                              {effect.type === "add_label" ? (
-                                <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
-                                  <MultiSelect
-                                    options={labelOptions}
-                                    value={effect.labelUids}
-                                    placeholder="付与ラベルを選択"
-                                    emptyText="有効なラベルがありません"
-                                    onChange={(next) =>
-                                      updateSubPattern(
-                                        subPattern.uid,
-                                        (target) => ({
-                                          ...target,
-                                          effects: target.effects.map(
-                                            (entry, idx) =>
-                                              idx === effectIndex &&
-                                              entry.type === "add_label"
-                                                ? { ...entry, labelUids: next }
-                                                : entry,
-                                          ),
-                                        }),
-                                      )
-                                    }
-                                  />
-                                </div>
-                              ) : (
-                                <div className="col-span-2 row-start-2 grid min-w-0 gap-2 sm:col-span-1 sm:col-start-2 sm:row-start-1">
-                                  <div className="grid gap-2 lg:grid-cols-[minmax(0,1fr)_8rem]">
-                                    <MultiSelect
-                                      options={penetrationCategoryOptions}
-                                      value={effect.disruptionCategoryUids}
-                                      placeholder="対象妨害カテゴリを選択"
-                                      emptyText="有効な妨害カテゴリがありません"
-                                      onChange={(next) =>
-                                        updateSubPattern(
-                                          subPattern.uid,
-                                          (target) => ({
-                                            ...target,
-                                            effects: target.effects.map(
-                                              (entry, idx) =>
-                                                idx === effectIndex &&
-                                                entry.type === "add_penetration"
-                                                  ? {
-                                                      ...entry,
-                                                      disruptionCategoryUids:
-                                                        next,
-                                                    }
-                                                  : entry,
-                                            ),
-                                          }),
-                                        )
-                                      }
-                                    />
-                                    <Input
-                                      className="h-9"
-                                      type="number"
-                                      min={1}
-                                      max={20}
-                                      value={effect.amount}
-                                      placeholder="加算量"
-                                      onChange={(event) =>
-                                        updateSubPattern(
-                                          subPattern.uid,
-                                          (target) => ({
-                                            ...target,
-                                            effects: target.effects.map(
-                                              (entry, idx) =>
-                                                idx === effectIndex &&
-                                                entry.type === "add_penetration"
-                                                  ? {
-                                                      ...entry,
-                                                      amount: Math.max(
-                                                        1,
-                                                        Math.min(
-                                                          20,
-                                                          toInt(
-                                                            event.target.value,
-                                                            entry.amount,
-                                                          ),
-                                                        ),
-                                                      ),
-                                                    }
-                                                  : entry,
-                                            ),
-                                          }),
-                                        )
-                                      }
-                                    />
-                                  </div>
-                                  <p className="text-[11px] text-ui-subtext0">
-                                    対象妨害カテゴリは複数選択できます。
-                                  </p>
-                                </div>
-                              )}
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-                  </div>
+                  <EffectListEditor
+                    effects={subPattern.effects}
+                    labelOptions={labelOptions}
+                    penetrationCategoryOptions={penetrationCategoryOptions}
+                    onAdd={() =>
+                      updateSubPattern(subPattern.uid, (target) => ({
+                        ...target,
+                        effects: [...target.effects, createDefaultEffect()],
+                      }))
+                    }
+                    onSwitchType={(effectIndex, nextType) =>
+                      updateSubPattern(subPattern.uid, (target) => ({
+                        ...target,
+                        effects: target.effects.map((entry, idx) =>
+                          idx === effectIndex
+                            ? switchEffectType(entry, nextType)
+                            : entry,
+                        ),
+                      }))
+                    }
+                    onRemove={(effectIndex) =>
+                      updateSubPattern(subPattern.uid, (target) => ({
+                        ...target,
+                        effects: target.effects.filter(
+                          (_, idx) => idx !== effectIndex,
+                        ),
+                      }))
+                    }
+                    onChangeLabels={(effectIndex, next) =>
+                      updateSubPattern(subPattern.uid, (target) => ({
+                        ...target,
+                        effects: target.effects.map((entry, idx) =>
+                          idx === effectIndex && entry.type === "add_label"
+                            ? { ...entry, labelUids: next }
+                            : entry,
+                        ),
+                      }))
+                    }
+                    onChangePenetrationCategories={(effectIndex, next) =>
+                      updateSubPattern(subPattern.uid, (target) => ({
+                        ...target,
+                        effects: target.effects.map((entry, idx) =>
+                          idx === effectIndex &&
+                          entry.type === "add_penetration"
+                            ? { ...entry, disruptionCategoryUids: next }
+                            : entry,
+                        ),
+                      }))
+                    }
+                    onChangePenetrationAmount={(effectIndex, nextAmount) =>
+                      updateSubPattern(subPattern.uid, (target) => ({
+                        ...target,
+                        effects: target.effects.map((entry, idx) =>
+                          idx === effectIndex &&
+                          entry.type === "add_penetration"
+                            ? { ...entry, amount: nextAmount }
+                            : entry,
+                        ),
+                      }))
+                    }
+                  />
 
                   {isMemoExpanded ? (
                     <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
@@ -735,36 +495,14 @@ export const SubPatternEditor = () => {
                     </div>
                   ) : null}
                 </div>
-              ) : (
-                <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/80 px-2.5 py-2 text-xs text-ui-subtext0">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="absolute left-[-1.75rem] top-1/2 z-10 h-8 w-5 -translate-y-1/2 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue"
-                    aria-label="展開する"
-                    onClick={() => toggleCollapsed(subPattern.uid)}
-                  >
-                    <ChevronRight className="h-4 w-4" />
-                  </Button>
+              }
+              collapsedBody={
+                <>
                   <span>条件: {subPattern.triggerConditions.length}</span>
                   <span>効果: {subPattern.effects.length}</span>
-                </div>
-              )}
-
-              {isExpanded ? (
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="absolute left-2 top-1/2 z-10 h-8 w-5 -translate-y-1/2 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue"
-                  aria-label="折りたたむ"
-                  onClick={() => toggleCollapsed(subPattern.uid)}
-                >
-                  <ChevronDown className="h-4 w-4" />
-                </Button>
-              ) : null}
-            </div>
+                </>
+              }
+            />
           );
         }}
       />

@@ -1,18 +1,13 @@
-import { NotebookPen, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAtom } from "jotai";
 import { useMemo, useState } from "react";
 
-import {
-  Button,
-  Checkbox,
-  Input,
-  Select,
-  Textarea,
-} from "../../../../components/ui";
+import { Button, Checkbox, Select } from "../../../../components/ui";
 import { disruptionCategoriesAtom, disruptionCardsAtom } from "../../state";
-import { SortableList } from "../common/sortable-list";
-import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
+import { EditorEmptyState } from "./editor-ui";
+import { NameMemoEditorItem } from "./name-memo-editor-item";
+import { SortableEditorSection } from "./sortable-editor-section";
 
 const createDefaultCategoryName = (index: number) => `妨害カテゴリ${index + 1}`;
 const createDefaultDisruptionName = (index: number) => `妨害カード${index + 1}`;
@@ -71,7 +66,7 @@ export const DisruptionCardEditor = () => {
 
   return (
     <>
-      <SectionCard
+      <SortableEditorSection
         title="妨害カテゴリ一覧"
         description="貫通判定で使うカテゴリを先に登録します。"
         floatingActions={
@@ -85,118 +80,77 @@ export const DisruptionCardEditor = () => {
             <Plus className="h-4 w-4" />
           </Button>
         }
-      >
-        {disruptionCategories.length === 0 ? (
-          <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
+        items={disruptionCategories}
+        onReorder={(next) => setDisruptionCategories(next)}
+        layout="grid"
+        handleClassName="top-[0.875rem]"
+        emptyState={
+          <EditorEmptyState>
             妨害カテゴリがありません。「妨害カテゴリ追加」から作成してください。
-          </p>
-        ) : null}
+          </EditorEmptyState>
+        }
+        renderItem={(category) => {
+          const isNameEmpty = category.name.trim().length === 0;
+          const isMemoExpanded = expandedCategoryMemoUids.includes(
+            category.uid,
+          );
 
-        <SortableList
-          layout="grid"
-          items={disruptionCategories}
-          onReorder={(next) => setDisruptionCategories(next)}
-          handleClassName="top-[0.875rem]"
-          renderItem={(category) => {
-            const isNameEmpty = category.name.trim().length === 0;
-            const isMemoExpanded = expandedCategoryMemoUids.includes(
-              category.uid,
-            );
+          return (
+            <NameMemoEditorItem
+              name={category.name}
+              namePlaceholder="妨害カテゴリ名（必須）"
+              onNameChange={(nextName) =>
+                setDisruptionCategories((current) =>
+                  current.map((target) =>
+                    target.uid === category.uid
+                      ? { ...target, name: nextName }
+                      : target,
+                  ),
+                )
+              }
+              isMemoExpanded={isMemoExpanded}
+              onToggleMemo={() =>
+                setExpandedCategoryMemoUids((current) =>
+                  current.includes(category.uid)
+                    ? current.filter((target) => target !== category.uid)
+                    : [...current, category.uid],
+                )
+              }
+              removeAriaLabel="妨害カテゴリ削除"
+              onRemove={() => {
+                setExpandedCategoryMemoUids((current) =>
+                  current.filter((target) => target !== category.uid),
+                );
+                setDisruptionCategories((current) =>
+                  current.filter((target) => target.uid !== category.uid),
+                );
+                setDisruptionCards((current) =>
+                  current.map((target) =>
+                    target.disruptionCategoryUid === category.uid
+                      ? { ...target, disruptionCategoryUid: undefined }
+                      : target,
+                  ),
+                );
+              }}
+              isNameEmpty={isNameEmpty}
+              nameErrorMessage="妨害カテゴリ名は必須です。"
+              memo={category.memo}
+              onMemoChange={(nextMemo) =>
+                setDisruptionCategories((current) =>
+                  current.map((target) =>
+                    target.uid === category.uid
+                      ? { ...target, memo: nextMemo }
+                      : target,
+                  ),
+                )
+              }
+              topGridClassName="grid-cols-[minmax(0,1fr)_auto]"
+            />
+          );
+        }}
+      />
 
-            return (
-              <div className="space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-                  <Input
-                    value={category.name}
-                    placeholder="妨害カテゴリ名（必須）"
-                    onChange={(event) =>
-                      setDisruptionCategories((current) =>
-                        current.map((target) =>
-                          target.uid === category.uid
-                            ? { ...target, name: event.target.value }
-                            : target,
-                        ),
-                      )
-                    }
-                  />
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className={isMemoExpanded ? "text-ui-blue" : undefined}
-                      aria-label="メモ表示切り替え"
-                      onClick={() =>
-                        setExpandedCategoryMemoUids((current) =>
-                          current.includes(category.uid)
-                            ? current.filter(
-                                (target) => target !== category.uid,
-                              )
-                            : [...current, category.uid],
-                        )
-                      }
-                    >
-                      <NotebookPen className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="妨害カテゴリ削除"
-                      onClick={() => {
-                        setExpandedCategoryMemoUids((current) =>
-                          current.filter((target) => target !== category.uid),
-                        );
-                        setDisruptionCategories((current) =>
-                          current.filter(
-                            (target) => target.uid !== category.uid,
-                          ),
-                        );
-                        setDisruptionCards((current) =>
-                          current.map((target) =>
-                            target.disruptionCategoryUid === category.uid
-                              ? { ...target, disruptionCategoryUid: undefined }
-                              : target,
-                          ),
-                        );
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-ui-red" />
-                    </Button>
-                  </div>
-                </div>
-
-                {isNameEmpty ? (
-                  <p className="text-xs text-ui-red">
-                    妨害カテゴリ名は必須です。
-                  </p>
-                ) : null}
-
-                {isMemoExpanded ? (
-                  <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
-                    <Textarea
-                      value={category.memo}
-                      placeholder="メモ"
-                      rows={2}
-                      onChange={(event) =>
-                        setDisruptionCategories((current) =>
-                          current.map((target) =>
-                            target.uid === category.uid
-                              ? { ...target, memo: event.target.value }
-                              : target,
-                          ),
-                        )
-                      }
-                    />
-                  </div>
-                ) : null}
-              </div>
-            );
-          }}
-        />
-      </SectionCard>
-
-      <SectionCard
+      <SortableEditorSection
         title="妨害カード一覧"
         description="サブパターンと対戦シミュレーションで共有する妨害カードを管理します。"
         floatingActions={
@@ -210,150 +164,107 @@ export const DisruptionCardEditor = () => {
             <Plus className="h-4 w-4" />
           </Button>
         }
-      >
-        {disruptionCards.length === 0 ? (
-          <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
+        items={disruptionCards}
+        onReorder={(next) => setDisruptionCards(next)}
+        layout="grid"
+        handleClassName="top-[0.875rem]"
+        emptyState={
+          <EditorEmptyState>
             妨害カードがありません。「妨害カード追加」から作成してください。
-          </p>
-        ) : null}
+          </EditorEmptyState>
+        }
+        renderItem={(disruptionCard) => {
+          const isNameEmpty = disruptionCard.name.trim().length === 0;
+          const isMemoExpanded = expandedCardMemoUids.includes(
+            disruptionCard.uid,
+          );
 
-        <SortableList
-          layout="grid"
-          items={disruptionCards}
-          onReorder={(next) => setDisruptionCards(next)}
-          handleClassName="top-[0.875rem]"
-          renderItem={(disruptionCard) => {
-            const isNameEmpty = disruptionCard.name.trim().length === 0;
-            const isMemoExpanded = expandedCardMemoUids.includes(
-              disruptionCard.uid,
-            );
-
-            return (
-              <div className="space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3">
-                <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-2">
-                  <Input
-                    value={disruptionCard.name}
-                    placeholder="妨害カード名（必須）"
-                    onChange={(event) =>
+          return (
+            <NameMemoEditorItem
+              name={disruptionCard.name}
+              namePlaceholder="妨害カード名（必須）"
+              onNameChange={(nextName) =>
+                setDisruptionCards((current) =>
+                  current.map((target) =>
+                    target.uid === disruptionCard.uid
+                      ? { ...target, name: nextName }
+                      : target,
+                  ),
+                )
+              }
+              isMemoExpanded={isMemoExpanded}
+              onToggleMemo={() =>
+                setExpandedCardMemoUids((current) =>
+                  current.includes(disruptionCard.uid)
+                    ? current.filter((target) => target !== disruptionCard.uid)
+                    : [...current, disruptionCard.uid],
+                )
+              }
+              removeAriaLabel="妨害カード削除"
+              onRemove={() => {
+                setExpandedCardMemoUids((current) =>
+                  current.filter((target) => target !== disruptionCard.uid),
+                );
+                setDisruptionCards((current) =>
+                  current.filter((target) => target.uid !== disruptionCard.uid),
+                );
+              }}
+              isNameEmpty={isNameEmpty}
+              nameErrorMessage="妨害カード名は必須です。"
+              memo={disruptionCard.memo}
+              onMemoChange={(nextMemo) =>
+                setDisruptionCards((current) =>
+                  current.map((target) =>
+                    target.uid === disruptionCard.uid
+                      ? { ...target, memo: nextMemo }
+                      : target,
+                  ),
+                )
+              }
+              topGridClassName="grid-cols-[minmax(0,1fr)_auto]"
+            >
+              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+                <label className="space-y-1 text-[11px] text-ui-subtext0">
+                  妨害カテゴリ（任意）
+                  <Select
+                    ariaLabel="妨害カテゴリ"
+                    disabled={categoryOptions.length === 0}
+                    value={disruptionCard.disruptionCategoryUid ?? ""}
+                    options={categorySelectOptions}
+                    onChange={(nextUid) =>
                       setDisruptionCards((current) =>
                         current.map((target) =>
                           target.uid === disruptionCard.uid
-                            ? { ...target, name: event.target.value }
+                            ? {
+                                ...target,
+                                disruptionCategoryUid:
+                                  nextUid.length > 0 ? nextUid : undefined,
+                              }
                             : target,
                         ),
                       )
                     }
                   />
-                  <div className="flex items-center gap-1">
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className={isMemoExpanded ? "text-ui-blue" : undefined}
-                      aria-label="メモ表示切り替え"
-                      onClick={() =>
-                        setExpandedCardMemoUids((current) =>
-                          current.includes(disruptionCard.uid)
-                            ? current.filter(
-                                (target) => target !== disruptionCard.uid,
-                              )
-                            : [...current, disruptionCard.uid],
-                        )
-                      }
-                    >
-                      <NotebookPen className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      aria-label="妨害カード削除"
-                      onClick={() => {
-                        setExpandedCardMemoUids((current) =>
-                          current.filter(
-                            (target) => target !== disruptionCard.uid,
-                          ),
-                        );
-                        setDisruptionCards((current) =>
-                          current.filter(
-                            (target) => target.uid !== disruptionCard.uid,
-                          ),
-                        );
-                      }}
-                    >
-                      <Trash2 className="h-4 w-4 text-ui-red" />
-                    </Button>
-                  </div>
-                </div>
-
-                <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                  <label className="space-y-1 text-[11px] text-ui-subtext0">
-                    妨害カテゴリ（任意）
-                    <Select
-                      ariaLabel="妨害カテゴリ"
-                      disabled={categoryOptions.length === 0}
-                      value={disruptionCard.disruptionCategoryUid ?? ""}
-                      options={categorySelectOptions}
-                      onChange={(nextUid) =>
-                        setDisruptionCards((current) =>
-                          current.map((target) =>
-                            target.uid === disruptionCard.uid
-                              ? {
-                                  ...target,
-                                  disruptionCategoryUid:
-                                    nextUid.length > 0 ? nextUid : undefined,
-                                }
-                              : target,
-                          ),
-                        )
-                      }
-                    />
-                  </label>
-                  <Checkbox
-                    checked={disruptionCard.oncePerName}
-                    onChange={(event) =>
-                      setDisruptionCards((current) =>
-                        current.map((target) =>
-                          target.uid === disruptionCard.uid
-                            ? { ...target, oncePerName: event.target.checked }
-                            : target,
-                        ),
-                      )
-                    }
-                    label="同名1回制限"
-                    className="h-10 border-transparent bg-transparent px-0 shadow-none"
-                  />
-                </div>
-
-                {isNameEmpty ? (
-                  <p className="text-xs text-ui-red">
-                    妨害カード名は必須です。
-                  </p>
-                ) : null}
-
-                {isMemoExpanded ? (
-                  <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
-                    <Textarea
-                      value={disruptionCard.memo}
-                      placeholder="メモ"
-                      rows={2}
-                      onChange={(event) =>
-                        setDisruptionCards((current) =>
-                          current.map((target) =>
-                            target.uid === disruptionCard.uid
-                              ? { ...target, memo: event.target.value }
-                              : target,
-                          ),
-                        )
-                      }
-                    />
-                  </div>
-                ) : null}
+                </label>
+                <Checkbox
+                  checked={disruptionCard.oncePerName}
+                  onChange={(event) =>
+                    setDisruptionCards((current) =>
+                      current.map((target) =>
+                        target.uid === disruptionCard.uid
+                          ? { ...target, oncePerName: event.target.checked }
+                          : target,
+                      ),
+                    )
+                  }
+                  label="同名1回制限"
+                  className="h-10 border-transparent bg-transparent px-0 shadow-none"
+                />
               </div>
-            );
-          }}
-        />
-      </SectionCard>
+            </NameMemoEditorItem>
+          );
+        }}
+      />
     </>
   );
 };

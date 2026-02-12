@@ -1,18 +1,14 @@
-import { NotebookPen, Plus, Trash2 } from "lucide-react";
+import { Plus } from "lucide-react";
 import { useAtom } from "jotai";
 import { useState } from "react";
 
-import { Button, Input, Textarea } from "../../../../components/ui";
+import { Button, Input } from "../../../../components/ui";
 import { cardsAtom } from "../../state";
-import { SortableList } from "../common/sortable-list";
-import { SectionCard } from "../layout/section-card";
 import { createLocalId } from "./create-local-id";
-
-const toInt = (value: string, fallback: number) => {
-  const parsed = Number.parseInt(value, 10);
-  if (Number.isNaN(parsed)) return fallback;
-  return parsed;
-};
+import { EditorEmptyState } from "./editor-ui";
+import { NameMemoEditorItem } from "./name-memo-editor-item";
+import { toInt } from "./number-utils";
+import { SortableEditorSection } from "./sortable-editor-section";
 
 const createDefaultCardName = (index: number) => `カード${index + 1}`;
 
@@ -41,7 +37,7 @@ export const CardListEditor = () => {
   };
 
   return (
-    <SectionCard
+    <SortableEditorSection
       title="カード一覧"
       description="デッキに含めるカードと枚数を編集します。"
       floatingActions={
@@ -55,119 +51,87 @@ export const CardListEditor = () => {
           <Plus className="h-4 w-4" />
         </Button>
       }
-    >
-      {cards.length === 0 ? (
-        <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
+      items={cards}
+      onReorder={(next) => setCards(next)}
+      layout="grid"
+      handleClassName="top-[0.875rem]"
+      emptyState={
+        <EditorEmptyState>
           カードがありません。「カード追加」から作成してください。
-        </p>
-      ) : null}
+        </EditorEmptyState>
+      }
+      renderItem={(card) => {
+        const isNameEmpty = card.name.trim().length === 0;
+        const isMemoExpanded = expandedMemoUids.includes(card.uid);
 
-      <SortableList
-        layout="grid"
-        items={cards}
-        onReorder={(next) => setCards(next)}
-        handleClassName="top-[0.875rem]"
-        renderItem={(card) => {
-          const isNameEmpty = card.name.trim().length === 0;
-          const isMemoExpanded = expandedMemoUids.includes(card.uid);
-
-          return (
-            <div className="space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3">
-              <div className="grid grid-cols-[minmax(0,1fr)_5.25rem_auto] gap-2">
-                <Input
-                  className="border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
-                  value={card.name}
-                  placeholder="カード名（必須）"
-                  onChange={(event) =>
-                    setCards((current) =>
-                      current.map((target) =>
-                        target.uid === card.uid
-                          ? { ...target, name: event.target.value }
-                          : target,
-                      ),
-                    )
-                  }
-                />
-                <Input
-                  type="number"
-                  min={0}
-                  max={60}
-                  value={card.count}
-                  onChange={(event) =>
-                    setCards((current) =>
-                      current.map((target) =>
-                        target.uid === card.uid
-                          ? {
-                              ...target,
-                              count: Math.max(
-                                0,
-                                Math.min(
-                                  60,
-                                  toInt(event.target.value, target.count),
-                                ),
+        return (
+          <NameMemoEditorItem
+            name={card.name}
+            namePlaceholder="カード名（必須）"
+            onNameChange={(nextName) =>
+              setCards((current) =>
+                current.map((target) =>
+                  target.uid === card.uid
+                    ? { ...target, name: nextName }
+                    : target,
+                ),
+              )
+            }
+            isMemoExpanded={isMemoExpanded}
+            onToggleMemo={() => toggleMemo(card.uid)}
+            removeAriaLabel="カード削除"
+            onRemove={() => {
+              setExpandedMemoUids((current) =>
+                current.filter((target) => target !== card.uid),
+              );
+              setCards((current) =>
+                current.filter((target) => target.uid !== card.uid),
+              );
+            }}
+            isNameEmpty={isNameEmpty}
+            nameErrorMessage="カード名は必須です。空欄のままでは計算できません。"
+            memo={card.memo}
+            onMemoChange={(nextMemo) =>
+              setCards((current) =>
+                current.map((target) =>
+                  target.uid === card.uid
+                    ? { ...target, memo: nextMemo }
+                    : target,
+                ),
+              )
+            }
+            topGridClassName="grid-cols-[minmax(0,1fr)_5.25rem_auto]"
+            nameInputClassName="border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
+            actionsClassName="justify-end"
+            topMiddle={
+              <Input
+                type="number"
+                min={0}
+                max={60}
+                value={card.count}
+                onChange={(event) =>
+                  setCards((current) =>
+                    current.map((target) =>
+                      target.uid === card.uid
+                        ? {
+                            ...target,
+                            count: Math.max(
+                              0,
+                              Math.min(
+                                60,
+                                toInt(event.target.value, target.count),
                               ),
-                            }
-                          : target,
-                      ),
-                    )
-                  }
-                />
-                <div className="flex items-center justify-end gap-1">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className={isMemoExpanded ? "text-ui-blue" : undefined}
-                    aria-label="メモ表示切り替え"
-                    onClick={() => toggleMemo(card.uid)}
-                  >
-                    <NotebookPen className="h-4 w-4" />
-                  </Button>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    aria-label="カード削除"
-                    onClick={() => {
-                      setExpandedMemoUids((current) =>
-                        current.filter((target) => target !== card.uid),
-                      );
-                      setCards((current) =>
-                        current.filter((target) => target.uid !== card.uid),
-                      );
-                    }}
-                  >
-                    <Trash2 className="h-4 w-4 text-ui-red" />
-                  </Button>
-                </div>
-              </div>
-              {isNameEmpty ? (
-                <p className="text-xs text-ui-red">
-                  カード名は必須です。空欄のままでは計算できません。
-                </p>
-              ) : null}
-              {isMemoExpanded ? (
-                <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
-                  <Textarea
-                    value={card.memo}
-                    placeholder="メモ"
-                    rows={2}
-                    onChange={(event) =>
-                      setCards((current) =>
-                        current.map((target) =>
-                          target.uid === card.uid
-                            ? { ...target, memo: event.target.value }
-                            : target,
-                        ),
-                      )
-                    }
-                  />
-                </div>
-              ) : null}
-            </div>
-          );
-        }}
-      />
-    </SectionCard>
+                            ),
+                          }
+                        : target,
+                    ),
+                  )
+                }
+              />
+            }
+          />
+        );
+      }}
+    />
   );
 };

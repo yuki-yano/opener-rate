@@ -1,0 +1,54 @@
+import type { ReactNode } from "react";
+
+import { cn } from "../../../../lib/cn";
+
+export const editorFieldLabelClassName = "space-y-1.5 text-xs text-ui-subtext0";
+export const editorCompactFieldLabelClassName =
+  "space-y-1 text-[11px] text-ui-subtext0";
+export const editorErrorTextClassName = "text-xs text-ui-red";
+export const editorEmptyStateClassName =
+  "rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0";
+export const editorListItemClassName =
+  "space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3";
+export const editorMemoPanelClassName =
+  "rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5";
+
+type EditorEmptyStateProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+export const EditorEmptyState = ({
+  children,
+  className,
+}: EditorEmptyStateProps) => {
+  return <p className={cn(editorEmptyStateClassName, className)}>{children}</p>;
+};
+
+type EditorListItemProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+export const EditorListItem = ({
+  children,
+  className,
+}: EditorListItemProps) => {
+  return (
+    <div className={cn(editorListItemClassName, className)}>{children}</div>
+  );
+};
+
+type EditorMemoPanelProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+export const EditorMemoPanel = ({
+  children,
+  className,
+}: EditorMemoPanelProps) => {
+  return (
+    <div className={cn(editorMemoPanelClassName, className)}>{children}</div>
+  );
+};
