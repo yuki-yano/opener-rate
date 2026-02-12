@@ -1,49 +1,46 @@
 import { describe, expect, it, vi } from "vitest";
 
-import type { CalculateInput } from "../../../shared/apiSchemas";
 import { calculateOpenerRateDomain } from "./calculate";
+import {
+  createCalculateInput,
+  createSimulationSettings,
+} from "./test-fixtures";
 
 describe("calculateOpenerRateDomain", () => {
   it("excludes flagged patterns from overall probability", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 2, firstHand: 1 },
-      cards: [
-        { uid: "a", name: "A", count: 1, memo: "" },
-        { uid: "b", name: "B", count: 1, memo: "" },
-      ],
-      patterns: [
-        {
-          uid: "p-excluded",
-          name: "除外パターン",
-          active: true,
-          excludeFromOverall: true,
-          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-        {
-          uid: "p-counted",
-          name: "集計対象パターン",
-          active: true,
-          excludeFromOverall: false,
-          conditions: [{ mode: "required", count: 1, uids: ["b"] }],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 2, firstHand: 1 },
+        cards: [
+          { uid: "a", name: "A", count: 1, memo: "" },
+          { uid: "b", name: "B", count: 1, memo: "" },
+        ],
+        patterns: [
+          {
+            uid: "p-excluded",
+            name: "除外パターン",
+            active: true,
+            excludeFromOverall: true,
+            conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+          {
+            uid: "p-counted",
+            name: "集計対象パターン",
+            active: true,
+            excludeFromOverall: false,
+            conditions: [{ mode: "required", count: 1, uids: ["b"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+      }),
+    );
 
     expect(result.overallProbability).toBe("50.00");
     expect(result.patternSuccessRates).toEqual([
@@ -53,35 +50,29 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("does not count labels from excluded pattern for overall probability", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 2, firstHand: 1 },
-      cards: [
-        { uid: "a", name: "A", count: 1, memo: "" },
-        { uid: "b", name: "B", count: 1, memo: "" },
-      ],
-      patterns: [
-        {
-          uid: "p-excluded",
-          name: "除外パターン",
-          active: true,
-          excludeFromOverall: true,
-          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
-          labels: [{ uid: "l-excluded" }],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [{ uid: "l-excluded", name: "除外ラベル", memo: "" }],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 2, firstHand: 1 },
+        cards: [
+          { uid: "a", name: "A", count: 1, memo: "" },
+          { uid: "b", name: "B", count: 1, memo: "" },
+        ],
+        patterns: [
+          {
+            uid: "p-excluded",
+            name: "除外パターン",
+            active: true,
+            excludeFromOverall: true,
+            conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+            labels: [{ uid: "l-excluded" }],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [{ uid: "l-excluded", name: "除外ラベル", memo: "" }],
+      }),
+    );
 
     expect(result.overallProbability).toBe("0.00");
     expect(result.patternSuccessRates).toEqual([
@@ -93,47 +84,41 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("does not count sub-pattern effects from excluded base pattern for overall probability", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 2, firstHand: 1 },
-      cards: [
-        { uid: "a", name: "A", count: 1, memo: "" },
-        { uid: "b", name: "B", count: 1, memo: "" },
-      ],
-      patterns: [
-        {
-          uid: "p-excluded",
-          name: "除外パターン",
-          active: true,
-          excludeFromOverall: true,
-          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [
-        {
-          uid: "sp-from-excluded",
-          name: "除外起点サブ",
-          active: true,
-          basePatternUids: ["p-excluded"],
-          triggerConditions: [],
-          triggerSourceUids: [],
-          applyLimit: "once_per_trial",
-          effects: [{ type: "add_label", labelUids: ["l-sub"] }],
-          memo: "",
-        },
-      ],
-      labels: [{ uid: "l-sub", name: "サブラベル", memo: "" }],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 2, firstHand: 1 },
+        cards: [
+          { uid: "a", name: "A", count: 1, memo: "" },
+          { uid: "b", name: "B", count: 1, memo: "" },
+        ],
+        patterns: [
+          {
+            uid: "p-excluded",
+            name: "除外パターン",
+            active: true,
+            excludeFromOverall: true,
+            conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [
+          {
+            uid: "sp-from-excluded",
+            name: "除外起点サブ",
+            active: true,
+            basePatternUids: ["p-excluded"],
+            triggerConditions: [],
+            triggerSourceUids: [],
+            applyLimit: "once_per_trial",
+            effects: [{ type: "add_label", labelUids: ["l-sub"] }],
+            memo: "",
+          },
+        ],
+        labels: [{ uid: "l-sub", name: "サブラベル", memo: "" }],
+      }),
+    );
 
     expect(result.overallProbability).toBe("0.00");
     expect(result.patternSuccessRates).toEqual([
@@ -143,37 +128,31 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("computes exact probability for required condition", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 40, firstHand: 5 },
-      cards: [{ uid: "a", name: "A", count: 3, memo: "" }],
-      patterns: [
-        {
-          uid: "p-required-a",
-          name: "Require A",
-          active: true,
-          conditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["a"],
-            },
-          ],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 40, firstHand: 5 },
+        cards: [{ uid: "a", name: "A", count: 3, memo: "" }],
+        patterns: [
+          {
+            uid: "p-required-a",
+            name: "Require A",
+            active: true,
+            conditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["a"],
+              },
+            ],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+      }),
+    );
 
     expect(result.mode).toBe("exact");
     expect(result.overallProbability).toBe("33.75");
@@ -183,31 +162,25 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("returns card_count_exceeded error output when deck size is exceeded", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [{ uid: "a", name: "A", count: 2, memo: "" }],
-      patterns: [
-        {
-          uid: "p-required-a",
-          name: "Require A",
-          active: true,
-          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [{ uid: "l1", name: "label1", memo: "" }],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [{ uid: "a", name: "A", count: 2, memo: "" }],
+        patterns: [
+          {
+            uid: "p-required-a",
+            name: "Require A",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [{ uid: "l1", name: "label1", memo: "" }],
+      }),
+    );
 
     expect(result.mode).toBe("exact");
     expect(result.overallProbability).toBe("0.00");
@@ -224,83 +197,86 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("falls back to simulation mode when exact mode is requested with pot enabled", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [],
-      patterns: [],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 1, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 1000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [],
+        patterns: [],
+        subPatterns: [],
+        labels: [],
+        pot: {
+          desiresOrExtravagance: { count: 0 },
+          prosperity: { count: 1, cost: 6 },
+        },
+        settings: {
+          mode: "exact",
+          simulationTrials: 1000,
+        },
+      }),
+    );
 
     expect(result.mode).toBe("simulation");
   });
 
   it("falls back to simulation mode when exact mode is requested with vs enabled", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [],
-      patterns: [],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 1000,
-      },
-      vs: {
-        enabled: true,
-        opponentDeckSize: 1,
-        opponentHandSize: 1,
-        opponentDisruptions: [],
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [],
+        patterns: [],
+        subPatterns: [],
+        labels: [],
+        pot: {
+          desiresOrExtravagance: { count: 0 },
+          prosperity: { count: 0, cost: 6 },
+        },
+        settings: {
+          mode: "exact",
+          simulationTrials: 1000,
+        },
+        vs: {
+          enabled: true,
+          opponentDeckSize: 1,
+          opponentHandSize: 1,
+          opponentDisruptions: [],
+        },
+      }),
+    );
 
     expect(result.mode).toBe("simulation");
   });
 
   it("returns 0.00 rates when simulation trials is zero", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
-      patterns: [
-        {
-          uid: "p-base",
-          name: "基礎",
-          active: true,
-          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
-          labels: [],
-          effects: [],
-          memo: "",
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+        pot: {
+          desiresOrExtravagance: { count: 0 },
+          prosperity: { count: 0, cost: 6 },
         },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 0,
-      },
-      vs: {
-        enabled: true,
-        opponentDeckSize: 1,
-        opponentHandSize: 1,
-        opponentDisruptions: [],
-      },
-    });
+        settings: createSimulationSettings(0),
+        vs: {
+          enabled: true,
+          opponentDeckSize: 1,
+          opponentHandSize: 1,
+          opponentDisruptions: [],
+        },
+      }),
+    );
 
     expect(result.mode).toBe("simulation");
     expect(result.overallProbability).toBe("0.00");
@@ -315,44 +291,38 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("supports draw_total with cap1/raw rules", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 4, firstHand: 2 },
-      cards: [
-        { uid: "a", name: "A", count: 1, memo: "" },
-        { uid: "b", name: "B", count: 1, memo: "" },
-      ],
-      patterns: [
-        {
-          uid: "p-draw-total",
-          name: "Draw A and B",
-          active: true,
-          conditions: [
-            {
-              mode: "draw_total",
-              operator: "gte",
-              threshold: 2,
-              rules: [
-                { uids: ["a"], mode: "cap1" },
-                { uids: ["b"], mode: "raw" },
-              ],
-            },
-          ],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 4, firstHand: 2 },
+        cards: [
+          { uid: "a", name: "A", count: 1, memo: "" },
+          { uid: "b", name: "B", count: 1, memo: "" },
+        ],
+        patterns: [
+          {
+            uid: "p-draw-total",
+            name: "Draw A and B",
+            active: true,
+            conditions: [
+              {
+                mode: "draw_total",
+                operator: "gte",
+                threshold: 2,
+                rules: [
+                  { uids: ["a"], mode: "cap1" },
+                  { uids: ["b"], mode: "raw" },
+                ],
+              },
+            ],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+      }),
+    );
 
     expect(result.overallProbability).toBe("16.66");
     expect(result.patternSuccessRates).toEqual([
@@ -361,58 +331,52 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("promotes label by sub pattern when trigger is satisfied", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 4, firstHand: 2 },
-      cards: [
-        { uid: "starter", name: "初動", count: 1, memo: "" },
-        { uid: "grave", name: "墓穴", count: 1, memo: "" },
-      ],
-      patterns: [
-        {
-          uid: "p-base",
-          name: "基礎",
-          active: true,
-          conditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["starter"],
-            },
-          ],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [
-        {
-          uid: "sp-with-grave",
-          name: "with墓穴",
-          active: true,
-          basePatternUids: ["p-base"],
-          triggerConditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["grave"],
-            },
-          ],
-          triggerSourceUids: ["grave"],
-          applyLimit: "once_per_trial",
-          effects: [{ type: "add_label", labelUids: ["l-penetrate"] }],
-          memo: "",
-        },
-      ],
-      labels: [{ uid: "l-penetrate", name: "うらら貫通", memo: "" }],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 4, firstHand: 2 },
+        cards: [
+          { uid: "starter", name: "初動", count: 1, memo: "" },
+          { uid: "grave", name: "墓穴", count: 1, memo: "" },
+        ],
+        patterns: [
+          {
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["starter"],
+              },
+            ],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [
+          {
+            uid: "sp-with-grave",
+            name: "with墓穴",
+            active: true,
+            basePatternUids: ["p-base"],
+            triggerConditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["grave"],
+              },
+            ],
+            triggerSourceUids: ["grave"],
+            applyLimit: "once_per_trial",
+            effects: [{ type: "add_label", labelUids: ["l-penetrate"] }],
+            memo: "",
+          },
+        ],
+        labels: [{ uid: "l-penetrate", name: "うらら貫通", memo: "" }],
+      }),
+    );
 
     expect(result.mode).toBe("exact");
     expect(result.overallProbability).toBe("50.00");
@@ -425,37 +389,31 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("promotes label by pattern effect when pattern is matched", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 2, firstHand: 1 },
-      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
-      patterns: [
-        {
-          uid: "p-base",
-          name: "基礎",
-          active: true,
-          conditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["starter"],
-            },
-          ],
-          labels: [],
-          effects: [{ type: "add_label", labelUids: ["l-pattern"] }],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [{ uid: "l-pattern", name: "パターン付与ラベル", memo: "" }],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 10000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 2, firstHand: 1 },
+        cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["starter"],
+              },
+            ],
+            labels: [],
+            effects: [{ type: "add_label", labelUids: ["l-pattern"] }],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [{ uid: "l-pattern", name: "パターン付与ラベル", memo: "" }],
+      }),
+    );
 
     expect(result.overallProbability).toBe("50.00");
     expect(result.patternSuccessRates).toEqual([
@@ -467,7 +425,141 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("computes vs breakdown with disruption penetration", () => {
-    const result = calculateOpenerRateDomain({
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["starter"],
+              },
+            ],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [
+          {
+            uid: "sp-penetrate",
+            name: "うらら貫通付与",
+            active: true,
+            basePatternUids: ["p-base"],
+            triggerConditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["starter"],
+              },
+            ],
+            triggerSourceUids: [],
+            applyLimit: "once_per_trial",
+            effects: [
+              {
+                type: "add_penetration",
+                disruptionCategoryUids: ["cat-ash"],
+                amount: 1,
+              },
+            ],
+            memo: "",
+          },
+        ],
+        labels: [],
+        settings: createSimulationSettings(),
+        vs: {
+          enabled: true,
+          opponentDeckSize: 1,
+          opponentHandSize: 1,
+          opponentDisruptions: [
+            {
+              uid: "d-ash",
+              disruptionCardUid: "dc-ash",
+              disruptionCategoryUid: "cat-ash",
+              name: "灰流うらら",
+              count: 1,
+              oncePerName: true,
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(result.mode).toBe("simulation");
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "100.00",
+      disruptedAndFailedRate: "0.00",
+    });
+  });
+
+  it("applies pattern penetration effect in vs simulation", () => {
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["starter"],
+              },
+            ],
+            labels: [],
+            effects: [
+              {
+                type: "add_penetration",
+                disruptionCategoryUids: ["cat-negate"],
+                amount: 1,
+              },
+            ],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+        settings: createSimulationSettings(),
+        vs: {
+          enabled: true,
+          opponentDeckSize: 1,
+          opponentHandSize: 1,
+          opponentDisruptions: [
+            {
+              uid: "d-negate",
+              disruptionCardUid: "dc-negate",
+              disruptionCategoryUid: "cat-negate",
+              name: "無効妨害",
+              count: 1,
+              oncePerName: true,
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(result.mode).toBe("simulation");
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "100.00",
+      disruptedAndFailedRate: "0.00",
+    });
+  });
+
+  it("applies oncePerName in vs disruption count", () => {
+    const baseInput = createCalculateInput({
       deck: { cardCount: 1, firstHand: 1 },
       cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
       patterns: [
@@ -513,159 +605,8 @@ describe("calculateOpenerRateDomain", () => {
         },
       ],
       labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 1000,
-      },
-      vs: {
-        enabled: true,
-        opponentDeckSize: 1,
-        opponentHandSize: 1,
-        opponentDisruptions: [
-          {
-            uid: "d-ash",
-            disruptionCardUid: "dc-ash",
-            disruptionCategoryUid: "cat-ash",
-            name: "灰流うらら",
-            count: 1,
-            oncePerName: true,
-          },
-        ],
-      },
+      settings: createSimulationSettings(),
     });
-
-    expect(result.mode).toBe("simulation");
-    expect(result.overallProbability).toBe("100.00");
-    expect(result.vsBreakdown).toEqual({
-      noDisruptionSuccessRate: "0.00",
-      disruptedButPenetratedRate: "100.00",
-      disruptedAndFailedRate: "0.00",
-    });
-  });
-
-  it("applies pattern penetration effect in vs simulation", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
-      patterns: [
-        {
-          uid: "p-base",
-          name: "基礎",
-          active: true,
-          conditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["starter"],
-            },
-          ],
-          labels: [],
-          effects: [
-            {
-              type: "add_penetration",
-              disruptionCategoryUids: ["cat-negate"],
-              amount: 1,
-            },
-          ],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 1000,
-      },
-      vs: {
-        enabled: true,
-        opponentDeckSize: 1,
-        opponentHandSize: 1,
-        opponentDisruptions: [
-          {
-            uid: "d-negate",
-            disruptionCardUid: "dc-negate",
-            disruptionCategoryUid: "cat-negate",
-            name: "無効妨害",
-            count: 1,
-            oncePerName: true,
-          },
-        ],
-      },
-    });
-
-    expect(result.mode).toBe("simulation");
-    expect(result.overallProbability).toBe("100.00");
-    expect(result.vsBreakdown).toEqual({
-      noDisruptionSuccessRate: "0.00",
-      disruptedButPenetratedRate: "100.00",
-      disruptedAndFailedRate: "0.00",
-    });
-  });
-
-  it("applies oncePerName in vs disruption count", () => {
-    const baseInput: CalculateInput = {
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
-      patterns: [
-        {
-          uid: "p-base",
-          name: "基礎",
-          active: true,
-          conditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["starter"],
-            },
-          ],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [
-        {
-          uid: "sp-penetrate",
-          name: "うらら貫通付与",
-          active: true,
-          basePatternUids: ["p-base"],
-          triggerConditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["starter"],
-            },
-          ],
-          triggerSourceUids: [],
-          applyLimit: "once_per_trial" as const,
-          effects: [
-            {
-              type: "add_penetration" as const,
-              disruptionCategoryUids: ["cat-ash"],
-              amount: 1,
-            },
-          ],
-          memo: "",
-        },
-      ],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 as const },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 1000,
-      },
-    };
 
     const onceLimited = calculateOpenerRateDomain({
       ...baseInput,
@@ -712,52 +653,47 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("caps opponent disruptions by opponent deck size", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
-      patterns: [
-        {
-          uid: "p-base",
-          name: "基礎",
-          active: true,
-          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
-          labels: [],
-          effects: [
-            {
-              type: "add_penetration",
-              disruptionCategoryUids: ["cat-negate"],
-              amount: 1,
-            },
-          ],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 1000,
-      },
-      vs: {
-        enabled: true,
-        opponentDeckSize: 1,
-        opponentHandSize: 2,
-        opponentDisruptions: [
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+        patterns: [
           {
-            uid: "d-negate",
-            disruptionCardUid: "dc-negate",
-            disruptionCategoryUid: "cat-negate",
-            name: "無効妨害",
-            count: 2,
-            oncePerName: false,
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+            labels: [],
+            effects: [
+              {
+                type: "add_penetration",
+                disruptionCategoryUids: ["cat-negate"],
+                amount: 1,
+              },
+            ],
+            memo: "",
           },
         ],
-      },
-    });
+        subPatterns: [],
+        labels: [],
+        settings: createSimulationSettings(),
+        vs: {
+          enabled: true,
+          opponentDeckSize: 1,
+          opponentHandSize: 2,
+          opponentDisruptions: [
+            {
+              uid: "d-negate",
+              disruptionCardUid: "dc-negate",
+              disruptionCategoryUid: "cat-negate",
+              name: "無効妨害",
+              count: 2,
+              oncePerName: false,
+            },
+          ],
+        },
+      }),
+    );
 
     expect(result.overallProbability).toBe("100.00");
     expect(result.vsBreakdown).toEqual({
@@ -768,7 +704,7 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("supports grouped disruption penetration by category key", () => {
-    const baseInput: CalculateInput = {
+    const baseInput = createCalculateInput({
       deck: { cardCount: 1, firstHand: 1 },
       cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
       patterns: [
@@ -814,14 +750,7 @@ describe("calculateOpenerRateDomain", () => {
         },
       ],
       labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 1000,
-      },
+      settings: createSimulationSettings(),
       vs: {
         enabled: true,
         opponentDeckSize: 2,
@@ -845,7 +774,7 @@ describe("calculateOpenerRateDomain", () => {
           },
         ],
       },
-    };
+    });
 
     const penetrated = calculateOpenerRateDomain(baseInput);
     expect(penetrated.overallProbability).toBe("100.00");
@@ -871,52 +800,47 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("matches disruption penetration by name key when category/card uid is absent", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
-      patterns: [
-        {
-          uid: "p-base",
-          name: "基礎",
-          active: true,
-          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
-          labels: [],
-          effects: [
-            {
-              type: "add_penetration",
-              disruptionCategoryUids: ["Negate"],
-              amount: 1,
-            },
-          ],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 1,
-      },
-      vs: {
-        enabled: true,
-        opponentDeckSize: 1,
-        opponentHandSize: 1,
-        opponentDisruptions: [
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+        patterns: [
           {
-            uid: "d-name-only",
-            disruptionCardUid: undefined,
-            disruptionCategoryUid: undefined,
-            name: "Negate",
-            count: 1,
-            oncePerName: true,
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+            labels: [],
+            effects: [
+              {
+                type: "add_penetration",
+                disruptionCategoryUids: ["Negate"],
+                amount: 1,
+              },
+            ],
+            memo: "",
           },
         ],
-      },
-    });
+        subPatterns: [],
+        labels: [],
+        settings: createSimulationSettings(1),
+        vs: {
+          enabled: true,
+          opponentDeckSize: 1,
+          opponentHandSize: 1,
+          opponentDisruptions: [
+            {
+              uid: "d-name-only",
+              disruptionCardUid: undefined,
+              disruptionCategoryUid: undefined,
+              name: "Negate",
+              count: 1,
+              oncePerName: true,
+            },
+          ],
+        },
+      }),
+    );
 
     expect(result.overallProbability).toBe("100.00");
     expect(result.vsBreakdown).toEqual({
@@ -927,57 +851,22 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("does not consume prosperity when remaining deck is smaller than cost", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 1, firstHand: 1 },
-      cards: [],
-      patterns: [
-        {
-          uid: "p-prosperity-in-hand",
-          name: "金満が手札に残る",
-          active: true,
-          conditions: [
-            {
-              mode: "required",
-              count: 1,
-              uids: ["prosperity_card"],
-            },
-          ],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [],
-      labels: [],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 1, cost: 6 },
-      },
-      settings: {
-        mode: "simulation",
-        simulationTrials: 1000,
-      },
-    });
-
-    expect(result.mode).toBe("simulation");
-    expect(result.overallProbability).toBe("100.00");
-    expect(result.patternSuccessRates).toEqual([
-      { uid: "p-prosperity-in-hand", rate: "100.00" },
-    ]);
-  });
-
-  it("selects the best reveal card when prosperity resolves", () => {
-    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
-    try {
-      const result = calculateOpenerRateDomain({
-        deck: { cardCount: 7, firstHand: 1 },
-        cards: [{ uid: "target", name: "Target", count: 1, memo: "" }],
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [],
         patterns: [
           {
-            uid: "p-target",
-            name: "Targetを引く",
+            uid: "p-prosperity-in-hand",
+            name: "金満が手札に残る",
             active: true,
-            conditions: [{ mode: "required", count: 1, uids: ["target"] }],
+            conditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["prosperity_card"],
+              },
+            ],
             labels: [],
             effects: [],
             memo: "",
@@ -989,11 +878,44 @@ describe("calculateOpenerRateDomain", () => {
           desiresOrExtravagance: { count: 0 },
           prosperity: { count: 1, cost: 6 },
         },
-        settings: {
-          mode: "simulation",
-          simulationTrials: 1,
-        },
-      });
+        settings: createSimulationSettings(),
+      }),
+    );
+
+    expect(result.mode).toBe("simulation");
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-prosperity-in-hand", rate: "100.00" },
+    ]);
+  });
+
+  it("selects the best reveal card when prosperity resolves", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
+    try {
+      const result = calculateOpenerRateDomain(
+        createCalculateInput({
+          deck: { cardCount: 7, firstHand: 1 },
+          cards: [{ uid: "target", name: "Target", count: 1, memo: "" }],
+          patterns: [
+            {
+              uid: "p-target",
+              name: "Targetを引く",
+              active: true,
+              conditions: [{ mode: "required", count: 1, uids: ["target"] }],
+              labels: [],
+              effects: [],
+              memo: "",
+            },
+          ],
+          subPatterns: [],
+          labels: [],
+          pot: {
+            desiresOrExtravagance: { count: 0 },
+            prosperity: { count: 1, cost: 6 },
+          },
+          settings: createSimulationSettings(1),
+        }),
+      );
 
       expect(result.mode).toBe("simulation");
       expect(result.overallProbability).toBe("100.00");
@@ -1008,60 +930,59 @@ describe("calculateOpenerRateDomain", () => {
   it("prioritizes countable sub-pattern labels when selecting prosperity reveal", () => {
     const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
     try {
-      const result = calculateOpenerRateDomain({
-        deck: { cardCount: 7, firstHand: 1 },
-        cards: [{ uid: "a", name: "A", count: 1, memo: "" }],
-        patterns: [
-          {
-            uid: "p-a",
-            name: "Aを引く",
-            active: true,
-            conditions: [{ mode: "required", count: 1, uids: ["a"] }],
-            labels: [],
-            effects: [],
-            memo: "",
+      const result = calculateOpenerRateDomain(
+        createCalculateInput({
+          deck: { cardCount: 7, firstHand: 1 },
+          cards: [{ uid: "a", name: "A", count: 1, memo: "" }],
+          patterns: [
+            {
+              uid: "p-a",
+              name: "Aを引く",
+              active: true,
+              conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+              labels: [],
+              effects: [],
+              memo: "",
+            },
+            {
+              uid: "p-desires",
+              name: "強欲を引く",
+              active: true,
+              conditions: [
+                { mode: "required", count: 1, uids: ["desires_card"] },
+              ],
+              labels: [],
+              effects: [],
+              memo: "",
+            },
+          ],
+          subPatterns: [
+            {
+              uid: "sp-a-label",
+              name: "Aでラベル付与",
+              active: true,
+              basePatternUids: ["p-a"],
+              triggerConditions: [
+                {
+                  mode: "required",
+                  count: 1,
+                  uids: ["a"],
+                },
+              ],
+              triggerSourceUids: [],
+              applyLimit: "once_per_trial",
+              effects: [{ type: "add_label", labelUids: ["l-a"] }],
+              memo: "",
+            },
+          ],
+          labels: [{ uid: "l-a", name: "Aラベル", memo: "" }],
+          pot: {
+            desiresOrExtravagance: { count: 1 },
+            prosperity: { count: 1, cost: 6 },
           },
-          {
-            uid: "p-desires",
-            name: "強欲を引く",
-            active: true,
-            conditions: [
-              { mode: "required", count: 1, uids: ["desires_card"] },
-            ],
-            labels: [],
-            effects: [],
-            memo: "",
-          },
-        ],
-        subPatterns: [
-          {
-            uid: "sp-a-label",
-            name: "Aでラベル付与",
-            active: true,
-            basePatternUids: ["p-a"],
-            triggerConditions: [
-              {
-                mode: "required",
-                count: 1,
-                uids: ["a"],
-              },
-            ],
-            triggerSourceUids: [],
-            applyLimit: "once_per_trial",
-            effects: [{ type: "add_label", labelUids: ["l-a"] }],
-            memo: "",
-          },
-        ],
-        labels: [{ uid: "l-a", name: "Aラベル", memo: "" }],
-        pot: {
-          desiresOrExtravagance: { count: 1 },
-          prosperity: { count: 1, cost: 6 },
-        },
-        settings: {
-          mode: "simulation",
-          simulationTrials: 1,
-        },
-      });
+          settings: createSimulationSettings(1),
+        }),
+      );
 
       expect(result.mode).toBe("simulation");
       expect(result.overallProbability).toBe("100.00");
@@ -1080,31 +1001,30 @@ describe("calculateOpenerRateDomain", () => {
   it("falls back to desires draw when prosperity cannot resolve by cost", () => {
     const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
     try {
-      const result = calculateOpenerRateDomain({
-        deck: { cardCount: 3, firstHand: 2 },
-        cards: [{ uid: "target", name: "Target", count: 1, memo: "" }],
-        patterns: [
-          {
-            uid: "p-target",
-            name: "Targetを引く",
-            active: true,
-            conditions: [{ mode: "required", count: 1, uids: ["target"] }],
-            labels: [],
-            effects: [],
-            memo: "",
+      const result = calculateOpenerRateDomain(
+        createCalculateInput({
+          deck: { cardCount: 3, firstHand: 2 },
+          cards: [{ uid: "target", name: "Target", count: 1, memo: "" }],
+          patterns: [
+            {
+              uid: "p-target",
+              name: "Targetを引く",
+              active: true,
+              conditions: [{ mode: "required", count: 1, uids: ["target"] }],
+              labels: [],
+              effects: [],
+              memo: "",
+            },
+          ],
+          subPatterns: [],
+          labels: [],
+          pot: {
+            desiresOrExtravagance: { count: 1 },
+            prosperity: { count: 1, cost: 3 },
           },
-        ],
-        subPatterns: [],
-        labels: [],
-        pot: {
-          desiresOrExtravagance: { count: 1 },
-          prosperity: { count: 1, cost: 3 },
-        },
-        settings: {
-          mode: "simulation",
-          simulationTrials: 1,
-        },
-      });
+          settings: createSimulationSettings(1),
+        }),
+      );
 
       expect(result.mode).toBe("simulation");
       expect(result.overallProbability).toBe("100.00");
@@ -1117,57 +1037,51 @@ describe("calculateOpenerRateDomain", () => {
   });
 
   it("applies base_match_total even when base pattern has no matched-card usage details", () => {
-    const result = calculateOpenerRateDomain({
-      deck: { cardCount: 2, firstHand: 1 },
-      cards: [{ uid: "a", name: "A", count: 1, memo: "" }],
-      patterns: [
-        {
-          uid: "p-draw-total",
-          name: "Aを引いた",
-          active: true,
-          conditions: [
-            {
-              mode: "draw_total",
-              operator: "gte",
-              threshold: 1,
-              rules: [{ uids: ["a"], mode: "raw" }],
-            },
-          ],
-          labels: [],
-          effects: [],
-          memo: "",
-        },
-      ],
-      subPatterns: [
-        {
-          uid: "sp-base-match-total",
-          name: "成立内A",
-          active: true,
-          basePatternUids: ["p-draw-total"],
-          triggerConditions: [
-            {
-              mode: "base_match_total",
-              operator: "gte",
-              threshold: 1,
-              rules: [{ uids: ["a"], mode: "raw" }],
-            },
-          ],
-          triggerSourceUids: [],
-          applyLimit: "once_per_trial",
-          effects: [{ type: "add_label", labelUids: ["l-hit"] }],
-          memo: "",
-        },
-      ],
-      labels: [{ uid: "l-hit", name: "成立内ラベル", memo: "" }],
-      pot: {
-        desiresOrExtravagance: { count: 0 },
-        prosperity: { count: 0, cost: 6 },
-      },
-      settings: {
-        mode: "exact",
-        simulationTrials: 1000,
-      },
-    });
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 2, firstHand: 1 },
+        cards: [{ uid: "a", name: "A", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-draw-total",
+            name: "Aを引いた",
+            active: true,
+            conditions: [
+              {
+                mode: "draw_total",
+                operator: "gte",
+                threshold: 1,
+                rules: [{ uids: ["a"], mode: "raw" }],
+              },
+            ],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [
+          {
+            uid: "sp-base-match-total",
+            name: "成立内A",
+            active: true,
+            basePatternUids: ["p-draw-total"],
+            triggerConditions: [
+              {
+                mode: "base_match_total",
+                operator: "gte",
+                threshold: 1,
+                rules: [{ uids: ["a"], mode: "raw" }],
+              },
+            ],
+            triggerSourceUids: [],
+            applyLimit: "once_per_trial",
+            effects: [{ type: "add_label", labelUids: ["l-hit"] }],
+            memo: "",
+          },
+        ],
+        labels: [{ uid: "l-hit", name: "成立内ラベル", memo: "" }],
+      }),
+    );
 
     expect(result.mode).toBe("exact");
     expect(result.patternSuccessRates).toEqual([
