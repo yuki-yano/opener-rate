@@ -14,6 +14,45 @@ type EvaluateSubPatternsParams = {
   matchedCardCountsByPatternUid?: Record<string, Record<number, number>>;
 };
 
+type PreparedSubPattern = {
+  regularConditions: CompiledPatternCondition[];
+  baseMatchConditions: CompiledBaseMatchCountCondition[];
+  basePatternUidSet: Set<string> | null;
+};
+
+const preparedSubPatternCache = new WeakMap<
+  CompiledSubPattern,
+  PreparedSubPattern
+>();
+
+const prepareSubPattern = (
+  subPattern: CompiledSubPattern,
+): PreparedSubPattern => {
+  const cached = preparedSubPatternCache.get(subPattern);
+  if (cached != null) return cached;
+
+  const baseMatchConditions: CompiledBaseMatchCountCondition[] = [];
+  const regularConditions: CompiledPatternCondition[] = [];
+  for (const condition of subPattern.triggerConditions) {
+    if (condition.mode === "base_match_total") {
+      baseMatchConditions.push(condition);
+      continue;
+    }
+    regularConditions.push(condition);
+  }
+
+  const prepared: PreparedSubPattern = {
+    regularConditions,
+    baseMatchConditions,
+    basePatternUidSet:
+      subPattern.basePatternUids.length > 0
+        ? new Set(subPattern.basePatternUids)
+        : null,
+  };
+  preparedSubPatternCache.set(subPattern, prepared);
+  return prepared;
+};
+
 const resolveApplyCount = (
   subPattern: CompiledSubPattern,
   context: EvaluationContext,
@@ -29,37 +68,45 @@ const resolveApplyCount = (
     return 1;
   }
 
-  return subPattern.triggerSourceIndices.reduce((count, index) => {
+  let count = 0;
+  for (const index of subPattern.triggerSourceIndices) {
     if ((context.handCounts[index] ?? 0) > 0) {
-      return count + 1;
+      count += 1;
     }
-    return count;
-  }, 0);
+  }
+  return count;
 };
 
 const canApplyByBasePattern = (
-  subPattern: CompiledSubPattern,
+  preparedSubPattern: PreparedSubPattern,
   matchedPatternSet: Set<string>,
 ) => {
-  if (subPattern.basePatternUids.length === 0) {
+  if (preparedSubPattern.basePatternUidSet == null) {
     return matchedPatternSet.size > 0;
   }
 
-  return subPattern.basePatternUids.some((uid) => matchedPatternSet.has(uid));
+  for (const uid of preparedSubPattern.basePatternUidSet) {
+    if (matchedPatternSet.has(uid)) return true;
+  }
+  return false;
 };
 
 const checkBaseMatchCountCondition = (
   condition: CompiledBaseMatchCountCondition,
-  matchedCardCounts: Record<number, number>,
+  sourceCounts: Record<number, number> | number[],
 ) => {
-  const total = condition.rules.reduce((acc, rule) => {
-    const raw = rule.indices.reduce(
-      (sum, index) => sum + (matchedCardCounts[index] ?? 0),
-      0,
-    );
-    if (rule.mode === "cap1") return acc + Math.min(raw, 1);
-    return acc + raw;
-  }, 0);
+  let total = 0;
+  for (const rule of condition.rules) {
+    let raw = 0;
+    for (const index of rule.indices) {
+      raw += sourceCounts[index] ?? 0;
+    }
+    if (rule.mode === "cap1") {
+      total += Math.min(raw, 1);
+      continue;
+    }
+    total += raw;
+  }
 
   if (condition.operator === "eq") {
     return total === condition.threshold;
@@ -67,67 +114,51 @@ const checkBaseMatchCountCondition = (
   return total >= condition.threshold;
 };
 
+const hasAnyMatchedCardCount = (
+  matchedCardCounts: Record<number, number> | undefined,
+) => {
+  if (matchedCardCounts == null) return false;
+  for (const _ in matchedCardCounts) {
+    return true;
+  }
+  return false;
+};
+
 const canApplyByBaseMatchedCards = (params: {
-  subPattern: CompiledSubPattern;
+  preparedSubPattern: PreparedSubPattern;
   matchedPatternUids: string[];
   matchedCardCountsByPatternUid: Record<string, Record<number, number>>;
   context: EvaluationContext;
 }) => {
   const {
-    subPattern,
+    preparedSubPattern,
     matchedPatternUids,
     matchedCardCountsByPatternUid,
     context,
   } = params;
-  const baseMatchConditions: CompiledBaseMatchCountCondition[] = [];
-  const regularConditions: CompiledPatternCondition[] = [];
+  const { baseMatchConditions, basePatternUidSet } = preparedSubPattern;
+  if (baseMatchConditions.length === 0) return true;
 
-  for (const condition of subPattern.triggerConditions) {
-    if (condition.mode === "base_match_total") {
-      baseMatchConditions.push(condition);
+  for (const uid of matchedPatternUids) {
+    if (basePatternUidSet != null && !basePatternUidSet.has(uid)) {
       continue;
     }
-    regularConditions.push(condition);
+    const matchedCardCounts = matchedCardCountsByPatternUid[uid];
+    const sourceCounts = hasAnyMatchedCardCount(matchedCardCounts)
+      ? matchedCardCounts
+      : context.handCounts;
+    let isSatisfied = true;
+    for (const condition of baseMatchConditions) {
+      if (!checkBaseMatchCountCondition(condition, sourceCounts)) {
+        isSatisfied = false;
+        break;
+      }
+    }
+    if (isSatisfied) {
+      return true;
+    }
   }
-
-  const targetPatternUids =
-    subPattern.basePatternUids.length > 0
-      ? matchedPatternUids.filter((uid) =>
-          subPattern.basePatternUids.includes(uid),
-        )
-      : matchedPatternUids;
-
-  if (baseMatchConditions.length === 0) {
-    return {
-      canApply: true,
-      regularConditions,
-    };
-  }
-
-  const hasMatchedPatternWithSatisfiedCards = targetPatternUids.some((uid) => {
-    const matchedCardCounts = matchedCardCountsByPatternUid[uid] ?? {};
-    const resolvedMatchedCardCounts =
-      Object.keys(matchedCardCounts).length > 0
-        ? matchedCardCounts
-        : baseMatchConditions
-            .flatMap((condition) => condition.rules)
-            .flatMap((rule) => rule.indices)
-            .reduce<Record<number, number>>((acc, index) => {
-              const count = context.handCounts[index] ?? 0;
-              if (count > 0) {
-                acc[index] = count;
-              }
-              return acc;
-            }, {});
-    return baseMatchConditions.every((condition) =>
-      checkBaseMatchCountCondition(condition, resolvedMatchedCardCounts),
-    );
-  });
-
-  return {
-    canApply: hasMatchedPatternWithSatisfiedCards,
-    regularConditions,
-  };
+  return false;
 };
 
 export const evaluateSubPatterns = (
@@ -144,17 +175,21 @@ export const evaluateSubPatterns = (
   const penetrationByDisruptionKey: Record<string, number> = {};
 
   for (const subPattern of compiledSubPatterns) {
+    const preparedSubPattern = prepareSubPattern(subPattern);
     if (!subPattern.active) continue;
-    if (!canApplyByBasePattern(subPattern, matchedPatternSet)) continue;
-    const baseMatchCheck = canApplyByBaseMatchedCards({
-      subPattern,
-      matchedPatternUids,
-      matchedCardCountsByPatternUid,
-      context,
-    });
-    if (!baseMatchCheck.canApply) continue;
+    if (!canApplyByBasePattern(preparedSubPattern, matchedPatternSet)) continue;
     if (
-      !evaluateCompiledConditions(baseMatchCheck.regularConditions, context)
+      !canApplyByBaseMatchedCards({
+        preparedSubPattern,
+        matchedPatternUids,
+        matchedCardCountsByPatternUid,
+        context,
+      })
+    ) {
+      continue;
+    }
+    if (
+      !evaluateCompiledConditions(preparedSubPattern.regularConditions, context)
     ) {
       continue;
     }

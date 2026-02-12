@@ -32,6 +32,107 @@ const serializeStateForIndices = (
   indices: number[],
 ) => indices.map((index) => availableCounts[index] ?? 0).join(",");
 
+type CompiledCountCondition = Extract<
+  CompiledPatternCondition,
+  { rules: unknown }
+>;
+type PreparedBaseConditionSet = {
+  conditions: CompiledBaseCondition[];
+  memoTargetIndices: number[];
+  hasOverlap: boolean;
+};
+type PreparedConditions = {
+  countConditions: CompiledCountCondition[];
+  notDrawnConditions: CompiledBaseCondition[];
+  requiredDistinctConditions: CompiledBaseCondition[];
+  required: PreparedBaseConditionSet;
+  leaveDeck: PreparedBaseConditionSet;
+};
+
+const prepareBaseConditions = (
+  conditions: CompiledBaseCondition[],
+): PreparedBaseConditionSet => {
+  const normalizedConditions = normalizeBaseConditions(conditions);
+  const seenIndices = new Set<number>();
+  let hasOverlap = false;
+  for (const condition of normalizedConditions) {
+    for (const index of condition.indices) {
+      if (seenIndices.has(index)) {
+        hasOverlap = true;
+      } else {
+        seenIndices.add(index);
+      }
+    }
+  }
+  return {
+    conditions: normalizedConditions,
+    memoTargetIndices: toUniqueIndices(
+      normalizedConditions.flatMap((condition) => condition.indices),
+    ),
+    hasOverlap,
+  };
+};
+
+const preparedConditionsCache = new WeakMap<
+  CompiledPatternCondition[],
+  PreparedConditions
+>();
+
+const prepareConditions = (
+  conditions: CompiledPatternCondition[],
+): PreparedConditions => {
+  const cached = preparedConditionsCache.get(conditions);
+  if (cached != null) return cached;
+
+  const countConditions: CompiledCountCondition[] = [];
+  const notDrawnConditions: CompiledBaseCondition[] = [];
+  const requiredDistinctConditions: CompiledBaseCondition[] = [];
+  const requiredBaseConditions: CompiledBaseCondition[] = [];
+  const leaveDeckBaseConditions: CompiledBaseCondition[] = [];
+
+  for (const condition of conditions) {
+    switch (condition.mode) {
+      case "draw_total":
+      case "remain_total": {
+        countConditions.push(condition);
+        break;
+      }
+      case "not_drawn": {
+        notDrawnConditions.push(condition);
+        break;
+      }
+      case "required_distinct": {
+        requiredDistinctConditions.push({
+          ...condition,
+          indices: toUniqueIndices(condition.indices),
+        });
+        break;
+      }
+      case "required": {
+        requiredBaseConditions.push(condition);
+        break;
+      }
+      case "leave_deck": {
+        leaveDeckBaseConditions.push(condition);
+        break;
+      }
+      default: {
+        break;
+      }
+    }
+  }
+
+  const prepared: PreparedConditions = {
+    countConditions,
+    notDrawnConditions,
+    requiredDistinctConditions,
+    required: prepareBaseConditions(requiredBaseConditions),
+    leaveDeck: prepareBaseConditions(leaveDeckBaseConditions),
+  };
+  preparedConditionsCache.set(conditions, prepared);
+  return prepared;
+};
+
 const addUsageCount = (
   usage: MatchedCardCounts,
   index: number,
@@ -46,13 +147,13 @@ const addUsageCount = (
 };
 
 const canSatisfyBaseConditions = (
-  conditions: CompiledBaseCondition[],
+  prepared: PreparedBaseConditionSet,
   availableCounts: number[],
   usage?: MatchedCardCounts,
 ): boolean => {
+  const { conditions, memoTargetIndices, hasOverlap } = prepared;
   if (conditions.length === 0) return true;
-  const normalizedConditions = normalizeBaseConditions(conditions);
-  for (const condition of normalizedConditions) {
+  for (const condition of conditions) {
     if (
       totalAvailableForIndices(availableCounts, condition.indices) <
       condition.count
@@ -60,16 +161,13 @@ const canSatisfyBaseConditions = (
       return false;
     }
   }
+  if (usage == null && !hasOverlap) {
+    return true;
+  }
   const memo = usage == null ? new Map<string, boolean>() : null;
-  const memoTargetIndices =
-    memo == null
-      ? []
-      : toUniqueIndices(
-          normalizedConditions.flatMap((condition) => condition.indices),
-        );
 
   const visit = (conditionIndex: number, slotIndex: number): boolean => {
-    if (conditionIndex >= normalizedConditions.length) return true;
+    if (conditionIndex >= conditions.length) return true;
     const memoKey =
       memo == null
         ? null
@@ -82,7 +180,7 @@ const canSatisfyBaseConditions = (
       if (memoized != null) return memoized;
     }
 
-    const condition = normalizedConditions[conditionIndex];
+    const condition = conditions[conditionIndex];
     if (slotIndex >= condition.count) {
       const result = visit(conditionIndex + 1, 0);
       if (memo != null && memoKey != null) {
@@ -91,13 +189,7 @@ const canSatisfyBaseConditions = (
       return result;
     }
 
-    const candidateIndices = condition.indices
-      .filter((index) => (availableCounts[index] ?? 0) > 0)
-      .sort(
-        (left, right) =>
-          (availableCounts[left] ?? 0) - (availableCounts[right] ?? 0),
-      );
-    for (const index of candidateIndices) {
+    for (const index of condition.indices) {
       if ((availableCounts[index] ?? 0) <= 0) continue;
       availableCounts[index] -= 1;
       if (usage != null) {
@@ -127,10 +219,7 @@ const canSatisfyBaseConditions = (
 
 const checkCountCondition = (
   context: EvaluationContext,
-  condition: Extract<
-    CompiledPattern["conditions"][number],
-    { mode: "draw_total" | "remain_total" }
-  >,
+  condition: CompiledCountCondition,
 ) => {
   const source =
     condition.mode === "draw_total" ? context.handCounts : context.deckCounts;
@@ -159,56 +248,38 @@ const evaluateCompiledConditionsWithDetail = (
   conditions: CompiledPatternCondition[],
   context: EvaluationContext,
 ): ConditionEvaluationDetail => {
-  const required: CompiledBaseCondition[] = [];
+  const prepared = prepareConditions(conditions);
   const requiredDistinctSelections: number[][] = [];
-  const leaveDeck: CompiledBaseCondition[] = [];
   const matchedCardCounts: MatchedCardCounts = {};
 
-  for (const condition of conditions) {
-    switch (condition.mode) {
-      case "draw_total":
-      case "remain_total": {
-        if (!checkCountCondition(context, condition)) {
-          return { isMatched: false, matchedCardCounts: {} };
-        }
-        break;
-      }
-      case "not_drawn": {
-        const isDrawn = condition.indices.some(
-          (index) => (context.handCounts[index] ?? 0) > 0,
-        );
-        if (isDrawn) {
-          return { isMatched: false, matchedCardCounts: {} };
-        }
-        break;
-      }
-      case "required_distinct": {
-        const distinctIndices = toUniqueIndices(condition.indices).filter(
-          (index) => (context.handCounts[index] ?? 0) > 0,
-        );
-        if (distinctIndices.length < condition.count) {
-          return { isMatched: false, matchedCardCounts: {} };
-        }
-        requiredDistinctSelections.push(distinctIndices);
-        break;
-      }
-      case "required": {
-        required.push(condition);
-        break;
-      }
-      case "leave_deck": {
-        leaveDeck.push(condition);
-        break;
-      }
-      default: {
-        return { isMatched: false, matchedCardCounts: {} };
-      }
+  for (const condition of prepared.countConditions) {
+    if (!checkCountCondition(context, condition)) {
+      return { isMatched: false, matchedCardCounts: {} };
     }
   }
 
-  if (required.length > 0) {
+  for (const condition of prepared.notDrawnConditions) {
+    const isDrawn = condition.indices.some(
+      (index) => (context.handCounts[index] ?? 0) > 0,
+    );
+    if (isDrawn) {
+      return { isMatched: false, matchedCardCounts: {} };
+    }
+  }
+
+  for (const condition of prepared.requiredDistinctConditions) {
+    const distinctIndices = condition.indices.filter(
+      (index) => (context.handCounts[index] ?? 0) > 0,
+    );
+    if (distinctIndices.length < condition.count) {
+      return { isMatched: false, matchedCardCounts: {} };
+    }
+    requiredDistinctSelections.push(distinctIndices);
+  }
+
+  if (prepared.required.conditions.length > 0) {
     const copy = context.handCounts.slice();
-    if (!canSatisfyBaseConditions(required, copy, matchedCardCounts)) {
+    if (!canSatisfyBaseConditions(prepared.required, copy, matchedCardCounts)) {
       return { isMatched: false, matchedCardCounts: {} };
     }
   }
@@ -222,9 +293,9 @@ const evaluateCompiledConditionsWithDetail = (
     }
   }
 
-  if (leaveDeck.length > 0) {
+  if (prepared.leaveDeck.conditions.length > 0) {
     const copy = context.deckCounts.slice();
-    if (!canSatisfyBaseConditions(leaveDeck, copy)) {
+    if (!canSatisfyBaseConditions(prepared.leaveDeck, copy)) {
       return { isMatched: false, matchedCardCounts: {} };
     }
   }

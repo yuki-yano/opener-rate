@@ -37,6 +37,7 @@ export const calculateByExact = (params: {
 
   const totalKinds = normalized.deckCounts.length;
   const handCounts = new Array(totalKinds).fill(0);
+  const deckCounts = normalized.deckCounts.slice();
   const nonZeroIndices = normalized.deckCounts
     .map((count, index) => ({ count, index }))
     .filter((entry) => entry.count > 0)
@@ -63,9 +64,6 @@ export const calculateByExact = (params: {
     weight: bigint,
   ): void => {
     if (remainingSlots === 0) {
-      const deckCounts = normalized.deckCounts.map(
-        (deckCount, index) => deckCount - (handCounts[index] ?? 0),
-      );
       const outcome = evaluateTrialOutcome({
         compiledPatterns,
         compiledPatternByUid,
@@ -100,6 +98,7 @@ export const calculateByExact = (params: {
 
     for (let take = 0; take <= maxTake; take += 1) {
       handCounts[currentIndex] = take;
+      deckCounts[currentIndex] = availableCount - take;
       const comb = combinations(availableCount, take);
       if (comb > 0n) {
         recurse(cursor + 1, remainingSlots - take, weight * comb);
@@ -107,6 +106,7 @@ export const calculateByExact = (params: {
     }
 
     handCounts[currentIndex] = 0;
+    deckCounts[currentIndex] = availableCount;
   };
 
   recurse(0, normalized.deck.firstHand, 1n);

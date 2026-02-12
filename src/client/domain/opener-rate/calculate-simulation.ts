@@ -15,6 +15,11 @@ import {
 import { evaluatePatterns } from "./evaluate-pattern";
 
 type RandomSource = () => number;
+type PotResolutionScratch = {
+  scoreStampByCardIndex: number[];
+  scoreValueByCardIndex: number[];
+  generation: number;
+};
 
 const scoreEvaluation = (params: {
   evaluation: ReturnType<typeof evaluatePatterns>;
@@ -59,12 +64,35 @@ const createDeckOrder = (deckCounts: number[]) => {
   return deckOrder;
 };
 
+const randomOffset = (size: number, rng: RandomSource) => {
+  const next = rng();
+  const clamped = Math.min(0.999999999999, Math.max(0, next));
+  return Math.floor(clamped * size);
+};
+
 const shuffle = (array: number[], rng: RandomSource) => {
   for (let index = array.length - 1; index > 0; index -= 1) {
-    const next = rng();
-    const clamped = Math.min(0.999999999999, Math.max(0, next));
-    const randomIndex = Math.floor(clamped * (index + 1));
+    const randomIndex = randomOffset(index + 1, rng);
     [array[index], array[randomIndex]] = [array[randomIndex], array[index]];
+  }
+};
+
+const partialShuffleTop = (
+  array: number[],
+  drawCount: number,
+  rng: RandomSource,
+) => {
+  const limit = Math.min(drawCount, array.length);
+  for (let index = 0; index < limit; index += 1) {
+    const randomIndex = index + randomOffset(array.length - index, rng);
+    [array[index], array[randomIndex]] = [array[randomIndex], array[index]];
+  }
+};
+
+const copyNumberArray = (source: number[], target: number[]) => {
+  target.length = source.length;
+  for (let index = 0; index < source.length; index += 1) {
+    target[index] = source[index] ?? 0;
   }
 };
 
@@ -112,34 +140,49 @@ const resolveDisruptionKey = (disruption: OpponentDisruptionCard) => {
 
 const resolveOpponentDisruptionStrength = (params: {
   opponentDeckOrderTemplate: number[];
+  opponentDeckOrder: number[];
   opponentHandSize: number;
   opponentDisruptions: OpponentDisruptionCard[];
+  opponentDisruptionKeys: string[];
+  drawnCountByIndex: number[];
   rng: RandomSource;
+  optimizeShuffle: boolean;
 }) => {
   const {
     opponentDeckOrderTemplate,
+    opponentDeckOrder,
     opponentHandSize,
     opponentDisruptions,
+    opponentDisruptionKeys,
+    drawnCountByIndex,
     rng,
+    optimizeShuffle,
   } = params;
-  const opponentDeckOrder = opponentDeckOrderTemplate.slice();
-  shuffle(opponentDeckOrder, rng);
-
+  copyNumberArray(opponentDeckOrderTemplate, opponentDeckOrder);
   const drawCount = Math.min(opponentHandSize, opponentDeckOrder.length);
-  const drawnCountByUid = new Map<string, number>();
+  if (optimizeShuffle) {
+    partialShuffleTop(opponentDeckOrder, drawCount, rng);
+  } else {
+    shuffle(opponentDeckOrder, rng);
+  }
+  drawnCountByIndex.fill(0);
   for (let i = 0; i < drawCount; i += 1) {
     const disruptionIndex = opponentDeckOrder[i];
     if (disruptionIndex < 0) continue;
-    const disruption = opponentDisruptions[disruptionIndex];
-    const current = drawnCountByUid.get(disruption.uid) ?? 0;
-    drawnCountByUid.set(disruption.uid, current + 1);
+    const current = drawnCountByIndex[disruptionIndex] ?? 0;
+    drawnCountByIndex[disruptionIndex] = current + 1;
   }
 
   let hasDisruption = false;
   const strengthByDisruptionKey: Record<string, number> = {};
 
-  for (const disruption of opponentDisruptions) {
-    const drawnCount = drawnCountByUid.get(disruption.uid) ?? 0;
+  for (
+    let disruptionIndex = 0;
+    disruptionIndex < opponentDisruptions.length;
+    disruptionIndex += 1
+  ) {
+    const disruption = opponentDisruptions[disruptionIndex];
+    const drawnCount = drawnCountByIndex[disruptionIndex] ?? 0;
     if (drawnCount <= 0) continue;
 
     const effectiveCount = disruption.oncePerName
@@ -148,7 +191,7 @@ const resolveOpponentDisruptionStrength = (params: {
     if (effectiveCount <= 0) continue;
 
     hasDisruption = true;
-    const key = resolveDisruptionKey(disruption);
+    const key = opponentDisruptionKeys[disruptionIndex] ?? disruption.uid;
     const currentStrength = strengthByDisruptionKey[key] ?? 0;
     strengthByDisruptionKey[key] = currentStrength + effectiveCount;
   }
@@ -159,27 +202,28 @@ const resolveOpponentDisruptionStrength = (params: {
   };
 };
 
-const canPenetrateAllDisruptions = (
-  penetrationByDisruptionKey: Record<string, number>,
-  disruptionStrengthByDisruptionKey: Record<string, number>,
-) =>
-  Object.entries(disruptionStrengthByDisruptionKey).every(
-    ([disruptionKey, required]) => {
-      if (required <= 0) return true;
-      const penetration = penetrationByDisruptionKey[disruptionKey] ?? 0;
-      return penetration >= required;
-    },
-  );
-
-const mergePenetrationByDisruptionKey = (
-  left: Record<string, number>,
-  right: Record<string, number>,
-) => {
-  const merged: Record<string, number> = { ...left };
-  for (const [key, value] of Object.entries(right)) {
-    merged[key] = (merged[key] ?? 0) + value;
+const canPenetrateAllDisruptions = (params: {
+  patternPenetrationByDisruptionKey: Record<string, number>;
+  subPatternPenetrationByDisruptionKey: Record<string, number>;
+  disruptionStrengthByDisruptionKey: Record<string, number>;
+}) => {
+  const {
+    patternPenetrationByDisruptionKey,
+    subPatternPenetrationByDisruptionKey,
+    disruptionStrengthByDisruptionKey,
+  } = params;
+  for (const [disruptionKey, required] of Object.entries(
+    disruptionStrengthByDisruptionKey,
+  )) {
+    if (required <= 0) continue;
+    const penetration =
+      (patternPenetrationByDisruptionKey[disruptionKey] ?? 0) +
+      (subPatternPenetrationByDisruptionKey[disruptionKey] ?? 0);
+    if (penetration < required) {
+      return false;
+    }
   }
-  return merged;
+  return true;
 };
 
 const runPotResolution = (
@@ -189,10 +233,13 @@ const runPotResolution = (
   compiledSubPatterns: CompiledSubPattern[],
   handCounts: number[],
   deckCounts: number[],
-  remainingDeckOrder: number[],
+  deckOrder: number[],
+  remainingStartIndex: number,
+  scratch: PotResolutionScratch,
 ) => {
   const prosperityIndex = normalized.prosperityIndex;
   const desiresIndex = normalized.desiresIndex;
+  const remainingDeckCount = deckOrder.length - remainingStartIndex;
 
   if (
     prosperityIndex != null &&
@@ -200,54 +247,60 @@ const runPotResolution = (
     normalized.pot.prosperity.count > 0
   ) {
     const cost = normalized.pot.prosperity.cost;
-    if (remainingDeckOrder.length >= cost) {
+    if (remainingDeckCount >= cost) {
       handCounts[prosperityIndex] -= 1;
-      const revealed = remainingDeckOrder.slice(0, cost);
       let bestRevealPosition = 0;
       let bestScore = -1;
+      let currentGeneration = scratch.generation + 1;
+      if (currentGeneration > Number.MAX_SAFE_INTEGER - 1) {
+        scratch.scoreStampByCardIndex.fill(0);
+        currentGeneration = 1;
+      }
+      scratch.generation = currentGeneration;
 
-      for (
-        let revealPosition = 0;
-        revealPosition < revealed.length;
-        revealPosition += 1
-      ) {
-        const selectedIndex = revealed[revealPosition];
-        const candidateHand = handCounts.slice();
-        const candidateDeck = deckCounts.slice();
-        candidateHand[selectedIndex] += 1;
-        candidateDeck[selectedIndex] -= 1;
+      for (let revealPosition = 0; revealPosition < cost; revealPosition += 1) {
+        const selectedIndex =
+          deckOrder[remainingStartIndex + revealPosition] ?? -1;
+        if (selectedIndex < 0) continue;
+        const cachedScore =
+          scratch.scoreStampByCardIndex[selectedIndex] === currentGeneration
+            ? scratch.scoreValueByCardIndex[selectedIndex]
+            : undefined;
+        const score =
+          cachedScore ??
+          (() => {
+            handCounts[selectedIndex] += 1;
+            deckCounts[selectedIndex] -= 1;
 
-        const evaluation = evaluatePatterns(compiledPatterns, {
-          handCounts: candidateHand,
-          deckCounts: candidateDeck,
-        });
-        const score = scoreEvaluation({
-          evaluation,
-          compiledPatternByUid,
-          compiledSubPatterns,
-          handCounts: candidateHand,
-          deckCounts: candidateDeck,
-        });
+            const evaluation = evaluatePatterns(compiledPatterns, {
+              handCounts,
+              deckCounts,
+            });
+            const nextScore = scoreEvaluation({
+              evaluation,
+              compiledPatternByUid,
+              compiledSubPatterns,
+              handCounts,
+              deckCounts,
+            });
+            handCounts[selectedIndex] -= 1;
+            deckCounts[selectedIndex] += 1;
+            scratch.scoreStampByCardIndex[selectedIndex] = currentGeneration;
+            scratch.scoreValueByCardIndex[selectedIndex] = nextScore;
+            return nextScore;
+          })();
         if (score > bestScore) {
           bestScore = score;
           bestRevealPosition = revealPosition;
         }
       }
 
-      const selected = revealed[bestRevealPosition];
-      handCounts[selected] += 1;
-      deckCounts[selected] -= 1;
-
-      const remained = remainingDeckOrder.slice(cost);
-      const backToBottom = revealed.filter(
-        (_, index) => index !== bestRevealPosition,
-      );
-      remainingDeckOrder.splice(
-        0,
-        remainingDeckOrder.length,
-        ...remained,
-        ...backToBottom,
-      );
+      const selected =
+        deckOrder[remainingStartIndex + bestRevealPosition] ?? -1;
+      if (selected >= 0) {
+        handCounts[selected] += 1;
+        deckCounts[selected] -= 1;
+      }
       return;
     }
   }
@@ -257,13 +310,13 @@ const runPotResolution = (
     (handCounts[desiresIndex] ?? 0) > 0 &&
     normalized.pot.desiresOrExtravagance.count > 0
   ) {
-    const drawCount = Math.min(2, remainingDeckOrder.length);
+    const drawCount = Math.min(2, remainingDeckCount);
     for (let i = 0; i < drawCount; i += 1) {
-      const drawn = remainingDeckOrder[i];
+      const drawn = deckOrder[remainingStartIndex + i] ?? -1;
+      if (drawn < 0) continue;
       handCounts[drawn] += 1;
       deckCounts[drawn] -= 1;
     }
-    remainingDeckOrder.splice(0, drawCount);
   }
 };
 
@@ -278,6 +331,7 @@ export const calculateBySimulation = (params: {
   const { normalized, compiledPatterns, compiledSubPatterns, trials } = params;
   const mode = params.mode ?? "simulation";
   const rng = params.rng ?? Math.random;
+  const useOptimizedShuffle = params.rng == null;
 
   const deckOrderTemplate = createDeckOrder(normalized.deckCounts);
   const vs = normalized.vs;
@@ -287,6 +341,11 @@ export const calculateBySimulation = (params: {
         opponentDeckSize: vs.opponentDeckSize,
         opponentDisruptions: vs.opponentDisruptions,
       })
+    : [];
+  const opponentDisruptionKeys = vsEnabled
+    ? vs.opponentDisruptions.map((disruption) =>
+        resolveDisruptionKey(disruption),
+      )
     : [];
 
   const labelOrder = normalized.labels.map((label) => label.uid);
@@ -305,30 +364,53 @@ export const calculateBySimulation = (params: {
   let noDisruptionSuccessCount = 0;
   let disruptedButPenetratedCount = 0;
   let disruptedAndFailedCount = 0;
+  const hasPotEffects =
+    normalized.pot.desiresOrExtravagance.count > 0 ||
+    normalized.pot.prosperity.count > 0;
+  const firstHand = normalized.deck.firstHand;
+  const deckOrder = new Array<number>(deckOrderTemplate.length);
+  const handCounts = new Array(normalized.deckCounts.length).fill(0);
+  const deckCounts = normalized.deckCounts.slice();
+  const potScratch: PotResolutionScratch = {
+    scoreStampByCardIndex: new Array(normalized.deckCounts.length).fill(0),
+    scoreValueByCardIndex: new Array(normalized.deckCounts.length).fill(0),
+    generation: 0,
+  };
+  const opponentDeckOrder = new Array<number>(opponentDeckOrderTemplate.length);
+  const drawnCountByIndex = new Array(vs?.opponentDisruptions.length ?? 0).fill(
+    0,
+  );
 
   for (let trial = 0; trial < trials; trial += 1) {
-    const deckOrder = deckOrderTemplate.slice();
-    shuffle(deckOrder, rng);
+    copyNumberArray(deckOrderTemplate, deckOrder);
+    if (useOptimizedShuffle && !hasPotEffects) {
+      partialShuffleTop(deckOrder, firstHand, rng);
+    } else {
+      shuffle(deckOrder, rng);
+    }
 
-    const handCounts = new Array(normalized.deckCounts.length).fill(0);
-    const deckCounts = normalized.deckCounts.slice();
+    handCounts.fill(0);
+    copyNumberArray(normalized.deckCounts, deckCounts);
 
-    for (let i = 0; i < normalized.deck.firstHand; i += 1) {
+    for (let i = 0; i < firstHand; i += 1) {
       const drawn = deckOrder[i];
       handCounts[drawn] += 1;
       deckCounts[drawn] -= 1;
     }
 
-    const remainingDeckOrder = deckOrder.slice(normalized.deck.firstHand);
-    runPotResolution(
-      normalized,
-      compiledPatterns,
-      compiledPatternByUid,
-      compiledSubPatterns,
-      handCounts,
-      deckCounts,
-      remainingDeckOrder,
-    );
+    if (hasPotEffects) {
+      runPotResolution(
+        normalized,
+        compiledPatterns,
+        compiledPatternByUid,
+        compiledSubPatterns,
+        handCounts,
+        deckCounts,
+        deckOrder,
+        firstHand,
+        potScratch,
+      );
+    }
 
     const outcome = evaluateTrialOutcome({
       compiledPatterns,
@@ -349,9 +431,13 @@ export const calculateBySimulation = (params: {
     if (vsEnabled) {
       const opponentDisruption = resolveOpponentDisruptionStrength({
         opponentDeckOrderTemplate,
+        opponentDeckOrder,
         opponentHandSize: vs.opponentHandSize,
         opponentDisruptions: vs.opponentDisruptions,
+        opponentDisruptionKeys,
+        drawnCountByIndex,
         rng,
+        optimizeShuffle: useOptimizedShuffle,
       });
 
       if (!opponentDisruption.hasDisruption) {
@@ -359,14 +445,14 @@ export const calculateBySimulation = (params: {
           noDisruptionSuccessCount += 1;
         }
       } else {
-        const totalPenetrationByDisruptionKey = mergePenetrationByDisruptionKey(
-          countablePatternEffects.penetrationByDisruptionKey,
-          countableSubPatternEvaluation.penetrationByDisruptionKey,
-        );
-        const penetrated = canPenetrateAllDisruptions(
-          totalPenetrationByDisruptionKey,
-          opponentDisruption.strengthByDisruptionKey,
-        );
+        const penetrated = canPenetrateAllDisruptions({
+          patternPenetrationByDisruptionKey:
+            countablePatternEffects.penetrationByDisruptionKey,
+          subPatternPenetrationByDisruptionKey:
+            countableSubPatternEvaluation.penetrationByDisruptionKey,
+          disruptionStrengthByDisruptionKey:
+            opponentDisruption.strengthByDisruptionKey,
+        });
         if (baseSuccess && penetrated) {
           disruptedButPenetratedCount += 1;
         } else {
