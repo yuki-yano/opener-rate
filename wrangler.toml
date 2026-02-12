@@ -15,7 +15,6 @@ migrations_dir = "drizzle"
 
 [vars]
 APP_ORIGIN = "https://opener-rate.miyauchidp.dev"
-GOOGLE_AI_GATEWAY_URL = ""
 GEMINI_MODEL = "gemini-3-flash-preview"
 
 [[routes]]
