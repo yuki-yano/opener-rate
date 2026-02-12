@@ -50,10 +50,7 @@ export const RadioCardGroup = <T extends string>({
                 "cursor-not-allowed opacity-60 hover:bg-ui-mantle",
             )}
           >
-            <RadioGroupItem
-              value={option.value}
-              disabled={itemDisabled}
-            />
+            <RadioGroupItem value={option.value} disabled={itemDisabled} />
             <span className="break-words leading-4">{option.label}</span>
           </label>
         );

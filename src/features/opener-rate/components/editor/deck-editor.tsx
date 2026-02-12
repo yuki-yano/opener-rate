@@ -30,11 +30,12 @@ const prosperityCostOptions: SelectOption[] = [
   { value: "6", label: "6" },
 ];
 
-const calculationModeOptions: readonly RadioCardOption<"exact" | "simulation">[] =
-  [
-    { value: "exact", label: "厳密計算" },
-    { value: "simulation", label: "シミュレーション" },
-  ] as const;
+const calculationModeOptions: readonly RadioCardOption<
+  "exact" | "simulation"
+>[] = [
+  { value: "exact", label: "厳密計算" },
+  { value: "simulation", label: "シミュレーション" },
+] as const;
 
 export const DeckEditor = () => {
   const [deck, setDeck] = useAtom(deckAtom);
@@ -57,7 +58,13 @@ export const DeckEditor = () => {
       setMode("exact");
       setModeAutoSwitchedByVs(false);
     }
-  }, [mode, modeAutoSwitchedByVs, setMode, setModeAutoSwitchedByVs, vs.enabled]);
+  }, [
+    mode,
+    modeAutoSwitchedByVs,
+    setMode,
+    setModeAutoSwitchedByVs,
+    vs.enabled,
+  ]);
 
   return (
     <SectionCard

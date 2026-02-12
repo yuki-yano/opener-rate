@@ -128,9 +128,7 @@ export const OverallRateCard = () => {
       }
     >
       <div className="rounded-md border border-ui-surface0/80 bg-ui-mantle px-4 py-3.5">
-        <p className="text-xs tracking-[0.08em] text-ui-subtext0">
-          全体成功率
-        </p>
+        <p className="text-xs tracking-[0.08em] text-ui-subtext0">全体成功率</p>
         <p className="mt-1 text-3xl font-semibold tabular-nums text-ui-text">
           {result?.overallProbability ?? "0.00"}%
           {overallRateDiff ? (
@@ -173,9 +171,7 @@ export const OverallRateCard = () => {
         </div>
         {isPatternRatesExpanded ? (
           patterns.length === 0 ? (
-            <p className="text-xs text-ui-subtext0">
-              パターンがありません。
-            </p>
+            <p className="text-xs text-ui-subtext0">パターンがありません。</p>
           ) : (
             sortedPatterns.map(({ pattern, rate }, index) => {
               const rateDiff = isExactDiffEnabled
@@ -221,9 +217,7 @@ export const OverallRateCard = () => {
               </p>
             </div>
             <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5">
-              <p className="text-[11px] text-ui-subtext0">
-                妨害あり突破成功
-              </p>
+              <p className="text-[11px] text-ui-subtext0">妨害あり突破成功</p>
               <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
                 {result.vsBreakdown.disruptedButPenetratedRate}%
               </p>

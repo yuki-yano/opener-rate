@@ -414,9 +414,7 @@ export const PatternComposeDialogTrigger = () => {
           {filterInputMode === "inline" ? (
             <div className="space-y-1.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] text-ui-subtext0">
-                  手動フィルタ条件
-                </p>
+                <p className="text-[11px] text-ui-subtext0">手動フィルタ条件</p>
                 <Button
                   type="button"
                   variant="outline"
