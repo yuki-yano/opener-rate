@@ -7,6 +7,7 @@ import {
   seedSharedUrlAsGeneratedAtom,
 } from "../state";
 import { installWindowStateBridge } from "../state/window-state-bridge";
+import { AiChat } from "../ai/components/ai-chat";
 import { CardListEditor } from "./editor/card-list-editor";
 import { DeckEditor } from "./editor/deck-editor";
 import { DisruptionCardEditor } from "./editor/disruption-card-editor";
@@ -31,6 +32,7 @@ const urlStateKeys = [
 ] as const;
 const redirectSourceShortUrlStorageKey = "openerRate.redirectSourceShortUrl";
 const autoCalculatedUrls = new Set<string>();
+const localHostnames = new Set(["localhost", "127.0.0.1", "0.0.0.0", "::1"]);
 
 const hasUrlState = () => {
   if (typeof window === "undefined") return false;
@@ -60,6 +62,11 @@ const consumeRedirectSourceShortUrl = () => {
   }
 };
 
+const isLocalRuntime = () => {
+  if (typeof window === "undefined") return false;
+  return localHostnames.has(window.location.hostname);
+};
+
 export const OpenerRateScreen = () => {
   const markSavedSnapshot = useSetAtom(markSavedSnapshotAtom);
   const runCalculate = useSetAtom(runCalculateAtom);
@@ -86,6 +93,11 @@ export const OpenerRateScreen = () => {
   useEffect(() => {
     return installWindowStateBridge();
   }, []);
+
+  const isAiMode =
+    typeof window !== "undefined" &&
+    (isLocalRuntime() ||
+      new URLSearchParams(window.location.search).get("mode") === "ai");
 
   return (
     <div className="relative min-h-[100svh] bg-ui-base text-ui-text md:min-h-screen">
@@ -125,6 +137,7 @@ export const OpenerRateScreen = () => {
           </section>
         </main>
       </div>
+      <AiChat enabled={isAiMode} />
     </div>
   );
 };

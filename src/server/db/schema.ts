@@ -18,3 +18,21 @@ export const shortLinks = sqliteTable(
 
 export type ShortLink = typeof shortLinks.$inferSelect;
 export type ShortLinkInsert = typeof shortLinks.$inferInsert;
+
+export const chatHistories = sqliteTable(
+  "chat_histories",
+  {
+    key: text("key").primaryKey(),
+    messagesJson: text("messages_json").notNull(),
+    createdAt: integer("created_at", { mode: "number" })
+      .notNull()
+      .default(sql`(strftime('%s','now') * 1000)`),
+    updatedAt: integer("updated_at", { mode: "number" })
+      .notNull()
+      .default(sql`(strftime('%s','now') * 1000)`),
+  },
+  (table) => [index("idx_chat_histories_created_at").on(table.createdAt)],
+);
+
+export type ChatHistory = typeof chatHistories.$inferSelect;
+export type ChatHistoryInsert = typeof chatHistories.$inferInsert;
