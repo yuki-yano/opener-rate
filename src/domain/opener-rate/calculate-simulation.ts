@@ -171,51 +171,50 @@ const runPotResolution = (
     normalized.pot.prosperity.count > 0
   ) {
     const cost = normalized.pot.prosperity.cost;
-    if (remainingDeckOrder.length < cost) {
+    if (remainingDeckOrder.length >= cost) {
+      handCounts[prosperityIndex] -= 1;
+      const revealed = remainingDeckOrder.slice(0, cost);
+      let bestRevealPosition = 0;
+      let bestScore = -1;
+
+      for (
+        let revealPosition = 0;
+        revealPosition < revealed.length;
+        revealPosition += 1
+      ) {
+        const selectedIndex = revealed[revealPosition];
+        const candidateHand = handCounts.slice();
+        const candidateDeck = deckCounts.slice();
+        candidateHand[selectedIndex] += 1;
+        candidateDeck[selectedIndex] -= 1;
+
+        const evaluation = evaluatePatterns(compiledPatterns, {
+          handCounts: candidateHand,
+          deckCounts: candidateDeck,
+        });
+        const score = scoreEvaluation(evaluation, compiledPatternByUid);
+        if (score > bestScore) {
+          bestScore = score;
+          bestRevealPosition = revealPosition;
+        }
+      }
+
+      const selected = revealed[bestRevealPosition];
+      handCounts[selected] += 1;
+      deckCounts[selected] -= 1;
+
+      const remained = remainingDeckOrder.slice(cost);
+      const backToBottom = revealed.filter(
+        (_, index) => index !== bestRevealPosition,
+      );
+      remainingDeckOrder.splice(
+        0,
+        remainingDeckOrder.length,
+        ...remained,
+        ...backToBottom,
+      );
       return;
     }
-    handCounts[prosperityIndex] -= 1;
-    const revealed = remainingDeckOrder.slice(0, cost);
-    let bestRevealPosition = 0;
-    let bestScore = -1;
-
-    for (
-      let revealPosition = 0;
-      revealPosition < revealed.length;
-      revealPosition += 1
-    ) {
-      const selectedIndex = revealed[revealPosition];
-      const candidateHand = handCounts.slice();
-      const candidateDeck = deckCounts.slice();
-      candidateHand[selectedIndex] += 1;
-      candidateDeck[selectedIndex] -= 1;
-
-      const evaluation = evaluatePatterns(compiledPatterns, {
-        handCounts: candidateHand,
-        deckCounts: candidateDeck,
-      });
-      const score = scoreEvaluation(evaluation, compiledPatternByUid);
-      if (score > bestScore) {
-        bestScore = score;
-        bestRevealPosition = revealPosition;
-      }
-    }
-
-    const selected = revealed[bestRevealPosition];
-    handCounts[selected] += 1;
-    deckCounts[selected] -= 1;
-
-    const remained = remainingDeckOrder.slice(cost);
-    const backToBottom = revealed.filter(
-      (_, index) => index !== bestRevealPosition,
-    );
-    remainingDeckOrder.splice(
-      0,
-      remainingDeckOrder.length,
-      ...remained,
-      ...backToBottom,
-    );
-    return;
   }
 
   if (

@@ -12,15 +12,6 @@ type CreateShortLinkInput = {
 };
 
 export const shortLinkRepository = {
-  async existsByKey(db: DbClient, key: string): Promise<boolean> {
-    const rows = await db
-      .select({ key: shortLinks.key })
-      .from(shortLinks)
-      .where(eq(shortLinks.key, key))
-      .limit(1);
-    return rows.length > 0;
-  },
-
   async create(db: DbClient, input: CreateShortLinkInput): Promise<void> {
     await db.insert(shortLinks).values({
       key: input.key,

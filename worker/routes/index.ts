@@ -10,9 +10,7 @@ import {
 
 const app = new Hono<AppEnv>();
 
-export const route = app
-  .route("/", healthRoutes)
-  .route("/", shortLinkRoutes);
+export const route = app.route("/", healthRoutes).route("/", shortLinkRoutes);
 
 export type AppType =
   | typeof healthRoute

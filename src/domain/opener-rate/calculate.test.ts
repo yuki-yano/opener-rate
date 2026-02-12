@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { CalculateInput } from "../../shared/apiSchemas";
 import { calculateOpenerRateDomain } from "./calculate";
@@ -720,6 +720,84 @@ describe("calculateOpenerRateDomain", () => {
     expect(result.patternSuccessRates).toEqual([
       { uid: "p-prosperity-in-hand", rate: "100.00" },
     ]);
+  });
+
+  it("selects the best reveal card when prosperity resolves", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
+    try {
+      const result = calculateOpenerRateDomain({
+        deck: { cardCount: 7, firstHand: 1 },
+        cards: [{ uid: "target", name: "Target", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-target",
+            name: "Targetを引く",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["target"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+        pot: {
+          desiresOrExtravagance: { count: 0 },
+          prosperity: { count: 1, cost: 6 },
+        },
+        settings: {
+          mode: "simulation",
+          simulationTrials: 1,
+        },
+      });
+
+      expect(result.mode).toBe("simulation");
+      expect(result.overallProbability).toBe("100.00");
+      expect(result.patternSuccessRates).toEqual([
+        { uid: "p-target", rate: "100.00" },
+      ]);
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it("falls back to desires draw when prosperity cannot resolve by cost", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
+    try {
+      const result = calculateOpenerRateDomain({
+        deck: { cardCount: 3, firstHand: 2 },
+        cards: [{ uid: "target", name: "Target", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-target",
+            name: "Targetを引く",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["target"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+        pot: {
+          desiresOrExtravagance: { count: 1 },
+          prosperity: { count: 1, cost: 3 },
+        },
+        settings: {
+          mode: "simulation",
+          simulationTrials: 1,
+        },
+      });
+
+      expect(result.mode).toBe("simulation");
+      expect(result.overallProbability).toBe("100.00");
+      expect(result.patternSuccessRates).toEqual([
+        { uid: "p-target", rate: "100.00" },
+      ]);
+    } finally {
+      randomSpy.mockRestore();
+    }
   });
 
   it("applies base_match_total even when base pattern has no matched-card usage details", () => {
