@@ -104,14 +104,14 @@ export const OpenerRateScreen = () => {
       new URLSearchParams(window.location.search).get("mode") === "ai");
 
   return (
-    <div className="relative min-h-[100svh] bg-ui-base text-ui-text md:min-h-screen">
+    <div className="relative min-h-[100svh] bg-ui-bg text-ui-text md:min-h-screen">
       <div className="relative z-10">
-        <header className="border-b border-ui-surface0/90 bg-ui-base">
+        <header className="border-b border-ui-border1/90 bg-ui-bg">
           <div className="mx-auto w-full max-w-7xl px-4 py-4">
             <h1 className="text-3xl font-bold tracking-tight text-ui-text">
               <a
                 href="/"
-                className="transition-colors hover:text-ui-blue focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-blue/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ui-base"
+                className="transition-colors hover:text-ui-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ui-primary/70 focus-visible:ring-offset-2 focus-visible:ring-offset-ui-bg"
               >
                 初動率計算機
               </a>

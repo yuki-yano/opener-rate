@@ -51,7 +51,7 @@ export const LabelRateTable = () => {
       description="ラベル単位の成功率を表示します。"
     >
       {labels.length === 0 ? (
-        <p className="text-xs text-ui-subtext0">ラベルがありません。</p>
+        <p className="text-xs text-ui-text3">ラベルがありません。</p>
       ) : null}
 
       <div className="space-y-2">

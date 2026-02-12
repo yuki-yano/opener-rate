@@ -115,7 +115,7 @@ export const DeckEditor = () => {
       </div>
 
       <div className="space-y-2">
-        <p className="text-xs text-ui-subtext0">壺設定</p>
+        <p className="text-xs text-ui-text3">壺設定</p>
 
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
           <label className={editorFieldLabelClassName}>
@@ -191,7 +191,7 @@ export const DeckEditor = () => {
             }}
           />
           {modeAutoSwitchedByVs && vs.enabled ? (
-            <p className="text-[11px] text-ui-overlay1">
+            <p className="text-[11px] text-ui-tone2">
               対戦シミュレーションが有効なため、計算モードをシミュレーションへ自動変更しています。無効化すると厳密計算へ戻ります。
             </p>
           ) : null}

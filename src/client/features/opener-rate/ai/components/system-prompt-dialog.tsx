@@ -29,19 +29,19 @@ export const SystemPromptDialog = ({
 }: SystemPromptDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="space-y-4 border-ui-surface1 bg-[linear-gradient(165deg,rgba(var(--theme-mantle),0.98),rgba(var(--theme-crust),0.94))]">
-        <DialogHeader className="mb-0 rounded-lg border border-ui-surface0/80 bg-ui-base/75 px-4 py-3">
+      <DialogContent className="space-y-4 border-ui-border2 bg-[linear-gradient(165deg,rgba(var(--theme-layer1),0.98),rgba(var(--theme-layer2),0.94))]">
+        <DialogHeader className="mb-0 rounded-lg border border-ui-border1/80 bg-ui-bg/75 px-4 py-3">
           <DialogTitle className="flex items-center gap-2 text-base tracking-[0.03em]">
-            <Sparkles className="h-4 w-4 text-ui-blue" />
+            <Sparkles className="h-4 w-4 text-ui-primary" />
             <span>システムプロンプト編集</span>
           </DialogTitle>
-          <DialogDescription className="mt-1 text-xs leading-relaxed text-ui-subtext1">
+          <DialogDescription className="mt-1 text-xs leading-relaxed text-ui-text2">
             AIの振る舞いを調整できます。保存後の送信から反映されます。
           </DialogDescription>
         </DialogHeader>
 
         <Textarea
-          className="min-h-64 border-ui-surface1 bg-ui-mantle/95 text-sm leading-relaxed"
+          className="min-h-64 border-ui-border2 bg-ui-layer1/95 text-sm leading-relaxed"
           value={draftPrompt}
           onChange={(event) => onDraftPromptChange(event.target.value)}
           placeholder="システムプロンプトを入力"
@@ -61,7 +61,7 @@ export const SystemPromptDialog = ({
             <Button
               type="button"
               variant="outline"
-              className="border-ui-surface1 bg-ui-mantle text-ui-subtext1 hover:bg-ui-crust/70 hover:text-ui-text"
+              className="border-ui-border2 bg-ui-layer1 text-ui-text2 hover:bg-ui-layer2/70 hover:text-ui-text"
               onClick={() => onOpenChange(false)}
             >
               <X className="mr-1.5 h-4 w-4" />
@@ -69,7 +69,7 @@ export const SystemPromptDialog = ({
             </Button>
             <Button
               type="button"
-              className="border border-ui-blue bg-ui-blue text-white shadow-[0_12px_24px_-16px_rgba(var(--theme-blue),0.95)] hover:bg-ui-lavender"
+              className="border border-ui-primary bg-ui-primary text-white shadow-[0_12px_24px_-16px_rgba(var(--theme-primary),0.95)] hover:bg-ui-primary2"
               onClick={onSave}
             >
               <Save className="mr-1.5 h-4 w-4" />

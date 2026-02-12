@@ -14,7 +14,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
     return (
       <label
         className={cn(
-          "inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-ui-surface0 bg-ui-mantle px-2 text-xs text-ui-subtext1 shadow-sm transition hover:border-ui-surface1",
+          "inline-flex h-9 shrink-0 items-center gap-2 rounded-md border border-ui-border1 bg-ui-layer1 px-2 text-xs text-ui-text2 shadow-sm transition hover:border-ui-border2",
           className,
         )}
       >
@@ -26,7 +26,7 @@ export const Checkbox = forwardRef<HTMLInputElement, CheckboxProps>(
             checked={checked}
             {...props}
           />
-          <span className="inline-flex h-4 w-4 items-center justify-center rounded-[4px] border border-ui-surface0 bg-ui-mantle text-transparent transition peer-checked:border-ui-blue peer-checked:bg-ui-blue/22 peer-checked:text-ui-blue">
+          <span className="inline-flex h-4 w-4 items-center justify-center rounded-[4px] border border-ui-border1 bg-ui-layer1 text-transparent transition peer-checked:border-ui-primary peer-checked:bg-ui-primary/22 peer-checked:text-ui-primary">
             <Check className="h-3 w-3" />
           </span>
         </span>

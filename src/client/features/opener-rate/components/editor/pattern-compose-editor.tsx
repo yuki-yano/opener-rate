@@ -300,7 +300,7 @@ export const PatternComposeDialogTrigger = () => {
         className="h-8 shrink-0 whitespace-nowrap px-3 text-xs"
         onClick={() => handleDialogOpenChange(true)}
       >
-        <FlaskConical className="mr-1.5 h-3.5 w-3.5 text-ui-blue" />
+        <FlaskConical className="mr-1.5 h-3.5 w-3.5 text-ui-primary" />
         合成
       </Button>
       <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain p-4 sm:max-h-[calc(100dvh-2rem)] sm:p-6">
@@ -322,17 +322,17 @@ export const PatternComposeDialogTrigger = () => {
           </DialogDescription>
         </DialogHeader>
 
-        <div className="space-y-2 rounded-md border border-ui-surface0 bg-ui-crust p-3.5">
+        <div className="space-y-2 rounded-md border border-ui-border1 bg-ui-layer2 p-3.5">
           <div className="space-y-0.5">
             {isComposeLocked ? (
-              <p className="text-[11px] text-ui-overlay1">
+              <p className="text-[11px] text-ui-tone2">
                 利用条件: 合成元1件以上 + 妨害カテゴリ1件以上
               </p>
             ) : null}
             {!isComposeLocked &&
             filterInputMode === "inline" &&
             inlineFilterConditions.length === 0 ? (
-              <p className="text-[11px] text-ui-overlay1">
+              <p className="text-[11px] text-ui-tone2">
                 手動フィルタでは条件を1件以上設定してください。
               </p>
             ) : null}
@@ -340,7 +340,7 @@ export const PatternComposeDialogTrigger = () => {
             hasComposeSourceSelection &&
             selectedComposeCategoryUids.length > 0 &&
             !hasComposePenetrationTarget ? (
-              <p className="text-[11px] text-ui-overlay1">
+              <p className="text-[11px] text-ui-tone2">
                 選択中の妨害カテゴリでは、メイン/フィルタ合算の貫通効果がありません。
               </p>
             ) : null}
@@ -348,12 +348,12 @@ export const PatternComposeDialogTrigger = () => {
             hasComposeSourceSelection &&
             hasComposePenetrationTarget &&
             hasComposeSkippedCategories ? (
-              <p className="text-[11px] text-ui-overlay1">
+              <p className="text-[11px] text-ui-tone2">
                 一部妨害カテゴリは加算効果がないため、生成対象から除外されます。
               </p>
             ) : null}
             {!isComposeLocked && composeName.trim().length === 0 ? (
-              <p className="text-[11px] text-ui-overlay1">
+              <p className="text-[11px] text-ui-tone2">
                 生成サブパターン名は必須です。
               </p>
             ) : null}
@@ -408,9 +408,9 @@ export const PatternComposeDialogTrigger = () => {
             )}
           </div>
           {filterInputMode === "inline" ? (
-            <div className="space-y-1.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
+            <div className="space-y-1.5 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5">
               <div className="flex items-center justify-between">
-                <p className="text-[11px] text-ui-subtext0">手動フィルタ条件</p>
+                <p className="text-[11px] text-ui-text3">手動フィルタ条件</p>
                 <Button
                   type="button"
                   variant="outline"

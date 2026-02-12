@@ -62,7 +62,7 @@ const SortableItem = ({ id, children, handleClassName }: SortableItemProps) => {
       <button
         type="button"
         className={cn(
-          "group absolute left-2 z-10 inline-flex h-9 w-5 touch-none select-none items-center justify-center rounded-md border border-ui-surface0/80 bg-ui-base text-ui-subtext0 shadow-sm transition hover:border-ui-blue/60 hover:text-ui-blue",
+          "group absolute left-2 z-10 inline-flex h-9 w-5 touch-none select-none items-center justify-center rounded-md border border-ui-border1/80 bg-ui-bg text-ui-text3 shadow-sm transition hover:border-ui-primary/60 hover:text-ui-primary",
           handleClassName ?? "top-3",
         )}
         aria-label="ドラッグ"

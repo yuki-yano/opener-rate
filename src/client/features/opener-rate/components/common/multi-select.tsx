@@ -85,9 +85,9 @@ export const MultiSelect = ({
             disabled={disabled}
             className={cn(
               "h-auto min-h-9 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-medium",
-              "hover:bg-ui-mantle active:bg-ui-mantle",
+              "hover:bg-ui-layer1 active:bg-ui-layer1",
               selectTriggerFocusClassName,
-              selectedOptions.length === 0 && "text-ui-overlay1",
+              selectedOptions.length === 0 && "text-ui-tone2",
             )}
           >
             <span className="min-w-0 flex-1 py-1.5">
@@ -98,7 +98,7 @@ export const MultiSelect = ({
                   {selectedOptions.map((option) => (
                     <span
                       key={`selected-${option.value}`}
-                      className="inline-flex max-w-full items-center rounded-md border border-ui-surface1 bg-ui-crust px-1.5 py-0.5 text-xs font-medium leading-5 text-ui-subtext1"
+                      className="inline-flex max-w-full items-center rounded-md border border-ui-border2 bg-ui-layer2 px-1.5 py-0.5 text-xs font-medium leading-5 text-ui-text2"
                     >
                       <span className="break-all">{option.label}</span>
                     </span>
@@ -119,14 +119,14 @@ export const MultiSelect = ({
           onOpenAutoFocus={(event) => event.preventDefault()}
           className="max-h-[min(80dvh,32rem)] w-[min(var(--radix-popover-trigger-width),calc(100vw-1rem))] max-w-[calc(100vw-1rem)] overflow-hidden p-0"
         >
-          <Command className="bg-ui-mantle text-ui-text">
+          <Command className="bg-ui-layer1 text-ui-text">
             {enableBulkActions ? (
-              <div className="flex items-center justify-end gap-1 border-b border-ui-surface0/70 px-2 py-1.5">
+              <div className="flex items-center justify-end gap-1 border-b border-ui-border1/70 px-2 py-1.5">
                 <button
                   type="button"
                   onClick={handleSelectAll}
                   disabled={disabled || !canSelectAll}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-blue transition disabled:cursor-not-allowed disabled:text-ui-overlay0"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-primary transition disabled:cursor-not-allowed disabled:text-ui-tone1"
                 >
                   {selectAllLabel}
                 </button>
@@ -134,7 +134,7 @@ export const MultiSelect = ({
                   type="button"
                   onClick={handleClearAll}
                   disabled={disabled || !canClearAll}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-subtext0 transition disabled:cursor-not-allowed disabled:text-ui-overlay0"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-text3 transition disabled:cursor-not-allowed disabled:text-ui-tone1"
                 >
                   {clearAllLabel}
                 </button>
@@ -146,7 +146,7 @@ export const MultiSelect = ({
               onWheelCapture={(event) => event.stopPropagation()}
               onTouchMoveCapture={(event) => event.stopPropagation()}
             >
-              <Command.Empty className="px-2 py-3 text-xs text-ui-subtext0">
+              <Command.Empty className="px-2 py-3 text-xs text-ui-text3">
                 {emptyText}
               </Command.Empty>
               <Command.Group>
@@ -157,13 +157,13 @@ export const MultiSelect = ({
                       key={option.value}
                       value={toSearchableValue(option)}
                       onSelect={() => handleToggle(option.value)}
-                      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition data-[selected=true]:ring-1 data-[selected=true]:ring-ui-surface0/65"
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition data-[selected=true]:ring-1 data-[selected=true]:ring-ui-border1/65"
                     >
                       <span
                         className={cn(
-                          "inline-flex h-4 w-4 items-center justify-center rounded border border-ui-surface1",
+                          "inline-flex h-4 w-4 items-center justify-center rounded border border-ui-border2",
                           selected &&
-                            "border-ui-blue bg-ui-blue/16 text-ui-blue",
+                            "border-ui-primary bg-ui-primary/16 text-ui-primary",
                         )}
                       >
                         <Check

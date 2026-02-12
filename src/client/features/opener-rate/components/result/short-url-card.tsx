@@ -35,7 +35,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
   return (
     <section
       className={cn(
-        "space-y-3 rounded-md border border-ui-surface0/80 bg-ui-mantle p-4 shadow-panel",
+        "space-y-3 rounded-md border border-ui-border1/80 bg-ui-layer1 p-4 shadow-panel",
         className,
       )}
     >
@@ -55,7 +55,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
               type="button"
               variant="ghost"
               size="icon"
-              className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md text-ui-subtext0 hover:text-ui-blue"
+              className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md text-ui-text3 hover:text-ui-primary"
               aria-label="URLをコピー"
               onClick={async () => {
                 const text = url.trim();

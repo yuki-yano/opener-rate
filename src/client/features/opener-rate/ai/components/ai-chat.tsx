@@ -22,10 +22,10 @@ export const AiChat = ({ enabled }: AiChatProps) => {
           type="button"
           size="icon"
           className={cn(
-            "fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full border border-ui-lavender/65",
-            "bg-ui-lavender text-white",
-            "shadow-[0_18px_44px_-20px_rgba(var(--theme-lavender),0.78)]",
-            "hover:bg-ui-blue",
+            "fixed bottom-6 right-6 z-40 h-14 w-14 rounded-full border border-ui-primary2/65",
+            "bg-ui-primary2 text-white",
+            "shadow-[0_18px_44px_-20px_rgba(var(--theme-primary2),0.78)]",
+            "hover:bg-ui-primary",
           )}
           onClick={() => controller.setIsChatOpen(true)}
           aria-label="チャットを開く"

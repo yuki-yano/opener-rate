@@ -4,16 +4,16 @@ import { type ButtonHTMLAttributes, forwardRef } from "react";
 import { cn } from "../../lib/cn";
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center rounded-md text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-ui-blue/30 disabled:pointer-events-none disabled:opacity-50",
+  "inline-flex items-center justify-center rounded-md text-sm font-semibold transition focus:outline-none focus:ring-2 focus:ring-ui-primary/30 disabled:pointer-events-none disabled:opacity-50",
   {
     variants: {
       variant: {
         default:
-          "border border-ui-surface0 bg-ui-surface0 text-ui-text shadow-sm hover:bg-ui-surface1/85 active:bg-ui-surface1",
+          "border border-ui-border1 bg-ui-border1 text-ui-text shadow-sm hover:bg-ui-border2/85 active:bg-ui-border2",
         outline:
-          "border border-ui-surface0 bg-ui-mantle text-ui-text shadow-sm hover:bg-ui-crust/45",
+          "border border-ui-border1 bg-ui-layer1 text-ui-text shadow-sm hover:bg-ui-layer2/45",
         ghost:
-          "border border-transparent text-ui-subtext0 hover:border-ui-surface0 hover:bg-ui-crust hover:text-ui-text",
+          "border border-transparent text-ui-text3 hover:border-ui-border1 hover:bg-ui-layer2 hover:text-ui-text",
       },
       size: {
         default: "h-10 px-4",

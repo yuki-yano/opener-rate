@@ -209,10 +209,10 @@ export const PatternEditor = () => {
               namePlaceholder="パターン名（必須）"
               activeContainerClassName={
                 isExcludedFromOverall
-                  ? "border-ui-yellow/65 bg-ui-crust/82"
-                  : "border-ui-blue/65 bg-ui-crust/82"
+                  ? "border-ui-yellow/65 bg-ui-layer2/82"
+                  : "border-ui-primary/65 bg-ui-layer2/82"
               }
-              inactiveContainerClassName="border-ui-red/65 bg-ui-crust/82"
+              inactiveContainerClassName="border-ui-red/65 bg-ui-layer2/82"
               activeAriaLabel="パターン有効切り替え"
               memoAriaLabel="メモ表示切り替え"
               duplicateAriaLabel="パターン複製"
@@ -247,7 +247,7 @@ export const PatternEditor = () => {
               }}
               onToggleCollapsed={() => toggleCollapsed(pattern.uid)}
               expandedBody={
-                <div className="space-y-2.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
+                <div className="space-y-2.5 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5">
                   <div className="grid min-w-0 gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                     <label className={`min-w-0 ${editorFieldLabelClassName}`}>
                       紐付けラベル
@@ -286,7 +286,7 @@ export const PatternEditor = () => {
 
                   <div className="space-y-2">
                     {pattern.conditions.length === 0 ? (
-                      <p className="text-xs text-ui-overlay1">
+                      <p className="text-xs text-ui-tone2">
                         条件がありません。「条件追加」から作成してください。
                       </p>
                     ) : null}
@@ -418,7 +418,7 @@ export const PatternEditor = () => {
                       }))
                     }
                     label="合計初動率に計算しない"
-                    className="h-8 border-ui-surface0/70 bg-ui-mantle"
+                    className="h-8 border-ui-border1/70 bg-ui-layer1"
                   />
                   {isMemoExpanded ? (
                     <Textarea
@@ -441,8 +441,8 @@ export const PatternEditor = () => {
                     className={cn(
                       "inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium leading-4",
                       isExcludedFromOverall
-                        ? "border-ui-yellow/60 bg-ui-yellow/16 text-ui-subtext1 shadow-[inset_0_0_0_1px_rgb(var(--theme-yellow)/0.22)]"
-                        : "border-ui-blue/55 bg-ui-blue/12 text-ui-subtext1 shadow-[inset_0_0_0_1px_rgb(var(--theme-blue)/0.18)]",
+                        ? "border-ui-yellow/60 bg-ui-yellow/16 text-ui-text2 shadow-[inset_0_0_0_1px_rgb(var(--theme-yellow)/0.22)]"
+                        : "border-ui-primary/55 bg-ui-primary/12 text-ui-text2 shadow-[inset_0_0_0_1px_rgb(var(--theme-primary)/0.18)]",
                     )}
                   >
                     {isExcludedFromOverall ? "合計: 除外" : "合計: 対象"}

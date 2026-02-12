@@ -91,19 +91,19 @@ export const OverallRateCard = () => {
       actions={
         <Button
           size="sm"
-          className="border-ui-surface0 bg-white text-ui-text ring-1 ring-ui-blue/28 hover:bg-ui-mantle active:bg-ui-mantle/90"
+          className="border-ui-border1 bg-white text-ui-text ring-1 ring-ui-primary/28 hover:bg-ui-layer1 active:bg-ui-layer1/90"
           onClick={() => {
             void runCalculate();
           }}
           disabled={!canCalculate || isCalculating}
         >
-          <Calculator className="mr-1.5 h-4 w-4 text-ui-blue" />
+          <Calculator className="mr-1.5 h-4 w-4 text-ui-primary" />
           {isCalculating ? "計算中..." : "計算する"}
         </Button>
       }
     >
-      <div className="rounded-md border border-ui-surface0/80 bg-ui-mantle px-4 py-3.5">
-        <p className="text-xs tracking-[0.08em] text-ui-subtext0">全体成功率</p>
+      <div className="rounded-md border border-ui-border1/80 bg-ui-layer1 px-4 py-3.5">
+        <p className="text-xs tracking-[0.08em] text-ui-text3">全体成功率</p>
         <p className="mt-1 text-3xl font-semibold tabular-nums text-ui-text">
           {result?.overallProbability ?? "0.00"}%
           {overallRateDiff ? (
@@ -118,12 +118,12 @@ export const OverallRateCard = () => {
       </div>
 
       <div className="space-y-2">
-        <div className="flex items-center justify-between gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 px-2.5 py-2">
+        <div className="flex items-center justify-between gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2.5 py-2">
           <div className="space-y-0.5">
-            <p className="text-xs tracking-wider text-ui-subtext0">
+            <p className="text-xs tracking-wider text-ui-text3">
               パターン別成立率
             </p>
-            <p className="text-[11px] text-ui-overlay1">
+            <p className="text-[11px] text-ui-tone2">
               {patterns.length > 0 ? `${patterns.length}件` : "パターンなし"}・
               {isPatternRatesExpanded ? "表示中" : "非表示"}
             </p>
@@ -146,7 +146,7 @@ export const OverallRateCard = () => {
         </div>
         {isPatternRatesExpanded ? (
           patterns.length === 0 ? (
-            <p className="text-xs text-ui-subtext0">パターンがありません。</p>
+            <p className="text-xs text-ui-text3">パターンがありません。</p>
           ) : (
             sortedPatterns.map(({ pattern, rate }, index) => {
               const rateDiff = isExactDiffEnabled
@@ -170,24 +170,24 @@ export const OverallRateCard = () => {
 
       {result?.vsBreakdown ? (
         <div className="space-y-2">
-          <p className="text-xs tracking-wider text-ui-subtext0">
+          <p className="text-xs tracking-wider text-ui-text3">
             対妨害シミュレーション内訳
           </p>
           <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5">
-              <p className="text-[11px] text-ui-subtext0">妨害なし成功</p>
+            <div className="rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
+              <p className="text-[11px] text-ui-text3">妨害なし成功</p>
               <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
                 {result.vsBreakdown.noDisruptionSuccessRate}%
               </p>
             </div>
-            <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5">
-              <p className="text-[11px] text-ui-subtext0">妨害あり突破成功</p>
+            <div className="rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
+              <p className="text-[11px] text-ui-text3">妨害あり突破成功</p>
               <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
                 {result.vsBreakdown.disruptedButPenetratedRate}%
               </p>
             </div>
-            <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle px-3 py-2.5">
-              <p className="text-[11px] text-ui-subtext0">妨害あり失敗</p>
+            <div className="rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
+              <p className="text-[11px] text-ui-text3">妨害あり失敗</p>
               <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
                 {result.vsBreakdown.disruptedAndFailedRate}%
               </p>

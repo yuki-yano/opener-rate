@@ -101,7 +101,7 @@ export const CardListEditor = () => {
               )
             }
             topGridClassName="grid-cols-[minmax(0,1fr)_5.25rem_auto]"
-            nameInputClassName="border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
+            nameInputClassName="border-ui-border1/80 bg-ui-layer1 text-ui-text placeholder:text-ui-tone2"
             actionsClassName="justify-end"
             topMiddle={
               <NumericInput

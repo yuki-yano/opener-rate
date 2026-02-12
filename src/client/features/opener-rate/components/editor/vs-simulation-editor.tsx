@@ -87,7 +87,7 @@ export const VsSimulationEditor = () => {
       handleClassName="top-1/2 -translate-y-1/2"
       beforeList={
         <>
-          <div className="rounded-md border border-ui-surface0/80 bg-ui-mantle px-3 py-2.5 text-xs text-ui-subtext0">
+          <div className="rounded-md border border-ui-border1/80 bg-ui-layer1 px-3 py-2.5 text-xs text-ui-text3">
             <p>入力ガイド</p>
             <p className="mt-1">枚数: 相手デッキに入っているその妨害札の枚数</p>
             <p>
@@ -240,7 +240,7 @@ export const VsSimulationEditor = () => {
               </div>
             ) : null}
             {disruption.disruptionCategoryUid != null ? (
-              <p className="text-[11px] text-ui-subtext0">
+              <p className="text-[11px] text-ui-text3">
                 カテゴリ:{" "}
                 {disruptionCategoryByUid.get(disruption.disruptionCategoryUid)
                   ?.name ?? "未設定"}

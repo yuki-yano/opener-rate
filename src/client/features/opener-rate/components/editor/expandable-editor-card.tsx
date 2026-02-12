@@ -63,23 +63,23 @@ export const ExpandableEditorCard = ({
   return (
     <div
       className={cn(
-        "relative min-w-0 space-y-2.5 rounded-md border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--theme-base)/0.45)]",
+        "relative min-w-0 space-y-2.5 rounded-md border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--theme-bg)/0.45)]",
         isActive ? activeContainerClassName : inactiveContainerClassName,
       )}
     >
-      <div className="relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle px-2 py-1.5">
+      <div className="relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer1 px-2 py-1.5">
         <Checkbox
           checked={isActive}
           onChange={(event) => onActiveChange(event.target.checked)}
           aria-label={activeAriaLabel}
           className={cn(
-            "h-8 w-8 justify-center gap-0 border-transparent bg-ui-crust/60 px-0 shadow-none",
-            isActive ? "text-ui-blue" : "text-ui-red",
+            "h-8 w-8 justify-center gap-0 border-transparent bg-ui-layer2/60 px-0 shadow-none",
+            isActive ? "text-ui-primary" : "text-ui-red",
           )}
         />
 
         <Input
-          className="h-9 border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
+          className="h-9 border-ui-border1/80 bg-ui-layer1 text-ui-text placeholder:text-ui-tone2"
           value={name}
           placeholder={namePlaceholder}
           onChange={(event) => onNameChange(event.target.value)}
@@ -92,7 +92,7 @@ export const ExpandableEditorCard = ({
             size="icon"
             className={cn(
               "h-8 w-8 border border-transparent",
-              isMemoExpanded && "text-ui-blue",
+              isMemoExpanded && "text-ui-primary",
             )}
             aria-label={memoAriaLabel}
             onClick={() => {
@@ -112,7 +112,7 @@ export const ExpandableEditorCard = ({
             aria-label={duplicateAriaLabel}
             onClick={onDuplicate}
           >
-            <Copy className="h-4 w-4 text-ui-subtext0" />
+            <Copy className="h-4 w-4 text-ui-text3" />
           </Button>
           <Button
             type="button"
@@ -139,7 +139,7 @@ export const ExpandableEditorCard = ({
             variant="ghost"
             size="icon"
             className={cn(
-              "absolute left-[-1.75rem] z-10 w-5 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue",
+              "absolute left-[-1.75rem] z-10 w-5 rounded-md border border-ui-border1/80 bg-ui-bg p-0 text-ui-text3 shadow-sm transition-colors duration-150 hover:border-ui-primary/60 hover:text-ui-primary",
               expandedToggleButtonClassName ?? "top-1/2 h-8 -translate-y-1/2",
             )}
             aria-label="折りたたむ"
@@ -149,13 +149,13 @@ export const ExpandableEditorCard = ({
           </Button>
         </div>
       ) : (
-        <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/80 px-2.5 py-2 text-xs text-ui-subtext0">
+        <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer1/80 px-2.5 py-2 text-xs text-ui-text3">
           <Button
             type="button"
             variant="ghost"
             size="icon"
             className={cn(
-              "absolute left-[-1.75rem] z-10 w-5 rounded-md border border-ui-surface0/80 bg-ui-base p-0 text-ui-subtext0 shadow-sm transition-colors duration-150 hover:border-ui-blue/60 hover:text-ui-blue",
+              "absolute left-[-1.75rem] z-10 w-5 rounded-md border border-ui-border1/80 bg-ui-bg p-0 text-ui-text3 shadow-sm transition-colors duration-150 hover:border-ui-primary/60 hover:text-ui-primary",
               collapsedToggleButtonClassName ?? "top-1/2 h-8 -translate-y-1/2",
             )}
             aria-label="展開する"

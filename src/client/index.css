@@ -13,26 +13,23 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  --theme-base: 247 250 252;
-  --theme-mantle: 255 255 255;
-  --theme-crust: 237 242 247;
+  --theme-bg: 247 250 252;
+  --theme-layer1: 255 255 255;
+  --theme-layer2: 237 242 247;
   --theme-text: 26 32 44;
-  --theme-subtext1: 45 55 72;
-  --theme-subtext0: 74 85 104;
-  --theme-surface0: 226 232 240;
-  --theme-surface1: 203 213 224;
-  --theme-surface2: 160 174 192;
-  --theme-overlay0: 113 128 150;
-  --theme-overlay1: 74 85 104;
-  --theme-overlay2: 45 55 72;
-  --theme-blue: 49 130 206;
-  --theme-lavender: 66 153 225;
-  --theme-peach: 66 153 225;
+  --theme-text2: 45 55 72;
+  --theme-text3: 74 85 104;
+  --theme-border1: 226 232 240;
+  --theme-border2: 203 213 224;
+  --theme-border3: 160 174 192;
+  --theme-tone1: 113 128 150;
+  --theme-tone2: 74 85 104;
+  --theme-tone3: 45 55 72;
+  --theme-primary: 49 130 206;
+  --theme-primary2: 66 153 225;
   --theme-red: 229 62 62;
   --theme-green: 56 161 105;
   --theme-yellow: 214 158 46;
-  --theme-mauve: 128 90 213;
-  --theme-maroon: 197 48 48;
   --theme-shadow: 15 23 42;
 }
 
@@ -40,7 +37,7 @@ body {
   margin: 0;
   min-height: 100vh;
   min-height: 100svh;
-  background-color: rgb(var(--theme-base));
+  background-color: rgb(var(--theme-bg));
   color: rgb(var(--theme-text));
   font-family: var(--font-body);
 }
@@ -54,7 +51,7 @@ a {
 }
 
 ::selection {
-  background-color: rgb(var(--theme-blue) / 0.18);
+  background-color: rgb(var(--theme-primary) / 0.18);
   color: rgb(var(--theme-text));
 }
 

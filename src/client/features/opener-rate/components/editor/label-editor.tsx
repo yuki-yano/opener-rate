@@ -99,7 +99,7 @@ export const LabelEditor = () => {
               )
             }
             topGridClassName="grid-cols-[minmax(0,1fr)_auto]"
-            nameInputClassName="border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
+            nameInputClassName="border-ui-border1/80 bg-ui-layer1 text-ui-text placeholder:text-ui-tone2"
             actionsClassName="justify-end"
           />
         );

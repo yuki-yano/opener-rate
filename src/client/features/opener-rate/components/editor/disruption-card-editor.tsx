@@ -224,7 +224,7 @@ export const DisruptionCardEditor = () => {
               topGridClassName="grid-cols-[minmax(0,1fr)_auto]"
             >
               <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
-                <label className="space-y-1 text-[11px] text-ui-subtext0">
+                <label className="space-y-1 text-[11px] text-ui-text3">
                   妨害カテゴリ（任意）
                   <Select
                     ariaLabel="妨害カテゴリ"

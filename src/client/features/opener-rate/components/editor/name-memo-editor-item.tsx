@@ -61,7 +61,7 @@ export const NameMemoEditorItem = ({
             type="button"
             variant="ghost"
             size="icon"
-            className={isMemoExpanded ? "text-ui-blue" : undefined}
+            className={isMemoExpanded ? "text-ui-primary" : undefined}
             aria-label="メモ表示切り替え"
             onClick={onToggleMemo}
           >

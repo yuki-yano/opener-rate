@@ -25,7 +25,7 @@ export const SectionCard = ({
   return (
     <Card
       className={cn(
-        "relative border-ui-surface0 bg-ui-mantle p-0 shadow-panel",
+        "relative border-ui-border1 bg-ui-layer1 p-0 shadow-panel",
         className,
       )}
     >
@@ -34,7 +34,7 @@ export const SectionCard = ({
           <div className="sticky top-3 flex justify-end px-4 pt-3">
             <div
               className={cn(
-                "pointer-events-auto w-fit [&>button]:border-ui-surface0 [&>button]:bg-ui-mantle [&>button]:shadow-sm [&>button]:hover:bg-ui-crust",
+                "pointer-events-auto w-fit [&>button]:border-ui-border1 [&>button]:bg-ui-layer1 [&>button]:shadow-sm [&>button]:hover:bg-ui-layer2",
                 floatingActionsClassName,
               )}
             >
@@ -45,14 +45,14 @@ export const SectionCard = ({
       ) : null}
       <header
         className={cn(
-          "rounded-t-md border-b border-ui-surface0 bg-ui-crust px-4 py-3",
+          "rounded-t-md border-b border-ui-border1 bg-ui-layer2 px-4 py-3",
         )}
       >
         <div className="flex items-start justify-between gap-3">
           <div className={cn("space-y-0.5", floatingActions && "pr-12")}>
             <h2 className="text-sm font-semibold text-ui-text">{title}</h2>
             {description ? (
-              <p className="text-xs text-ui-subtext0">{description}</p>
+              <p className="text-xs text-ui-text3">{description}</p>
             ) : null}
           </div>
           {actions ? (

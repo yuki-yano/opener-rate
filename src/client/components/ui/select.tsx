@@ -60,9 +60,9 @@ export const Select = ({
             disabled={disabled}
             className={cn(
               "h-10 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-normal",
-              "hover:bg-ui-mantle active:bg-ui-mantle",
+              "hover:bg-ui-layer1 active:bg-ui-layer1",
               selectTriggerFocusClassName,
-              !selectedOption && "text-ui-overlay1",
+              !selectedOption && "text-ui-tone2",
               triggerClassName,
             )}
           >
@@ -101,8 +101,8 @@ export const Select = ({
                   disabled={option.disabled}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-ui-text transition",
-                    "focus-visible:bg-ui-crust focus-visible:outline-none",
-                    selected && "bg-ui-crust",
+                    "focus-visible:bg-ui-layer2 focus-visible:outline-none",
+                    selected && "bg-ui-layer2",
                     option.disabled && "cursor-not-allowed opacity-50",
                   )}
                   onClick={() => {
@@ -113,8 +113,9 @@ export const Select = ({
                 >
                   <span
                     className={cn(
-                      "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-ui-surface1",
-                      selected && "border-ui-blue bg-ui-blue/16 text-ui-blue",
+                      "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-ui-border2",
+                      selected &&
+                        "border-ui-primary bg-ui-primary/16 text-ui-primary",
                     )}
                   >
                     <Check

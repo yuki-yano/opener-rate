@@ -218,8 +218,8 @@ export const SubPatternEditor = () => {
               collapsedToggleButtonClassName="top-0 bottom-0 h-auto"
               name={subPattern.name}
               namePlaceholder="サブパターン名（必須）"
-              activeContainerClassName="border-ui-blue/65 bg-ui-crust/82"
-              inactiveContainerClassName="border-ui-red/65 bg-ui-crust/82"
+              activeContainerClassName="border-ui-primary/65 bg-ui-layer2/82"
+              inactiveContainerClassName="border-ui-red/65 bg-ui-layer2/82"
               activeAriaLabel="サブパターン有効切り替え"
               memoAriaLabel="メモ表示切り替え"
               duplicateAriaLabel="サブパターン複製"
@@ -256,7 +256,7 @@ export const SubPatternEditor = () => {
               }}
               onToggleCollapsed={() => toggleCollapsed(subPattern.uid)}
               expandedBody={
-                <div className="space-y-2.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
+                <div className="space-y-2.5 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5">
                   <div className="grid min-w-0 gap-2 lg:grid-cols-2">
                     <label className={`min-w-0 ${editorFieldLabelClassName}`}>
                       対象基礎パターン
@@ -338,7 +338,7 @@ export const SubPatternEditor = () => {
 
                   <div className="space-y-2">
                     {subPattern.triggerConditions.length === 0 ? (
-                      <p className="text-xs text-ui-overlay1">
+                      <p className="text-xs text-ui-tone2">
                         条件がありません。「条件追加」から作成してください。
                       </p>
                     ) : null}

@@ -31,9 +31,9 @@ export const EffectListEditor = ({
   onChangePenetrationAmount,
 }: EffectListEditorProps) => {
   return (
-    <div className="space-y-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
+    <div className="space-y-2 rounded-md border border-ui-border1/70 bg-ui-layer1/85 p-2.5">
       <div className="flex items-center justify-between gap-2">
-        <p className="text-xs text-ui-subtext0">効果</p>
+        <p className="text-xs text-ui-text3">効果</p>
         <Button
           type="button"
           variant="outline"
@@ -46,7 +46,7 @@ export const EffectListEditor = ({
       </div>
 
       {effects.length === 0 ? (
-        <p className="text-xs text-ui-overlay1">
+        <p className="text-xs text-ui-tone2">
           効果がありません。「効果追加」から作成してください。
         </p>
       ) : (
@@ -54,7 +54,7 @@ export const EffectListEditor = ({
           {effects.map((effect, effectIndex) => (
             <div
               key={`effect-${effectIndex}`}
-              className="grid min-w-0 gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/55 p-2.5"
+              className="grid min-w-0 gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/55 p-2.5"
             >
               <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
                 <Select
@@ -115,7 +115,7 @@ export const EffectListEditor = ({
                         }
                       />
                     </div>
-                    <p className="text-[11px] text-ui-subtext0">
+                    <p className="text-[11px] text-ui-text3">
                       対象妨害カテゴリは複数選択できます。
                     </p>
                   </div>

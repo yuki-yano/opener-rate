@@ -143,7 +143,7 @@ export const PatternConditionEditor = ({
   };
 
   return (
-    <div className="min-w-0 space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle p-2.5">
+    <div className="min-w-0 space-y-2 rounded-md border border-ui-border1/80 bg-ui-layer1 p-2.5">
       {!isCountCondition(condition) ? (
         <div className="grid min-w-0 items-start gap-2 sm:grid-cols-[minmax(0,1fr)_max-content]">
           <label
@@ -261,7 +261,7 @@ export const PatternConditionEditor = ({
             {condition.rules.map((rule, ruleIndex) => (
               <div
                 key={`${index}-rule-${ruleIndex}`}
-                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5"
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5"
               >
                 <Select
                   ariaLabel={`条件${index + 1}ルール${ruleIndex + 1}の集計方式`}
