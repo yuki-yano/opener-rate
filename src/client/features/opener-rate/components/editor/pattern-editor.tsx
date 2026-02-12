@@ -241,7 +241,9 @@ export const PatternEditor = () => {
               onToggleMemo={() => toggleMemo(pattern.uid)}
               onDuplicate={() => handleDuplicatePattern(pattern.uid)}
               onRemove={() => {
-                setExpandedMemoUids((current) => removeUid(current, pattern.uid));
+                setExpandedMemoUids((current) =>
+                  removeUid(current, pattern.uid),
+                );
                 setCollapsedPatternUids((current) =>
                   removeUid(current, pattern.uid),
                 );

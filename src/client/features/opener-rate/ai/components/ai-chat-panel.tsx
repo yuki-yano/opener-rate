@@ -1,4 +1,12 @@
-import { Button, Input, Popover, PopoverContent, PopoverTrigger, Select, Textarea } from "../../../../components/ui";
+import {
+  Button,
+  Input,
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+  Select,
+  Textarea,
+} from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
 import {
   AlertCircle,
@@ -111,7 +119,11 @@ export const AiChatPanel = ({ controller }: AiChatPanelProps) => {
       </header>
 
       <div className="relative flex-1 overflow-hidden bg-[linear-gradient(180deg,rgba(var(--theme-base),0.72),rgba(var(--theme-mantle),0.98))]">
-        <StickToBottom className="relative h-full" initial="smooth" resize="smooth">
+        <StickToBottom
+          className="relative h-full"
+          initial="smooth"
+          resize="smooth"
+        >
           <StickToBottom.Content
             scrollClassName="overscroll-contain"
             className="space-y-3 px-4 py-4"
@@ -133,7 +145,10 @@ export const AiChatPanel = ({ controller }: AiChatPanelProps) => {
               return (
                 <div
                   key={key}
-                  className={cn("flex", isUser ? "justify-end" : "justify-start")}
+                  className={cn(
+                    "flex",
+                    isUser ? "justify-end" : "justify-start",
+                  )}
                 >
                   <div className="max-w-[92%] space-y-1.5">
                     <div
@@ -253,7 +268,9 @@ export const AiChatPanel = ({ controller }: AiChatPanelProps) => {
                 disabled={controller.isLoading}
                 triggerClassName="h-9 w-full min-w-0 bg-ui-mantle text-xs"
                 onChange={(next) =>
-                  controller.setThinkingLevel(next as typeof controller.thinkingLevel)
+                  controller.setThinkingLevel(
+                    next as typeof controller.thinkingLevel,
+                  )
                 }
               />
             </div>
@@ -276,7 +293,9 @@ export const AiChatPanel = ({ controller }: AiChatPanelProps) => {
                   ) : (
                     <AlertCircle className="h-3.5 w-3.5" />
                   )}
-                  <span className="truncate">{controller.applyFeedback.text}</span>
+                  <span className="truncate">
+                    {controller.applyFeedback.text}
+                  </span>
                 </div>
               ) : null}
             </div>
@@ -310,7 +329,10 @@ export const AiChatPanel = ({ controller }: AiChatPanelProps) => {
           </div>
         </div>
 
-        <form className="flex items-center gap-2" onSubmit={controller.submitMessage}>
+        <form
+          className="flex items-center gap-2"
+          onSubmit={controller.submitMessage}
+        >
           <Popover
             open={controller.historyPopoverOpen}
             onOpenChange={controller.setHistoryPopoverOpen}

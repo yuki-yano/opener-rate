@@ -34,9 +34,10 @@ export const draftCardSchema: ZodType<Card> = cardSchema.extend({
 export const draftPatternSchema: ZodType<Pattern> = patternSchema.extend({
   name: z.string(),
 });
-export const draftSubPatternSchema: ZodType<SubPattern> = subPatternSchema.extend({
-  name: z.string(),
-});
+export const draftSubPatternSchema: ZodType<SubPattern> =
+  subPatternSchema.extend({
+    name: z.string(),
+  });
 export const draftLabelSchema: ZodType<Label> = labelSchema.extend({
   name: z.string(),
 });
@@ -60,6 +61,8 @@ export const draftVsSchema: ZodType<VsSimulationInput> =
 export const cardsSchema = z.array(draftCardSchema);
 export const patternsSchema = z.array(draftPatternSchema);
 export const labelsSchema = z.array(draftLabelSchema);
-export const disruptionCategoriesSchema = z.array(draftDisruptionCategorySchema);
+export const disruptionCategoriesSchema = z.array(
+  draftDisruptionCategorySchema,
+);
 export const disruptionCardsSchema = z.array(draftDisruptionCardSchema);
 export const subPatternsSchema = z.array(draftSubPatternSchema);

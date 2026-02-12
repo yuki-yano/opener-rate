@@ -26,6 +26,8 @@ describe("parseChatErrorMessage", () => {
   });
 
   it("returns original text when message is not JSON", () => {
-    expect(parseChatErrorMessage(new Error("network down"))).toBe("network down");
+    expect(parseChatErrorMessage(new Error("network down"))).toBe(
+      "network down",
+    );
   });
 });

@@ -247,7 +247,9 @@ export const SubPatternEditor = () => {
                 setExpandedMemoUids((current) =>
                   removeUid(current, subPattern.uid),
                 );
-                setCollapsedUids((current) => removeUid(current, subPattern.uid));
+                setCollapsedUids((current) =>
+                  removeUid(current, subPattern.uid),
+                );
                 setSubPatterns((current) =>
                   removeItemByUid(current, subPattern.uid),
                 );

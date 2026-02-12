@@ -132,14 +132,23 @@ export const useAiChatController = (): UseAiChatControllerResult => {
     [],
   );
 
-  const { messages, setMessages, sendMessage, regenerate, status, stop, error } =
-    useChat({
-      transport,
-    });
+  const {
+    messages,
+    setMessages,
+    sendMessage,
+    regenerate,
+    status,
+    stop,
+    error,
+  } = useChat({
+    transport,
+  });
 
   const isLoading = status === "submitted" || status === "streaming";
   const loadingLabel =
-    status === "submitted" ? "送信しています..." : "AIが回答を生成しています...";
+    status === "submitted"
+      ? "送信しています..."
+      : "AIが回答を生成しています...";
   const parsedError = parseChatErrorMessage(error);
 
   const nonSystemMessages = useMemo(() => {

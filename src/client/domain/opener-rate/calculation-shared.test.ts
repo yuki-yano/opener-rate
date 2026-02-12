@@ -27,7 +27,9 @@ describe("calculation-shared", () => {
       name: "pattern-1",
       active: true,
       excludeFromOverall: false,
-      conditions: [{ mode: "required", count: 1, uids: ["card-1"], indices: [0] }],
+      conditions: [
+        { mode: "required", count: 1, uids: ["card-1"], indices: [0] },
+      ],
       labels: [{ uid: "label-1" }],
       effects: [],
       memo: "",
@@ -66,7 +68,9 @@ describe("calculation-shared", () => {
       name: "pattern-1",
       active: true,
       excludeFromOverall: true,
-      conditions: [{ mode: "required", count: 1, uids: ["card-1"], indices: [0] }],
+      conditions: [
+        { mode: "required", count: 1, uids: ["card-1"], indices: [0] },
+      ],
       labels: [{ uid: "label-1" }],
       effects: [],
       memo: "",
@@ -81,7 +85,9 @@ describe("calculation-shared", () => {
     });
 
     expect(outcome.baseSuccess).toBe(false);
-    expect(outcome.countablePatternEffects.countableMatchedPatternUids).toEqual([]);
+    expect(outcome.countablePatternEffects.countableMatchedPatternUids).toEqual(
+      [],
+    );
     expect(outcome.countableMatchedLabelUids).toEqual(new Set());
   });
 });
