@@ -479,7 +479,7 @@ export const PatternEditor = () => {
                       "inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium leading-4",
                       isExcludedFromOverall
                         ? "border-ui-yellow/60 bg-ui-yellow/16 text-ui-subtext1 shadow-[inset_0_0_0_1px_rgb(var(--theme-yellow)/0.22)]"
-                        : "border-ui-green/50 bg-ui-green/12 text-ui-subtext1 shadow-[inset_0_0_0_1px_rgb(var(--theme-green)/0.16)]",
+                        : "border-ui-blue/55 bg-ui-blue/12 text-ui-subtext1 shadow-[inset_0_0_0_1px_rgb(var(--theme-blue)/0.18)]",
                     )}
                   >
                     {isExcludedFromOverall ? "合計: 除外" : "合計: 対象"}
