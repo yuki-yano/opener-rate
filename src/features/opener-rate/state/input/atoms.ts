@@ -177,12 +177,13 @@ export const labelsAtom = atomWithStableHash<Label[]>(
   [],
   createHashSerializeOptions([], labelsSchema),
 );
-export const disruptionCategoriesAtom =
-  atomWithStableHash<DisruptionCategory[]>(
-    "disruptionCategory",
-    [],
-    createHashSerializeOptions([], disruptionCategoriesSchema),
-  );
+export const disruptionCategoriesAtom = atomWithStableHash<
+  DisruptionCategory[]
+>(
+  "disruptionCategory",
+  [],
+  createHashSerializeOptions([], disruptionCategoriesSchema),
+);
 export const disruptionCardsAtom = atomWithStableHash<DisruptionCard[]>(
   "disruptionCard",
   [],
