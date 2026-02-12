@@ -42,6 +42,62 @@ const isShortUrlPath = (url: string) => {
   }
 };
 
+const shortUrlLockStorageKey = "openerRate.shortUrlLockState";
+type PersistedShortUrlLockState = {
+  sourceHref: string;
+  sharedShortUrl: string;
+};
+
+const getSessionStorage = () => {
+  if (typeof window === "undefined") return null;
+  try {
+    return window.sessionStorage;
+  } catch {
+    return null;
+  }
+};
+
+const readShortUrlLockState = (): PersistedShortUrlLockState | null => {
+  const storage = getSessionStorage();
+  if (storage == null) return null;
+  try {
+    const raw = storage.getItem(shortUrlLockStorageKey);
+    if (raw == null) return null;
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed == null) return null;
+    if (!("sourceHref" in parsed) || !("sharedShortUrl" in parsed)) {
+      return null;
+    }
+    const sourceHref = parsed.sourceHref;
+    const sharedShortUrl = parsed.sharedShortUrl;
+    if (
+      typeof sourceHref !== "string" ||
+      sourceHref.length === 0 ||
+      typeof sharedShortUrl !== "string" ||
+      sharedShortUrl.length === 0
+    ) {
+      return null;
+    }
+    return { sourceHref, sharedShortUrl };
+  } catch {
+    return null;
+  }
+};
+
+const writeShortUrlLockState = (state: PersistedShortUrlLockState | null) => {
+  const storage = getSessionStorage();
+  if (storage == null) return;
+  try {
+    if (state == null) {
+      storage.removeItem(shortUrlLockStorageKey);
+      return;
+    }
+    storage.setItem(shortUrlLockStorageKey, JSON.stringify(state));
+  } catch {
+    // storage が使えない環境は永続化をスキップ
+  }
+};
+
 const getCurrentHref = () => {
   if (typeof window === "undefined") return null;
   return window.location.href;
@@ -104,6 +160,7 @@ export const runCreateShortUrlAtom = atom(
       set(shortUrlInputAtom, response.shortenUrl);
       set(shortUrlLockedUntilChangeAtom, false);
       set(shortUrlLockedSourceHrefAtom, null);
+      writeShortUrlLockState(null);
       set(shortUrlCacheAtom, (prev) => ({
         ...prev,
         [url]: response.shortenUrl,
@@ -126,10 +183,32 @@ export const runShareCurrentUrlAtom = atom(null, async (get, set) => {
     set(shortUrlErrorAtom, null);
     set(shortUrlLockedUntilChangeAtom, false);
     set(shortUrlLockedSourceHrefAtom, null);
+    writeShortUrlLockState(null);
     return;
   }
 
   await set(runCreateShortUrlAtom, currentUrl);
+});
+
+export const hydrateShortUrlLockAtom = atom(null, (_get, set) => {
+  const persisted = readShortUrlLockState();
+  if (persisted == null) return;
+
+  const currentHref = getCurrentHref();
+  if (currentHref == null || currentHref !== persisted.sourceHref) {
+    writeShortUrlLockState(null);
+    return;
+  }
+
+  set(shortUrlInputAtom, persisted.sharedShortUrl);
+  set(shortUrlResultAtom, persisted.sharedShortUrl);
+  set(shortUrlErrorAtom, null);
+  set(shortUrlLockedUntilChangeAtom, true);
+  set(shortUrlLockedSourceHrefAtom, persisted.sourceHref);
+  set(shortUrlCacheAtom, (prev) => ({
+    ...prev,
+    [persisted.sharedShortUrl]: persisted.sharedShortUrl,
+  }));
 });
 
 export const seedSharedUrlAsGeneratedAtom = atom(
@@ -141,14 +220,22 @@ export const seedSharedUrlAsGeneratedAtom = atom(
     if (!isShortUrl) {
       set(shortUrlLockedUntilChangeAtom, false);
       set(shortUrlLockedSourceHrefAtom, null);
+      writeShortUrlLockState(null);
       return;
     }
 
+    const sourceHref = getCurrentHref();
     set(shortUrlInputAtom, url);
     set(shortUrlResultAtom, url);
     set(shortUrlErrorAtom, null);
     set(shortUrlLockedUntilChangeAtom, true);
-    set(shortUrlLockedSourceHrefAtom, getCurrentHref());
+    set(shortUrlLockedSourceHrefAtom, sourceHref);
     set(shortUrlCacheAtom, (prev) => ({ ...prev, [url]: url }));
+    if (sourceHref != null) {
+      writeShortUrlLockState({
+        sourceHref,
+        sharedShortUrl: url,
+      });
+    }
   },
 );

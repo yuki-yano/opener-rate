@@ -2,6 +2,7 @@ import { useEffect } from "react";
 import { useSetAtom } from "jotai";
 
 import {
+  hydrateShortUrlLockAtom,
   markSavedSnapshotAtom,
   runCalculateAtom,
   seedSharedUrlAsGeneratedAtom,
@@ -68,6 +69,7 @@ const isLocalRuntime = () => {
 };
 
 export const OpenerRateScreen = () => {
+  const hydrateShortUrlLock = useSetAtom(hydrateShortUrlLockAtom);
   const markSavedSnapshot = useSetAtom(markSavedSnapshotAtom);
   const runCalculate = useSetAtom(runCalculateAtom);
   const seedSharedUrlAsGenerated = useSetAtom(seedSharedUrlAsGeneratedAtom);
@@ -81,6 +83,8 @@ export const OpenerRateScreen = () => {
     const redirectSourceShortUrl = consumeRedirectSourceShortUrl();
     if (redirectSourceShortUrl != null) {
       seedSharedUrlAsGenerated(redirectSourceShortUrl);
+    } else {
+      hydrateShortUrlLock();
     }
     if (!hasUrlState()) return;
 
@@ -88,7 +92,7 @@ export const OpenerRateScreen = () => {
     if (autoCalculatedUrls.has(currentUrl)) return;
     autoCalculatedUrls.add(currentUrl);
     void runCalculate();
-  }, [runCalculate, seedSharedUrlAsGenerated]);
+  }, [hydrateShortUrlLock, runCalculate, seedSharedUrlAsGenerated]);
 
   useEffect(() => {
     return installWindowStateBridge();

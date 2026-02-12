@@ -8,6 +8,7 @@ export {
 } from "./derived/atoms";
 export {
   clearCalculationStateAtom,
+  hydrateShortUrlLockAtom,
   markSavedSnapshotAtom,
   runCalculateAtom,
   runCreateShortUrlAtom,

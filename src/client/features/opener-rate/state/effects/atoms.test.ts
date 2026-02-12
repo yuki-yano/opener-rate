@@ -7,6 +7,7 @@ import { ApiClientError } from "../../api/errors";
 import { isShortUrlGenerationLockedAtom } from "../derived/atoms";
 import { deckNameAtom } from "../input/atoms";
 import {
+  hydrateShortUrlLockAtom,
   runCalculateAtom,
   runCreateShortUrlAtom,
   seedSharedUrlAsGeneratedAtom,
@@ -17,10 +18,17 @@ import {
   shortUrlCacheAtom,
   shortUrlErrorAtom,
   shortUrlInputAtom,
+  shortUrlLockedSourceHrefAtom,
   shortUrlLockedUntilChangeAtom,
   shortUrlLoadingAtom,
   shortUrlResultAtom,
 } from "../ui/atoms";
+
+type MockSessionStorage = {
+  getItem: ReturnType<typeof vi.fn>;
+  setItem: ReturnType<typeof vi.fn>;
+  removeItem: ReturnType<typeof vi.fn>;
+};
 
 type MockWindow = {
   location: {
@@ -36,6 +44,7 @@ type MockWindow = {
   };
   addEventListener: ReturnType<typeof vi.fn>;
   removeEventListener: ReturnType<typeof vi.fn>;
+  sessionStorage: MockSessionStorage;
 };
 
 const updateLocationFromUrl = (
@@ -52,6 +61,7 @@ const updateLocationFromUrl = (
 
 const createMockWindow = (initialUrl = "https://example.com/"): MockWindow => {
   const parsed = new URL(initialUrl);
+  const storage = new Map<string, string>();
   const location: MockWindow["location"] = {
     pathname: parsed.pathname,
     search: parsed.search,
@@ -73,11 +83,22 @@ const createMockWindow = (initialUrl = "https://example.com/"): MockWindow => {
     ),
   };
 
+  const sessionStorage: MockSessionStorage = {
+    getItem: vi.fn((key: string) => storage.get(key) ?? null),
+    setItem: vi.fn((key: string, value: string) => {
+      storage.set(key, value);
+    }),
+    removeItem: vi.fn((key: string) => {
+      storage.delete(key);
+    }),
+  };
+
   return {
     location,
     history,
     addEventListener: vi.fn(),
     removeEventListener: vi.fn(),
+    sessionStorage,
   };
 };
 
@@ -174,7 +195,11 @@ describe("seedSharedUrlAsGeneratedAtom", () => {
     expect(store.get(shortUrlResultAtom)).toBe(sharedUrl);
     expect(store.get(shortUrlCacheAtom)[sharedUrl]).toBe(sharedUrl);
     expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
+      "https://example.com/#deck=abc",
+    );
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+    expect(mockWindow.sessionStorage.setItem).toHaveBeenCalled();
   });
 
   it("unlocks regeneration when href changes after seed", () => {
@@ -190,6 +215,72 @@ describe("seedSharedUrlAsGeneratedAtom", () => {
 
     expect(mockWindow.location.href).toContain("#");
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(false);
+  });
+});
+
+describe("hydrateShortUrlLockAtom", () => {
+  const originalWindow = globalThis.window;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (originalWindow == null) {
+      delete (globalThis as { window?: Window }).window;
+      return;
+    }
+    Object.defineProperty(globalThis, "window", {
+      value: originalWindow,
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  it("restores lock state when persisted href matches current href", () => {
+    const mockWindow = createMockWindow("https://example.com/#deck=abc");
+    mockWindow.sessionStorage.setItem(
+      "openerRate.shortUrlLockState",
+      JSON.stringify({
+        sourceHref: "https://example.com/#deck=abc",
+        sharedShortUrl: "https://example.com/short_url/abc123de",
+      }),
+    );
+    setGlobalWindow(mockWindow);
+
+    const store = createStore();
+    store.set(hydrateShortUrlLockAtom);
+
+    expect(store.get(shortUrlInputAtom)).toBe(
+      "https://example.com/short_url/abc123de",
+    );
+    expect(store.get(shortUrlResultAtom)).toBe(
+      "https://example.com/short_url/abc123de",
+    );
+    expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
+      "https://example.com/#deck=abc",
+    );
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+  });
+
+  it("drops persisted lock when href does not match", () => {
+    const mockWindow = createMockWindow("https://example.com/#deck=other");
+    mockWindow.sessionStorage.setItem(
+      "openerRate.shortUrlLockState",
+      JSON.stringify({
+        sourceHref: "https://example.com/#deck=abc",
+        sharedShortUrl: "https://example.com/short_url/abc123de",
+      }),
+    );
+    setGlobalWindow(mockWindow);
+
+    const store = createStore();
+    store.set(hydrateShortUrlLockAtom);
+
+    expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(false);
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBeNull();
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(false);
+    expect(
+      mockWindow.sessionStorage.getItem("openerRate.shortUrlLockState"),
+    ).toBeNull();
   });
 });
 
