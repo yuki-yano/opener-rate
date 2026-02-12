@@ -222,12 +222,24 @@ export const calculateOutputSchema = z.object({
   error: calculationErrorSchema.optional(),
 });
 
+const httpUrlSchema = z
+  .string()
+  .url()
+  .refine((value) => {
+    try {
+      const protocol = new URL(value).protocol;
+      return protocol === "http:" || protocol === "https:";
+    } catch {
+      return false;
+    }
+  }, "URLはhttp/httpsのみ対応しています");
+
 export const shortenUrlRequestSchema = z.object({
-  url: z.string().url(),
+  url: httpUrlSchema,
 });
 
 export const shortenUrlResponseSchema = z.object({
-  shortenUrl: z.string().url(),
+  shortenUrl: httpUrlSchema,
 });
 
 export type CalculationMode = z.infer<typeof calculationModeSchema>;

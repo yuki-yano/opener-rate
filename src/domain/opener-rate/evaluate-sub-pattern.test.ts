@@ -169,6 +169,40 @@ describe("evaluateSubPatterns", () => {
     expect(result.addedLabelUids).toEqual([]);
   });
 
+  it("evaluates base_match_total from hand counts when matched card usage is unavailable", () => {
+    const compiledSubPatterns: CompiledSubPattern[] = [
+      {
+        uid: "sp1",
+        name: "成立内ヨクル",
+        active: true,
+        basePatternUids: ["p1"],
+        triggerConditions: [
+          {
+            mode: "base_match_total",
+            operator: "gte",
+            threshold: 1,
+            rules: [{ mode: "raw", indices: [2] }],
+          },
+        ],
+        triggerSourceIndices: [],
+        applyLimit: "once_per_trial",
+        effects: [{ type: "add_label", labelUids: ["l-hit"] }],
+        memo: "",
+      },
+    ];
+
+    const result = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([0, 0, 1]),
+      matchedPatternUids: ["p1"],
+      matchedCardCountsByPatternUid: {
+        p1: {},
+      },
+    });
+
+    expect(result.addedLabelUids).toEqual(["l-hit"]);
+  });
+
   it("works with matched-card usage produced by evaluatePatterns", () => {
     const compiledPatterns: CompiledPattern[] = [
       {

@@ -681,4 +681,104 @@ describe("calculateOpenerRateDomain", () => {
     expect(notEnough.overallProbability).toBe("0.00");
     expect(notEnough.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
   });
+
+  it("does not consume prosperity when remaining deck is smaller than cost", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [],
+      patterns: [
+        {
+          uid: "p-prosperity-in-hand",
+          name: "金満が手札に残る",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["prosperity_card"],
+            },
+          ],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 1, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+    });
+
+    expect(result.mode).toBe("simulation");
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-prosperity-in-hand", rate: "100.00" },
+    ]);
+  });
+
+  it("applies base_match_total even when base pattern has no matched-card usage details", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 2, firstHand: 1 },
+      cards: [{ uid: "a", name: "A", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-draw-total",
+          name: "Aを引いた",
+          active: true,
+          conditions: [
+            {
+              mode: "draw_total",
+              operator: "gte",
+              threshold: 1,
+              rules: [{ uids: ["a"], mode: "raw" }],
+            },
+          ],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp-base-match-total",
+          name: "成立内A",
+          active: true,
+          basePatternUids: ["p-draw-total"],
+          triggerConditions: [
+            {
+              mode: "base_match_total",
+              operator: "gte",
+              threshold: 1,
+              rules: [{ uids: ["a"], mode: "raw" }],
+            },
+          ],
+          triggerSourceUids: [],
+          applyLimit: "once_per_trial",
+          effects: [{ type: "add_label", labelUids: ["l-hit"] }],
+          memo: "",
+        },
+      ],
+      labels: [{ uid: "l-hit", name: "成立内ラベル", memo: "" }],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 1000,
+      },
+    });
+
+    expect(result.mode).toBe("exact");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-draw-total", rate: "50.00" },
+    ]);
+    expect(result.labelSuccessRates).toEqual([{ uid: "l-hit", rate: "50.00" }]);
+  });
 });

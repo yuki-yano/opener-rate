@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { calculateInputSchema } from "./apiSchemas";
+import { calculateInputSchema, shortenUrlRequestSchema } from "./apiSchemas";
 
 describe("apiSchemas", () => {
   it("accepts draw_total and remain_total count conditions", () => {
@@ -417,5 +417,26 @@ describe("apiSchemas", () => {
     });
 
     expect(result.success).toBe(false);
+  });
+
+  it("accepts only http/https for shortenUrlRequest", () => {
+    expect(
+      shortenUrlRequestSchema.safeParse({ url: "https://example.com/path" })
+        .success,
+    ).toBe(true);
+    expect(
+      shortenUrlRequestSchema.safeParse({ url: "http://localhost:5173/" })
+        .success,
+    ).toBe(true);
+    expect(
+      shortenUrlRequestSchema.safeParse({ url: "javascript:alert(1)" }).success,
+    ).toBe(false);
+    expect(
+      shortenUrlRequestSchema.safeParse({ url: "data:text/html,test" }).success,
+    ).toBe(false);
+    expect(
+      shortenUrlRequestSchema.safeParse({ url: "ftp://example.com/path" })
+        .success,
+    ).toBe(false);
   });
 });

@@ -11,6 +11,13 @@ import type { AppEnv } from "../types";
 const app = new Hono<AppEnv>();
 const BASE_SHARE_TITLE = "初動率シミュレーター";
 const REDIRECT_SOURCE_SHORT_URL_KEY = "openerRate.redirectSourceShortUrl";
+const isHttpProtocol = (protocol: string) =>
+  protocol === "http:" || protocol === "https:";
+const isLocalHostname = (hostname: string) =>
+  hostname === "localhost" ||
+  hostname === "127.0.0.1" ||
+  hostname === "0.0.0.0" ||
+  hostname === "::1";
 
 const pickFirstHeaderValue = (raw: string | null) => {
   if (raw == null) return null;
@@ -61,6 +68,32 @@ const resolveRequestOrigin = (request: Request) => {
   }
 
   return parsed.origin;
+};
+
+const resolveSafeRedirectTarget = (params: {
+  targetUrl: string;
+  trustedOrigin: string;
+  configuredOrigin?: string;
+}) => {
+  const trustedOrigin = new URL(params.trustedOrigin).origin;
+  const parsedTarget = new URL(params.targetUrl);
+  const configuredOrigin =
+    params.configuredOrigin == null ||
+    params.configuredOrigin.trim().length === 0
+      ? null
+      : new URL(params.configuredOrigin).origin;
+  if (!isHttpProtocol(parsedTarget.protocol)) return null;
+  if (parsedTarget.origin === trustedOrigin) return parsedTarget;
+  if (configuredOrigin != null && parsedTarget.origin === configuredOrigin) {
+    return parsedTarget;
+  }
+  if (
+    isLocalHostname(parsedTarget.hostname) &&
+    isLocalHostname(new URL(trustedOrigin).hostname)
+  ) {
+    return parsedTarget;
+  }
+  return null;
 };
 
 const decodeNestedURIComponent = (value: string) => {
@@ -147,13 +180,14 @@ export const createShortUrlRoute = app.post(
   zValidator("json", shortenUrlRequestSchema),
   async (c) => {
     const { url } = c.req.valid("json");
+    const trustedOrigin = new URL(c.req.url).origin;
     const requestOrigin = resolveRequestOrigin(c.req.raw);
-    const runtimeOrigin = new URL(c.req.url).origin;
     const response = await createShortUrl({
       bindings: c.env,
       url,
-      requestOrigin,
-      runtimeOrigin,
+      trustedOrigin,
+      responseOrigin: requestOrigin,
+      runtimeOrigin: trustedOrigin,
     });
 
     return c.json({
@@ -166,12 +200,12 @@ export const resolveShortUrlRoute = app.get(
   "/short_url/:key{[0-9a-z]{8}}",
   async (c) => {
     const key = c.req.param("key");
-    const requestOrigin = resolveRequestOrigin(c.req.raw);
+    const trustedOrigin = new URL(c.req.url).origin;
     const sourceShortUrl = new URL(
       `/short_url/${key}`,
-      requestOrigin,
+      trustedOrigin,
     ).toString();
-    const fallbackTargetUrl = new URL("/", requestOrigin).toString();
+    const fallbackTargetUrl = new URL("/", trustedOrigin).toString();
     const targetUrl = await resolveShortUrlTarget({
       bindings: c.env,
       key,
@@ -182,7 +216,14 @@ export const resolveShortUrlRoute = app.get(
     }
 
     try {
-      const parsedTargetUrl = new URL(targetUrl, requestOrigin);
+      const parsedTargetUrl = resolveSafeRedirectTarget({
+        targetUrl,
+        trustedOrigin,
+        configuredOrigin: c.env.APP_ORIGIN,
+      });
+      if (parsedTargetUrl == null) {
+        return c.html(buildRedirectHtml(fallbackTargetUrl, null));
+      }
       const deckName = extractDeckName(
         parsedTargetUrl.searchParams.get("deckName"),
       );

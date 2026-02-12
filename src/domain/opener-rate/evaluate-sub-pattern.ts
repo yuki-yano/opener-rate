@@ -68,9 +68,14 @@ const canApplyByBaseMatchedCards = (params: {
   subPattern: CompiledSubPattern;
   matchedPatternUids: string[];
   matchedCardCountsByPatternUid: Record<string, Record<number, number>>;
+  context: EvaluationContext;
 }) => {
-  const { subPattern, matchedPatternUids, matchedCardCountsByPatternUid } =
-    params;
+  const {
+    subPattern,
+    matchedPatternUids,
+    matchedCardCountsByPatternUid,
+    context,
+  } = params;
   const baseMatchConditions: CompiledBaseMatchCountCondition[] = [];
   const regularConditions: CompiledPatternCondition[] = [];
 
@@ -98,8 +103,21 @@ const canApplyByBaseMatchedCards = (params: {
 
   const hasMatchedPatternWithSatisfiedCards = targetPatternUids.some((uid) => {
     const matchedCardCounts = matchedCardCountsByPatternUid[uid] ?? {};
+    const resolvedMatchedCardCounts =
+      Object.keys(matchedCardCounts).length > 0
+        ? matchedCardCounts
+        : baseMatchConditions
+            .flatMap((condition) => condition.rules)
+            .flatMap((rule) => rule.indices)
+            .reduce<Record<number, number>>((acc, index) => {
+              const count = context.handCounts[index] ?? 0;
+              if (count > 0) {
+                acc[index] = count;
+              }
+              return acc;
+            }, {});
     return baseMatchConditions.every((condition) =>
-      checkBaseMatchCountCondition(condition, matchedCardCounts),
+      checkBaseMatchCountCondition(condition, resolvedMatchedCardCounts),
     );
   });
 
@@ -129,6 +147,7 @@ export const evaluateSubPatterns = (
       subPattern,
       matchedPatternUids,
       matchedCardCountsByPatternUid,
+      context,
     });
     if (!baseMatchCheck.canApply) continue;
     if (
