@@ -111,43 +111,51 @@ export const VsSimulationEditor = () => {
             <label className={editorFieldLabelClassName}>
               相手デッキ枚数
               <Input
-                type="number"
-                min={1}
-                max={120}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={vs.opponentDeckSize}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (!/^\d*$/.test(nextValue)) {
+                    return;
+                  }
                   setVs((current) => ({
                     ...current,
                     opponentDeckSize: Math.min(
                       120,
                       Math.max(
                         1,
-                        toInt(event.target.value, current.opponentDeckSize),
+                        toInt(nextValue, current.opponentDeckSize),
                       ),
                     ),
                   }))
-                }
+                }}
               />
             </label>
             <label className={editorFieldLabelClassName}>
               相手初手枚数
               <Input
-                type="number"
-                min={1}
-                max={20}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={vs.opponentHandSize}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (!/^\d*$/.test(nextValue)) {
+                    return;
+                  }
                   setVs((current) => ({
                     ...current,
                     opponentHandSize: Math.min(
                       20,
                       Math.max(
                         1,
-                        toInt(event.target.value, current.opponentHandSize),
+                        toInt(nextValue, current.opponentHandSize),
                       ),
                     ),
                   }))
-                }
+                }}
               />
             </label>
           </div>
@@ -211,11 +219,15 @@ export const VsSimulationEditor = () => {
               <label className={editorCompactFieldLabelClassName}>
                 枚数
                 <Input
-                  type="number"
-                  min={0}
-                  max={60}
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
                   value={disruption.count}
-                  onChange={(event) =>
+                  onChange={(event) => {
+                    const nextValue = event.target.value;
+                    if (!/^\d*$/.test(nextValue)) {
+                      return;
+                    }
                     setVs((current) => ({
                       ...current,
                       opponentDisruptions: current.opponentDisruptions.map(
@@ -227,14 +239,14 @@ export const VsSimulationEditor = () => {
                                   60,
                                   Math.max(
                                     0,
-                                    toInt(event.target.value, target.count),
+                                    toInt(nextValue, target.count),
                                   ),
                                 ),
                               }
                             : target,
                       ),
                     }))
-                  }
+                  }}
                 />
               </label>
               <Button

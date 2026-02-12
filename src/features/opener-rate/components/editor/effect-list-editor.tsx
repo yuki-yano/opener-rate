@@ -106,23 +106,24 @@ export const EffectListEditor = ({
                       />
                       <Input
                         className="h-9"
-                        type="number"
-                        min={1}
-                        max={20}
+                        type="text"
+                        inputMode="numeric"
+                        pattern="[0-9]*"
                         value={effect.amount}
                         placeholder="加算量"
-                        onChange={(event) =>
+                        onChange={(event) => {
+                          const nextValue = event.target.value;
+                          if (!/^\d*$/.test(nextValue)) {
+                            return;
+                          }
                           onChangePenetrationAmount(
                             effectIndex,
                             Math.max(
                               1,
-                              Math.min(
-                                20,
-                                toInt(event.target.value, effect.amount),
-                              ),
+                              Math.min(20, toInt(nextValue, effect.amount)),
                             ),
-                          )
-                        }
+                          );
+                        }}
                       />
                     </div>
                     <p className="text-[11px] text-ui-subtext0">

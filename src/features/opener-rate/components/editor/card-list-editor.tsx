@@ -105,11 +105,15 @@ export const CardListEditor = () => {
             actionsClassName="justify-end"
             topMiddle={
               <Input
-                type="number"
-                min={0}
-                max={60}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={card.count}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (!/^\d*$/.test(nextValue)) {
+                    return;
+                  }
                   setCards((current) =>
                     current.map((target) =>
                       target.uid === card.uid
@@ -119,14 +123,14 @@ export const CardListEditor = () => {
                               0,
                               Math.min(
                                 60,
-                                toInt(event.target.value, target.count),
+                                toInt(nextValue, target.count),
                               ),
                             ),
                           }
                         : target,
                     ),
                   )
-                }
+                }}
               />
             }
           />

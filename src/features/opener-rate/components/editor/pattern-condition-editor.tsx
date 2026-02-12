@@ -149,58 +149,12 @@ export const PatternConditionEditor = ({
 
   return (
     <div className="min-w-0 space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle p-2.5">
-      <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-2">
-        <Select
-          ariaLabel={`条件${index + 1}の種類`}
-          triggerClassName="h-9"
-          listClassName="max-h-none overflow-visible"
-          value={condition.mode}
-          options={modeOptions}
-          onChange={(next) =>
-            emitChange(
-              switchConditionMode(
-                condition,
-                next as EditableCondition["mode"],
-                scope,
-              ),
-            )
-          }
-        />
-        <Button
-          type="button"
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8"
-          aria-label="条件削除"
-          onClick={onRemove}
-        >
-          <Trash2 className="h-4 w-4 text-ui-red" />
-        </Button>
-      </div>
-
       {!isCountCondition(condition) ? (
-        <div className="grid min-w-0 gap-2 sm:grid-cols-[6.5rem_minmax(0,1fr)]">
-          <label className={editorFieldLabelClassName}>
-            必要枚数
-            <Input
-              className="h-9"
-              type="number"
-              min={1}
-              max={60}
-              value={condition.count}
-              onChange={(event) =>
-                emitChange({
-                  ...condition,
-                  count: Math.max(
-                    1,
-                    Math.min(60, toInt(event.target.value, condition.count)),
-                  ),
-                })
-              }
-            />
-          </label>
-          <label className={`min-w-0 ${editorFieldLabelClassName}`}>
-            対象カード
+        <div className="grid min-w-0 items-start gap-2 sm:grid-cols-[minmax(0,1fr)_max-content]">
+          <label
+            className={`order-2 min-w-0 self-start sm:order-1 ${editorFieldLabelClassName}`}
+          >
+            <span>対象カード</span>
             <MultiSelect
               options={cardOptions}
               value={condition.uids}
@@ -213,6 +167,40 @@ export const PatternConditionEditor = ({
               placeholder="対象カードを選択"
             />
           </label>
+          <div
+            className={`order-1 w-full self-start sm:order-2 sm:w-auto ${editorFieldLabelClassName}`}
+          >
+            <span>必要枚数</span>
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_1.75rem] items-center gap-1.5 sm:grid-cols-[3.5rem_1.75rem]">
+              <Input
+                className="h-9"
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                value={condition.count}
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (!/^\d*$/.test(nextValue)) {
+                    return;
+                  }
+                  emitChange({
+                    ...condition,
+                    count: Math.max(1, Math.min(60, toInt(nextValue, condition.count))),
+                  });
+                }}
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-7 w-7 justify-self-end"
+                aria-label="条件削除"
+                onClick={onRemove}
+              >
+                <Trash2 className="h-4 w-4 text-ui-red" />
+              </Button>
+            </div>
+          </div>
         </div>
       ) : (
         <div className="space-y-2">
@@ -236,22 +224,23 @@ export const PatternConditionEditor = ({
               しきい値
               <Input
                 className="h-9"
-                type="number"
-                min={0}
-                max={60}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 value={condition.threshold}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (!/^\d*$/.test(nextValue)) {
+                    return;
+                  }
                   emitChange({
                     ...condition,
                     threshold: Math.max(
                       0,
-                      Math.min(
-                        60,
-                        toInt(event.target.value, condition.threshold),
-                      ),
+                      Math.min(60, toInt(nextValue, condition.threshold)),
                     ),
-                  })
-                }
+                  });
+                }}
               />
             </label>
             <div className="flex min-w-0 items-end sm:justify-start">
@@ -342,6 +331,43 @@ export const PatternConditionEditor = ({
           </div>
         </div>
       )}
+
+      <div
+        className={
+          isCountCondition(condition)
+            ? "grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-center gap-2"
+            : "min-w-0"
+        }
+      >
+        <Select
+          ariaLabel={`条件${index + 1}の種類`}
+          triggerClassName="h-9"
+          listClassName="max-h-none overflow-visible"
+          value={condition.mode}
+          options={modeOptions}
+          onChange={(next) =>
+            emitChange(
+              switchConditionMode(
+                condition,
+                next as EditableCondition["mode"],
+                scope,
+              ),
+            )
+          }
+        />
+        {isCountCondition(condition) ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            aria-label="条件削除"
+            onClick={onRemove}
+          >
+            <Trash2 className="h-4 w-4 text-ui-red" />
+          </Button>
+        ) : null}
+      </div>
     </div>
   );
 };

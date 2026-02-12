@@ -464,25 +464,23 @@ export const PatternComposeDialogTrigger = () => {
               手動貫通加算（カテゴリごと）
               <Input
                 className="h-9"
-                type="number"
-                min={0}
-                max={20}
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
                 disabled={isComposeLocked}
                 value={effectiveManualPenetrationAmount}
-                onChange={(event) =>
+                onChange={(event) => {
+                  const nextValue = event.target.value;
+                  if (!/^\d*$/.test(nextValue)) {
+                    return;
+                  }
                   setComposeManualPenetrationAmount(
                     Math.max(
                       0,
-                      Math.min(
-                        20,
-                        toInt(
-                          event.target.value,
-                          composeManualPenetrationAmount,
-                        ),
-                      ),
+                      Math.min(20, toInt(nextValue, composeManualPenetrationAmount)),
                     ),
-                  )
-                }
+                  );
+                }}
               />
             </label>
             <label className={editorCompactFieldLabelClassName}>

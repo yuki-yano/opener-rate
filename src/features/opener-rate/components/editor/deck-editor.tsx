@@ -80,31 +80,45 @@ export const DeckEditor = () => {
         <label className={editorFieldLabelClassName}>
           デッキ枚数
           <Input
-            type="number"
-            min={1}
-            max={120}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={deck.cardCount}
-            onChange={(event) =>
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              if (!/^\d*$/.test(nextValue)) {
+                return;
+              }
               setDeck((current) => ({
                 ...current,
-                cardCount: toInt(event.target.value, current.cardCount),
+                cardCount: Math.min(
+                  120,
+                  Math.max(1, toInt(nextValue, current.cardCount)),
+                ),
               }))
-            }
+            }}
           />
         </label>
         <label className={editorFieldLabelClassName}>
           初手枚数
           <Input
-            type="number"
-            min={1}
-            max={20}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={deck.firstHand}
-            onChange={(event) =>
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              if (!/^\d*$/.test(nextValue)) {
+                return;
+              }
               setDeck((current) => ({
                 ...current,
-                firstHand: toInt(event.target.value, current.firstHand),
+                firstHand: Math.min(
+                  20,
+                  Math.max(1, toInt(nextValue, current.firstHand)),
+                ),
               }))
-            }
+            }}
           />
         </label>
       </div>
@@ -116,11 +130,15 @@ export const DeckEditor = () => {
           <label className={editorFieldLabelClassName}>
             金満で謙虚な壺 枚数
             <Input
-              type="number"
-              min={0}
-              max={3}
+              type="text"
+              inputMode="numeric"
+              pattern="[0-9]*"
               value={pot.prosperity.count}
-              onChange={(event) =>
+              onChange={(event) => {
+                const nextValue = event.target.value;
+                if (!/^\d*$/.test(nextValue)) {
+                  return;
+                }
                 setPot((current) => ({
                   ...current,
                   prosperity: {
@@ -129,12 +147,12 @@ export const DeckEditor = () => {
                       0,
                       Math.min(
                         3,
-                        toInt(event.target.value, current.prosperity.count),
+                        toInt(nextValue, current.prosperity.count),
                       ),
                     ),
                   },
                 }))
-              }
+              }}
             />
           </label>
 
@@ -160,11 +178,15 @@ export const DeckEditor = () => {
         <label className={editorFieldLabelClassName}>
           強欲で貪欲な壺 / 強欲で金満な壺 枚数
           <Input
-            type="number"
-            min={0}
-            max={3}
+            type="text"
+            inputMode="numeric"
+            pattern="[0-9]*"
             value={pot.desiresOrExtravagance.count}
-            onChange={(event) =>
+            onChange={(event) => {
+              const nextValue = event.target.value;
+              if (!/^\d*$/.test(nextValue)) {
+                return;
+              }
               setPot((current) => ({
                 ...current,
                 desiresOrExtravagance: {
@@ -172,15 +194,12 @@ export const DeckEditor = () => {
                     0,
                     Math.min(
                       3,
-                      toInt(
-                        event.target.value,
-                        current.desiresOrExtravagance.count,
-                      ),
+                      toInt(nextValue, current.desiresOrExtravagance.count),
                     ),
                   ),
                 },
               }))
-            }
+            }}
           />
         </label>
       </div>
