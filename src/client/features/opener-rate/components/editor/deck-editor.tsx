@@ -14,6 +14,7 @@ import {
   modeAtom,
   modeAutoSwitchedByVsAtom,
   potAtom,
+  simulationTrialOptions,
   simulationTrialsAtom,
   vsAtom,
 } from "../../state";
@@ -32,6 +33,12 @@ const calculationModeOptions: readonly RadioCardOption<
   { value: "exact", label: "厳密計算" },
   { value: "simulation", label: "シミュレーション" },
 ] as const;
+const simulationTrialSelectOptions: SelectOption[] = simulationTrialOptions.map(
+  (value) => ({
+    value: String(value),
+    label: value.toLocaleString("en-US"),
+  }),
+);
 
 export const DeckEditor = () => {
   const [deck, setDeck] = useAtom(deckAtom);
@@ -226,20 +233,12 @@ export const DeckEditor = () => {
         </label>
         <label className={editorFieldLabelClassName}>
           試行回数
-          <Input
-            type="number"
-            min={100}
-            max={2000000}
+          <Select
+            ariaLabel="試行回数"
             disabled={mode !== "simulation"}
-            value={simulationTrials}
-            onChange={(event) =>
-              setSimulationTrials(
-                Math.min(
-                  2000000,
-                  Math.max(100, toInt(event.target.value, simulationTrials)),
-                ),
-              )
-            }
+            value={String(simulationTrials)}
+            options={simulationTrialSelectOptions}
+            onChange={(nextValue) => setSimulationTrials(Number(nextValue))}
           />
         </label>
       </div>

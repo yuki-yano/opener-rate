@@ -111,4 +111,19 @@ describe("hash-backed input atoms", () => {
     expect(mockWindow.location.hash).toContain("#deck=");
     expect(mockWindow.history.pushState).toHaveBeenCalledTimes(1);
   });
+
+  it("simulation trials accepts only predefined options", async () => {
+    const mockWindow = createMockWindow();
+    setGlobalWindow(mockWindow);
+
+    const { defaultSimulationTrials, simulationTrialsAtom } =
+      await import("./atoms");
+    const store = createStore();
+
+    store.set(simulationTrialsAtom, 1000);
+    expect(store.get(simulationTrialsAtom)).toBe(1000);
+
+    store.set(simulationTrialsAtom, 12345);
+    expect(store.get(simulationTrialsAtom)).toBe(defaultSimulationTrials);
+  });
 });

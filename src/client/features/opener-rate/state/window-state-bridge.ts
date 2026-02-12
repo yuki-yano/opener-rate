@@ -18,6 +18,7 @@ import type { VsSimulationInput } from "../../../../shared/apiSchemas";
 import { runCalculateAtom, markSavedSnapshotAtom } from "./effects/atoms";
 import {
   cardsAtom,
+  defaultSimulationTrials,
   deckAtom,
   deckNameAtom,
   disruptionCategoriesAtom,
@@ -39,7 +40,6 @@ const defaultVsState: VsSimulationInput = {
 };
 
 const defaultMode = "exact" as const;
-const defaultSimulationTrials = 100000;
 
 const draftCardSchema = cardSchema.extend({
   name: z.string(),

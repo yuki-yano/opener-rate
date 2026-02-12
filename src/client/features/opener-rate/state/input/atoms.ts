@@ -44,7 +44,18 @@ const defaultPotState: PotState = {
   },
 };
 
-export const defaultSimulationTrials = 100000;
+export const simulationTrialOptions = [
+  1000, 10000, 100000, 1000000,
+] as const;
+type SimulationTrialOption = (typeof simulationTrialOptions)[number];
+const simulationTrialOptionSet = new Set<number>(simulationTrialOptions);
+
+const normalizeSimulationTrials = (value: number): SimulationTrialOption =>
+  simulationTrialOptionSet.has(value)
+    ? (value as SimulationTrialOption)
+    : defaultSimulationTrials;
+
+export const defaultSimulationTrials: SimulationTrialOption = 100000;
 const defaultVsState: VsSimulationInput = {
   enabled: false,
   opponentDeckSize: 40,
@@ -242,7 +253,19 @@ export const deckNameAtom = atom(
 );
 
 export const modeAtom = atom<CalculationMode>("exact");
-export const simulationTrialsAtom = atom<number>(defaultSimulationTrials);
+const simulationTrialsBaseAtom = atom<SimulationTrialOption>(
+  defaultSimulationTrials,
+);
+export const simulationTrialsAtom = atom(
+  (get) => get(simulationTrialsBaseAtom),
+  (get, set, nextValue: number) => {
+    const normalized = normalizeSimulationTrials(nextValue);
+    if (get(simulationTrialsBaseAtom) === normalized) {
+      return;
+    }
+    set(simulationTrialsBaseAtom, normalized);
+  },
+);
 export const modeAutoSwitchedByVsAtom = atom(false);
 
 export const resetInputAtom = atom(null, (_get, set) => {

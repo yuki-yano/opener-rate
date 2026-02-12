@@ -26,6 +26,7 @@ export {
   modeAtom,
   modeAutoSwitchedByVsAtom,
   patternsAtom,
+  simulationTrialOptions,
   subPatternsAtom,
   potAtom,
   vsAtom,
