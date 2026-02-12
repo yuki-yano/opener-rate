@@ -12,6 +12,7 @@ import {
   shortUrlCacheAtom,
   shortUrlErrorAtom,
   shortUrlInputAtom,
+  shortUrlLockedSourceHrefAtom,
   shortUrlLockedUntilChangeAtom,
   shortUrlLoadingAtom,
   shortUrlResultAtom,
@@ -39,6 +40,11 @@ const isShortUrlPath = (url: string) => {
   } catch {
     return false;
   }
+};
+
+const getCurrentHref = () => {
+  if (typeof window === "undefined") return null;
+  return window.location.href;
 };
 
 export const markSavedSnapshotAtom = atom(
@@ -97,6 +103,7 @@ export const runCreateShortUrlAtom = atom(
       set(shortUrlResultAtom, response.shortenUrl);
       set(shortUrlInputAtom, response.shortenUrl);
       set(shortUrlLockedUntilChangeAtom, false);
+      set(shortUrlLockedSourceHrefAtom, null);
       set(shortUrlCacheAtom, (prev) => ({
         ...prev,
         [url]: response.shortenUrl,
@@ -118,6 +125,7 @@ export const runShareCurrentUrlAtom = atom(null, async (get, set) => {
     set(shortUrlResultAtom, cachedShortUrl);
     set(shortUrlErrorAtom, null);
     set(shortUrlLockedUntilChangeAtom, false);
+    set(shortUrlLockedSourceHrefAtom, null);
     return;
   }
 
@@ -132,6 +140,7 @@ export const seedSharedUrlAsGeneratedAtom = atom(
     const isShortUrl = isShortUrlPath(url);
     if (!isShortUrl) {
       set(shortUrlLockedUntilChangeAtom, false);
+      set(shortUrlLockedSourceHrefAtom, null);
       return;
     }
 
@@ -139,6 +148,7 @@ export const seedSharedUrlAsGeneratedAtom = atom(
     set(shortUrlResultAtom, url);
     set(shortUrlErrorAtom, null);
     set(shortUrlLockedUntilChangeAtom, true);
+    set(shortUrlLockedSourceHrefAtom, getCurrentHref());
     set(shortUrlCacheAtom, (prev) => ({ ...prev, [url]: url }));
   },
 );

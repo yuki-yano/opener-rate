@@ -20,3 +20,4 @@ export const shortUrlLoadingAtom = atom(false);
 export const shortUrlErrorAtom = atom<string | null>(null);
 export const shortUrlCacheAtom = atom<Record<string, string>>({});
 export const shortUrlLockedUntilChangeAtom = atom(false);
+export const shortUrlLockedSourceHrefAtom = atom<string | null>(null);

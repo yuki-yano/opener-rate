@@ -7,18 +7,26 @@ import {
 import {
   cardsAtom,
   deckAtom,
+  deckNameAtom,
+  disruptionCategoriesAtom,
   disruptionCardsAtom,
   labelsAtom,
   modeAtom,
   patternsAtom,
-  vsAtom,
-  subPatternsAtom,
   potAtom,
+  subPatternsAtom,
   simulationTrialsAtom,
+  vsAtom,
 } from "../input/atoms";
-import { savedInputAtom, shortUrlLockedUntilChangeAtom } from "../ui/atoms";
+import {
+  shortUrlLockedSourceHrefAtom,
+  shortUrlLockedUntilChangeAtom,
+} from "../ui/atoms";
 
-const stableStringify = (value: unknown) => JSON.stringify(value);
+const getCurrentHref = () => {
+  if (typeof window === "undefined") return null;
+  return window.location.href;
+};
 
 export const totalCardCountAtom = atom((get) => {
   const cardTotal = get(cardsAtom).reduce((acc, card) => acc + card.count, 0);
@@ -77,13 +85,25 @@ export const canCalculateAtom = atom((get) => {
   return get(validationResultAtom).success;
 });
 
-export const isDirtyAtom = atom((get) => {
-  const current = get(calculateInputAtom);
-  const saved = get(savedInputAtom);
-  if (saved == null) return false;
-  return stableStringify(current) !== stableStringify(saved);
-});
+export const isShortUrlGenerationLockedAtom = atom((get) => {
+  if (!get(shortUrlLockedUntilChangeAtom)) return false;
 
-export const isShortUrlGenerationLockedAtom = atom(
-  (get) => get(shortUrlLockedUntilChangeAtom) && !get(isDirtyAtom),
-);
+  // URLに反映されるatomを依存として読むことで、URL変更時に判定を再計算する
+  get(deckAtom);
+  get(deckNameAtom);
+  get(cardsAtom);
+  get(patternsAtom);
+  get(subPatternsAtom);
+  get(labelsAtom);
+  get(disruptionCategoriesAtom);
+  get(disruptionCardsAtom);
+  get(potAtom);
+  get(vsAtom);
+
+  const lockedSourceHref = get(shortUrlLockedSourceHrefAtom);
+  if (lockedSourceHref == null) return true;
+
+  const currentHref = getCurrentHref();
+  if (currentHref == null) return true;
+  return currentHref === lockedSourceHref;
+});
