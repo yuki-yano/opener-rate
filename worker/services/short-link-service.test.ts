@@ -86,6 +86,27 @@ describe("createShortUrl", () => {
     });
   });
 
+  it("allows configured APP_ORIGIN target and uses it for shorten url origin", async () => {
+    const response = await createShortUrl({
+      bindings: {
+        DB: {} as D1Database,
+        APP_ORIGIN: "https://app.example.com",
+      },
+      url: "https://app.example.com/?deck=shared",
+      trustedOrigin: "https://preview.example.com",
+    });
+
+    expect(response.shortenUrl).toMatch(
+      /^https:\/\/app\.example\.com\/short_url\/[0-9a-f]{8}$/,
+    );
+    expect(mocks.create).toHaveBeenCalledWith(
+      { kind: "db" },
+      expect.objectContaining({
+        targetUrl: "https://app.example.com/?deck=shared",
+      }),
+    );
+  });
+
   it("retries with a new key when insert hits unique constraint", async () => {
     mocks.create
       .mockRejectedValueOnce(
