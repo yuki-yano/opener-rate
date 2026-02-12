@@ -212,11 +212,7 @@ export const PatternEditor = () => {
                   ? "border-ui-yellow/65 bg-ui-crust/82"
                   : "border-ui-blue/65 bg-ui-crust/82"
               }
-              inactiveContainerClassName={
-                isExcludedFromOverall
-                  ? "border-ui-yellow/65 bg-ui-crust/82"
-                  : "border-ui-red/65 bg-ui-crust/82"
-              }
+              inactiveContainerClassName="border-ui-red/65 bg-ui-crust/82"
               activeAriaLabel="パターン有効切り替え"
               memoAriaLabel="メモ表示切り替え"
               duplicateAriaLabel="パターン複製"
