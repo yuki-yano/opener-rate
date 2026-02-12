@@ -279,6 +279,7 @@ export const PatternEditor = () => {
           const isNameEmpty = pattern.name.trim().length === 0;
           const isMemoExpanded = expandedMemoUids.includes(pattern.uid);
           const isPatternExpanded = !collapsedPatternUids.includes(pattern.uid);
+          const isPatternActive = pattern.active;
           const isExcludedFromOverall = pattern.excludeFromOverall === true;
           const patternEffects = pattern.effects ?? [];
           const summaryLabels = pattern.labels
@@ -290,10 +291,8 @@ export const PatternEditor = () => {
           return (
             <div
               className={cn(
-                "relative min-w-0 space-y-2.5 rounded-md border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--theme-base)/0.45)]",
-                pattern.active
-                  ? "border-ui-blue/45 bg-ui-mantle"
-                  : "border-ui-red/45 bg-ui-base/78",
+                "relative min-w-0 space-y-2.5 rounded-md border bg-ui-crust/82 py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--theme-base)/0.45)]",
+                isPatternActive ? "border-ui-blue/65" : "border-ui-red/65",
               )}
             >
               <div className="relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle px-2 py-1.5">
@@ -311,7 +310,7 @@ export const PatternEditor = () => {
                   aria-label="パターン有効切り替え"
                   className={cn(
                     "h-8 w-8 justify-center gap-0 border-transparent bg-ui-crust/60 px-0 shadow-none",
-                    pattern.active ? "text-ui-blue" : "text-ui-red",
+                    isPatternActive ? "text-ui-blue" : "text-ui-red",
                   )}
                 />
 
@@ -393,7 +392,7 @@ export const PatternEditor = () => {
               ) : null}
 
               {isPatternExpanded ? (
-                <>
+                <div className="space-y-2.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
                   <div className="grid min-w-0 gap-2 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
                     <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
                       紐付けラベル
@@ -495,7 +494,7 @@ export const PatternEditor = () => {
                       ))}
                     </div>
                   </div>
-                  <div className="space-y-2 rounded-md border border-ui-surface0/70 bg-ui-crust/70 p-2.5">
+                  <div className="space-y-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs text-ui-subtext0">効果</p>
                       <Button
@@ -532,7 +531,7 @@ export const PatternEditor = () => {
                         {patternEffects.map((effect, effectIndex) => (
                           <div
                             key={`${pattern.uid}-effect-${effectIndex}`}
-                            className="grid min-w-0 gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5"
+                            className="grid min-w-0 gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/55 p-2.5"
                           >
                             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
                               <Select
@@ -725,10 +724,10 @@ export const PatternEditor = () => {
                       )
                     }
                     label="合計初動率に計算しない"
-                    className="h-8 border-ui-surface0/70 bg-ui-crust/60"
+                    className="h-8 border-ui-surface0/70 bg-ui-mantle"
                   />
                   {isMemoExpanded ? (
-                    <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/70 p-2.5">
+                    <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
                       <Textarea
                         value={pattern.memo}
                         placeholder="メモ"
@@ -745,9 +744,9 @@ export const PatternEditor = () => {
                       />
                     </div>
                   ) : null}
-                </>
+                </div>
               ) : (
-                <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 px-2.5 py-2 text-xs text-ui-subtext0">
+                <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/80 px-2.5 py-2 text-xs text-ui-subtext0">
                   <Button
                     type="button"
                     variant="ghost"
@@ -758,13 +757,19 @@ export const PatternEditor = () => {
                   >
                     <ChevronRight className="h-4 w-4" />
                   </Button>
+                  <span
+                    className={cn(
+                      "inline-flex items-center rounded-md border px-2 py-0.5 text-[11px] font-medium leading-4",
+                      isExcludedFromOverall
+                        ? "border-ui-yellow/60 bg-ui-yellow/16 text-ui-subtext1 shadow-[inset_0_0_0_1px_rgb(var(--theme-yellow)/0.22)]"
+                        : "border-ui-green/50 bg-ui-green/12 text-ui-subtext1 shadow-[inset_0_0_0_1px_rgb(var(--theme-green)/0.16)]",
+                    )}
+                  >
+                    {isExcludedFromOverall ? "合計: 除外" : "合計: 対象"}
+                  </span>
                   <span>条件: {pattern.conditions.length}</span>
                   <span>ラベル: {summaryLabels.length}</span>
                   <span>効果: {patternEffects.length}</span>
-                  <span>
-                    合計初動率:{" "}
-                    {isExcludedFromOverall ? "計算しない" : "計算対象"}
-                  </span>
                 </div>
               )}
 

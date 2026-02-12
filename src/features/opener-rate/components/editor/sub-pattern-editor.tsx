@@ -321,8 +321,8 @@ export const SubPatternEditor = () => {
               className={cn(
                 "relative min-w-0 space-y-2.5 rounded-md border py-2.5 pl-9 pr-2.5 shadow-[0_1px_0_rgb(var(--theme-base)/0.45)]",
                 subPattern.active
-                  ? "border-ui-blue/45 bg-ui-mantle"
-                  : "border-ui-red/45 bg-ui-base/78",
+                  ? "border-ui-blue/45 bg-ui-crust/85"
+                  : "border-ui-red/45 bg-ui-crust/65",
               )}
             >
               <div className="relative grid min-w-0 grid-cols-[auto_minmax(0,1fr)_auto] items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle px-2 py-1.5">
@@ -416,7 +416,7 @@ export const SubPatternEditor = () => {
               ) : null}
 
               {isExpanded ? (
-                <>
+                <div className="space-y-2.5 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5">
                   <div className="grid min-w-0 gap-2 lg:grid-cols-2">
                     <label className="min-w-0 space-y-1.5 text-xs text-ui-subtext0">
                       対象基礎パターン
@@ -543,7 +543,7 @@ export const SubPatternEditor = () => {
                     </div>
                   </div>
 
-                  <div className="space-y-2 rounded-md border border-ui-surface0/70 bg-ui-crust/70 p-2.5">
+                  <div className="space-y-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
                     <div className="flex items-center justify-between gap-2">
                       <p className="text-xs text-ui-subtext0">効果</p>
                       <Button
@@ -571,7 +571,7 @@ export const SubPatternEditor = () => {
                         {subPattern.effects.map((effect, effectIndex) => (
                           <div
                             key={`${subPattern.uid}-effect-${effectIndex}`}
-                            className="grid min-w-0 gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5"
+                            className="grid min-w-0 gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/55 p-2.5"
                           >
                             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] items-start gap-2 sm:grid-cols-[9rem_minmax(0,1fr)_2rem] sm:items-center">
                               <Select
@@ -720,7 +720,7 @@ export const SubPatternEditor = () => {
                   </div>
 
                   {isMemoExpanded ? (
-                    <div className="rounded-md border border-ui-surface0/70 bg-ui-crust/70 p-2.5">
+                    <div className="rounded-md border border-ui-surface0/70 bg-ui-mantle/85 p-2.5">
                       <Textarea
                         value={subPattern.memo}
                         placeholder="メモ"
@@ -734,9 +734,9 @@ export const SubPatternEditor = () => {
                       />
                     </div>
                   ) : null}
-                </>
+                </div>
               ) : (
-                <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 px-2.5 py-2 text-xs text-ui-subtext0">
+                <div className="relative flex flex-wrap items-center gap-2 rounded-md border border-ui-surface0/70 bg-ui-mantle/80 px-2.5 py-2 text-xs text-ui-subtext0">
                   <Button
                     type="button"
                     variant="ghost"
