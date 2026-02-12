@@ -1,10 +1,11 @@
-import { FlaskConical } from "lucide-react";
+import { FlaskConical, X } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
 import { useMemo, useState } from "react";
 
 import {
   Button,
   Dialog,
+  DialogClose,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -300,13 +301,24 @@ export const PatternComposeDialogTrigger = () => {
       <Button
         type="button"
         variant="outline"
-        className="h-8 px-3 text-xs"
+        className="h-8 shrink-0 whitespace-nowrap px-3 text-xs"
         onClick={() => handleDialogOpenChange(true)}
       >
         <FlaskConical className="mr-1.5 h-3.5 w-3.5 text-ui-blue" />
         合成
       </Button>
       <DialogContent className="max-h-[calc(100dvh-1rem)] overflow-y-auto overscroll-contain p-4 sm:max-h-[calc(100dvh-2rem)] sm:p-6">
+        <DialogClose asChild>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            aria-label="閉じる"
+            className="absolute right-2 top-2 h-8 w-8"
+          >
+            <X className="h-4 w-4" />
+          </Button>
+        </DialogClose>
         <DialogHeader>
           <DialogTitle>貫通合成ジェネレーター</DialogTitle>
           <DialogDescription>
