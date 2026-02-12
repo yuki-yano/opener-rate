@@ -207,22 +207,7 @@ export const PatternConditionEditor = ({
         </div>
       ) : (
         <div className="space-y-2">
-          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_max-content] sm:items-end">
-            <label className={`min-w-0 ${editorFieldLabelClassName}`}>
-              判定
-              <Select
-                ariaLabel={`条件${index + 1}の判定`}
-                triggerClassName="h-9"
-                value={condition.operator}
-                options={countOperatorOptions}
-                onChange={(next) =>
-                  emitChange({
-                    ...condition,
-                    operator: next === "eq" ? "eq" : "gte",
-                  })
-                }
-              />
-            </label>
+          <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-end">
             <label className={`min-w-0 ${editorFieldLabelClassName}`}>
               しきい値
               <Input
@@ -246,12 +231,27 @@ export const PatternConditionEditor = ({
                 }}
               />
             </label>
-            <div className="flex min-w-0 items-end sm:justify-start">
+            <label className={`min-w-0 ${editorFieldLabelClassName}`}>
+              判定
+              <Select
+                ariaLabel={`条件${index + 1}の判定`}
+                triggerClassName="h-9"
+                value={condition.operator}
+                options={countOperatorOptions}
+                onChange={(next) =>
+                  emitChange({
+                    ...condition,
+                    operator: next === "eq" ? "eq" : "gte",
+                  })
+                }
+              />
+            </label>
+            <div className="flex min-w-0 items-end sm:col-span-2 sm:justify-start">
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-9 w-full whitespace-nowrap px-2 text-[11px] sm:w-auto sm:px-3 sm:text-xs"
+                className="h-9 w-full whitespace-nowrap px-2 text-[11px] sm:px-3 sm:text-xs"
                 onClick={() =>
                   emitChange({
                     ...condition,
@@ -268,11 +268,11 @@ export const PatternConditionEditor = ({
             {condition.rules.map((rule, ruleIndex) => (
               <div
                 key={`${index}-rule-${ruleIndex}`}
-                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5 sm:grid-cols-[max-content_minmax(0,1fr)_2rem] sm:items-center"
+                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5"
               >
                 <Select
                   ariaLabel={`条件${index + 1}ルール${ruleIndex + 1}の集計方式`}
-                  className="col-start-1 row-start-1 min-w-0 sm:w-[8.5rem]"
+                  className="col-start-1 row-start-1 min-w-0"
                   triggerClassName="h-9 whitespace-nowrap"
                   value={rule.mode}
                   options={countRuleModeOptions}
@@ -291,7 +291,7 @@ export const PatternConditionEditor = ({
                   }
                 />
 
-                <div className="col-span-2 row-start-2 min-w-0 sm:col-span-1 sm:col-start-2 sm:row-start-1">
+                <div className="col-start-1 row-start-2 min-w-0">
                   <MultiSelect
                     options={cardOptions}
                     value={rule.uids}
@@ -313,7 +313,7 @@ export const PatternConditionEditor = ({
                   type="button"
                   variant="ghost"
                   size="icon"
-                  className="col-start-2 row-start-1 h-8 w-8 justify-self-end sm:col-start-3 sm:row-start-1"
+                  className="col-start-2 row-start-1 h-8 w-8 justify-self-end"
                   aria-label="ルール削除"
                   onClick={() =>
                     emitChange({

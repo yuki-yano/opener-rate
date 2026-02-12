@@ -85,6 +85,7 @@ export const MultiSelect = ({
             disabled={disabled}
             className={cn(
               "h-auto min-h-9 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-medium",
+              "hover:bg-ui-mantle active:bg-ui-mantle",
               selectTriggerFocusClassName,
               selectedOptions.length === 0 && "text-ui-overlay1",
             )}
@@ -125,7 +126,7 @@ export const MultiSelect = ({
                   type="button"
                   onClick={handleSelectAll}
                   disabled={disabled || !canSelectAll}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-blue transition hover:bg-ui-crust/60 disabled:cursor-not-allowed disabled:text-ui-overlay0 disabled:hover:bg-transparent"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-blue transition disabled:cursor-not-allowed disabled:text-ui-overlay0"
                 >
                   {selectAllLabel}
                 </button>
@@ -133,7 +134,7 @@ export const MultiSelect = ({
                   type="button"
                   onClick={handleClearAll}
                   disabled={disabled || !canClearAll}
-                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-subtext0 transition hover:bg-ui-crust/60 disabled:cursor-not-allowed disabled:text-ui-overlay0 disabled:hover:bg-transparent"
+                  className="rounded-md px-2 py-1 text-xs font-medium text-ui-subtext0 transition disabled:cursor-not-allowed disabled:text-ui-overlay0"
                 >
                   {clearAllLabel}
                 </button>
@@ -156,7 +157,7 @@ export const MultiSelect = ({
                       key={option.value}
                       value={toSearchableValue(option)}
                       onSelect={() => handleToggle(option.value)}
-                      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition data-[selected=true]:bg-ui-crust/70"
+                      className="flex cursor-pointer items-center gap-2 rounded-md px-2.5 py-2 text-sm outline-none transition data-[selected=true]:ring-1 data-[selected=true]:ring-ui-surface0/65"
                     >
                       <span
                         className={cn(

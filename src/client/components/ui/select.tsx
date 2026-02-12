@@ -60,6 +60,7 @@ export const Select = ({
             disabled={disabled}
             className={cn(
               "h-10 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-normal",
+              "hover:bg-ui-mantle active:bg-ui-mantle",
               selectTriggerFocusClassName,
               !selectedOption && "text-ui-overlay1",
               triggerClassName,
@@ -100,7 +101,6 @@ export const Select = ({
                   disabled={option.disabled}
                   className={cn(
                     "flex w-full items-center gap-2 rounded-md px-2 py-2 text-left text-sm text-ui-text transition",
-                    "hover:bg-ui-crust",
                     "focus-visible:bg-ui-crust focus-visible:outline-none",
                     selected && "bg-ui-crust",
                     option.disabled && "cursor-not-allowed opacity-50",
