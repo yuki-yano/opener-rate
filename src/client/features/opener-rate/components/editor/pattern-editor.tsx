@@ -234,6 +234,7 @@ export const PatternEditor = () => {
               isActive={isPatternActive}
               isExpanded={isPatternExpanded}
               isMemoExpanded={isMemoExpanded}
+              expandedToggleButtonClassName="top-[3.5rem] bottom-2.5 h-auto"
               name={pattern.name}
               namePlaceholder="パターン名（必須）"
               activeContainerClassName={
