@@ -1,19 +1,11 @@
 import { atom } from "jotai";
 import { atomWithHash, atomWithLocation } from "jotai-location";
 import lzstring from "lz-string";
-import { z, type ZodType } from "zod";
+import type { ZodType } from "zod";
 
 import {
-  cardSchema,
   deckStateSchema,
-  disruptionCategorySchema,
-  disruptionCardSchema,
-  labelSchema,
-  opponentDisruptionCardSchema,
-  patternSchema,
-  subPatternSchema,
   potStateSchema,
-  vsSimulationInputSchema,
 } from "../../../../../shared/apiSchemas";
 import type {
   CalculationMode,
@@ -22,12 +14,21 @@ import type {
   DisruptionCategory,
   DisruptionCard,
   Label,
-  OpponentDisruptionCard,
   Pattern,
   SubPattern,
   PotState,
   VsSimulationInput,
 } from "../../../../../shared/apiSchemas";
+import {
+  cardsSchema,
+  defaultVsState,
+  disruptionCardsSchema,
+  disruptionCategoriesSchema,
+  draftVsSchema,
+  labelsSchema,
+  patternsSchema,
+  subPatternsSchema,
+} from "../state-schema";
 
 const defaultDeckState: DeckState = {
   cardCount: 40,
@@ -54,48 +55,6 @@ const normalizeSimulationTrials = (value: number): SimulationTrialOption =>
     : defaultSimulationTrials;
 
 export const defaultSimulationTrials: SimulationTrialOption = 100000;
-const defaultVsState: VsSimulationInput = {
-  enabled: false,
-  opponentDeckSize: 40,
-  opponentHandSize: 5,
-  opponentDisruptions: [],
-};
-
-const draftCardSchema = cardSchema.extend({
-  name: z.string(),
-});
-const draftPatternSchema = patternSchema.extend({
-  name: z.string(),
-});
-const draftSubPatternSchema = subPatternSchema.extend({
-  name: z.string(),
-});
-const draftLabelSchema = labelSchema.extend({
-  name: z.string(),
-});
-const draftDisruptionCategorySchema: ZodType<DisruptionCategory> =
-  disruptionCategorySchema.extend({
-    name: z.string(),
-  });
-const draftDisruptionCardSchema: ZodType<DisruptionCard> =
-  disruptionCardSchema.extend({
-    name: z.string(),
-  });
-const draftOpponentDisruptionSchema: ZodType<OpponentDisruptionCard> =
-  opponentDisruptionCardSchema.extend({
-    name: z.string(),
-  });
-const draftVsSchema: ZodType<VsSimulationInput> =
-  vsSimulationInputSchema.extend({
-    opponentDisruptions: z.array(draftOpponentDisruptionSchema),
-  });
-
-const cardsSchema = z.array(draftCardSchema);
-const patternsSchema = z.array(draftPatternSchema);
-const labelsSchema = z.array(draftLabelSchema);
-const disruptionCategoriesSchema = z.array(draftDisruptionCategorySchema);
-const disruptionCardsSchema = z.array(draftDisruptionCardSchema);
-const subPatternsSchema = z.array(draftSubPatternSchema);
 
 const decodeNestedURIComponent = (value: string) => {
   let current = value;

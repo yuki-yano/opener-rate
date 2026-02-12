@@ -3,18 +3,9 @@ import { z } from "zod";
 
 import {
   calculationModeSchema,
-  cardSchema,
   deckStateSchema,
-  disruptionCategorySchema,
-  disruptionCardSchema,
-  labelSchema,
-  opponentDisruptionCardSchema,
-  patternSchema,
   potStateSchema,
-  subPatternSchema,
-  vsSimulationInputSchema,
 } from "../../../../shared/apiSchemas";
-import type { VsSimulationInput } from "../../../../shared/apiSchemas";
 import { runCalculateAtom, markSavedSnapshotAtom } from "./effects/atoms";
 import {
   cardsAtom,
@@ -31,40 +22,18 @@ import {
   subPatternsAtom,
   vsAtom,
 } from "./input/atoms";
-
-const defaultVsState: VsSimulationInput = {
-  enabled: false,
-  opponentDeckSize: 40,
-  opponentHandSize: 5,
-  opponentDisruptions: [],
-};
+import {
+  defaultVsState,
+  draftCardSchema,
+  draftDisruptionCardSchema,
+  draftDisruptionCategorySchema,
+  draftLabelSchema,
+  draftPatternSchema,
+  draftSubPatternSchema,
+  draftVsSchema,
+} from "./state-schema";
 
 const defaultMode = "exact" as const;
-
-const draftCardSchema = cardSchema.extend({
-  name: z.string(),
-});
-const draftPatternSchema = patternSchema.extend({
-  name: z.string(),
-});
-const draftSubPatternSchema = subPatternSchema.extend({
-  name: z.string(),
-});
-const draftLabelSchema = labelSchema.extend({
-  name: z.string(),
-});
-const draftDisruptionCategorySchema = disruptionCategorySchema.extend({
-  name: z.string(),
-});
-const draftDisruptionCardSchema = disruptionCardSchema.extend({
-  name: z.string(),
-});
-const draftOpponentDisruptionSchema = opponentDisruptionCardSchema.extend({
-  name: z.string(),
-});
-const draftVsSchema = vsSimulationInputSchema.extend({
-  opponentDisruptions: z.array(draftOpponentDisruptionSchema),
-});
 
 const exportedStateSchema = z.object({
   version: z.literal(1).optional(),
