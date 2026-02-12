@@ -10,8 +10,7 @@ export const editorEmptyStateClassName =
   "rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0";
 export const editorListItemClassName =
   "space-y-2 rounded-md border border-ui-surface0/80 bg-ui-mantle py-3 pl-9 pr-3";
-export const editorMemoPanelClassName =
-  "rounded-md border border-ui-surface0/70 bg-ui-crust/60 p-2.5";
+export const editorMemoPanelClassName = "pt-1";
 
 type EditorEmptyStateProps = {
   children: ReactNode;
