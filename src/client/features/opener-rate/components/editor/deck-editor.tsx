@@ -75,7 +75,7 @@ export const DeckEditor = () => {
       description="デッキ枚数、初手枚数、計算モードを設定します。"
     >
       <label className={editorFieldLabelClassName}>
-        デッキ名（OGP）
+        デッキ名
         <Input
           value={deckName}
           placeholder="デッキ名を入力"
