@@ -186,6 +186,27 @@ describe("shortLinkRoutes", () => {
     );
   });
 
+  it("builds OGP title from deckName in hash", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
+      "https://consistency-rate.pages.dev/#deckName=%E9%9D%92%E7%9C%BC",
+    );
+
+    const response = await shortLinkRoutes.request(
+      "https://consistency-rate.pages.dev/short_url/abc123de",
+      undefined,
+      env,
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain(
+      '<meta property="og:title" content="初動率シミュレーター - 青眼" />',
+    );
+    expect(html).toContain(
+      'window.location.replace("https://consistency-rate.pages.dev/#deckName=%E9%9D%92%E7%9C%BC")',
+    );
+  });
+
   it("redirects when resolved target matches configured APP_ORIGIN", async () => {
     serviceMocks.resolveShortUrlTarget.mockResolvedValue(
       "https://app.example.com/?deckName=shared",

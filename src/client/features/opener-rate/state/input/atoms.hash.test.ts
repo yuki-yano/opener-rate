@@ -112,6 +112,22 @@ describe("hash-backed input atoms", () => {
     expect(mockWindow.history.pushState).toHaveBeenCalledTimes(1);
   });
 
+  it("deck name is stored in hash and removed when cleared", async () => {
+    const mockWindow = createMockWindow();
+    setGlobalWindow(mockWindow);
+
+    const { deckNameAtom } = await import("./atoms");
+    const store = createStore();
+
+    store.set(deckNameAtom, "Blue-Eyes");
+    expect(mockWindow.location.hash).toContain("deckName=");
+    expect(store.get(deckNameAtom)).toBe("Blue-Eyes");
+
+    store.set(deckNameAtom, "");
+    expect(mockWindow.location.hash).not.toContain("deckName=");
+    expect(store.get(deckNameAtom)).toBe("");
+  });
+
   it("simulation trials accepts only predefined options", async () => {
     const mockWindow = createMockWindow();
     setGlobalWindow(mockWindow);

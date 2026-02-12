@@ -117,6 +117,20 @@ const extractDeckName = (raw: string | null | undefined) => {
   return trimmed.length === 0 ? null : trimmed;
 };
 
+const extractDeckNameFromHash = (rawHash: string) => {
+  if (rawHash.length === 0) return null;
+  const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
+  if (hash.length === 0) return null;
+  const hashParams = new URLSearchParams(hash);
+  return extractDeckName(hashParams.get("deckName"));
+};
+
+const extractDeckNameFromTargetUrl = (targetUrl: URL) => {
+  const fromHash = extractDeckNameFromHash(targetUrl.hash);
+  if (fromHash != null) return fromHash;
+  return extractDeckName(targetUrl.searchParams.get("deckName"));
+};
+
 const escapeHtml = (value: string) =>
   value
     .replaceAll("&", "&amp;")
@@ -224,9 +238,7 @@ export const resolveShortUrlRoute = app.get(
       if (parsedTargetUrl == null) {
         return c.html(buildRedirectHtml(fallbackTargetUrl, null));
       }
-      const deckName = extractDeckName(
-        parsedTargetUrl.searchParams.get("deckName"),
-      );
+      const deckName = extractDeckNameFromTargetUrl(parsedTargetUrl);
       return c.html(
         buildRedirectHtml(parsedTargetUrl.toString(), deckName, sourceShortUrl),
       );

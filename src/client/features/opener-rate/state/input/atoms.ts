@@ -1,5 +1,6 @@
 import { atom } from "jotai";
-import { atomWithHash, atomWithLocation } from "jotai-location";
+import { RESET } from "jotai/utils";
+import { atomWithHash } from "jotai-location";
 import lzstring from "lz-string";
 import type { ZodType } from "zod";
 
@@ -173,39 +174,24 @@ export const vsAtom = atomWithStableHash<VsSimulationInput>(
   createHashSerializeOptions(defaultVsState, draftVsSchema),
 );
 
-const locationAtom = atomWithLocation({ replace: true });
+const deckNameBaseAtom = atomWithHash<string>("deckName", "", {
+  serialize: (value) => encodeURIComponent(value),
+  deserialize: (value) => decodeNestedURIComponent(value),
+  setHash: "replaceState",
+});
 export const deckNameAtom = atom(
-  (get) => {
-    const raw = get(locationAtom).searchParams?.get("deckName");
-    if (raw == null || raw.length === 0) return "";
-    return decodeNestedURIComponent(raw);
-  },
+  (get) => get(deckNameBaseAtom),
   (get, set, nextDeckName: string) => {
-    const current = get(locationAtom);
-    const currentSearchParams = current.searchParams;
-    const nextSearchParams = new URLSearchParams(
-      currentSearchParams?.toString() ?? "",
-    );
-
+    const previous = get(deckNameBaseAtom);
     if (nextDeckName.trim().length === 0) {
-      nextSearchParams.delete("deckName");
-    } else {
-      nextSearchParams.set("deckName", encodeURIComponent(nextDeckName));
-    }
-
-    if (
-      nextSearchParams.toString() === (currentSearchParams?.toString() ?? "")
-    ) {
+      if (previous.length === 0) return;
+      set(deckNameBaseAtom, RESET);
       return;
     }
-
-    set(
-      locationAtom,
-      {
-        searchParams: nextSearchParams,
-      },
-      { replace: true },
-    );
+    if (Object.is(previous, nextDeckName)) {
+      return;
+    }
+    set(deckNameBaseAtom, nextDeckName);
   },
 );
 
