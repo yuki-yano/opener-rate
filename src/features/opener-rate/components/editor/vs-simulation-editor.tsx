@@ -24,6 +24,8 @@ export const VsSimulationEditor = () => {
   const [vs, setVs] = useAtom(vsAtom);
   const disruptionCards = useAtomValue(disruptionCardsAtom);
   const disruptionCategories = useAtomValue(disruptionCategoriesAtom);
+  const isDisruptionCardListEmpty = disruptionCards.length === 0;
+  const hasNoOpponentDisruptions = vs.opponentDisruptions.length === 0;
   const disruptionCardByUid = useMemo(
     () => new Map(disruptionCards.map((card) => [card.uid, card] as const)),
     [disruptionCards],
@@ -139,12 +141,12 @@ export const VsSimulationEditor = () => {
         </label>
       </div>
 
-      {vs.opponentDisruptions.length === 0 ? (
+      {hasNoOpponentDisruptions && !isDisruptionCardListEmpty ? (
         <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-4 text-xs text-ui-subtext0">
           妨害札がありません。「妨害札追加」から作成してください。
         </p>
       ) : null}
-      {disruptionCards.length === 0 ? (
+      {isDisruptionCardListEmpty ? (
         <p className="rounded-md border border-dashed border-ui-surface0/80 bg-ui-crust/45 px-3 py-3 text-xs text-ui-subtext0">
           妨害カード一覧が空です。先に妨害カードを登録してください。
         </p>
