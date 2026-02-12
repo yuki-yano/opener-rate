@@ -5,7 +5,7 @@ const localD1Path =
   ".wrangler/state/v3/d1/miniflare-D1DatabaseObject/local.sqlite";
 
 export default defineConfig({
-  schema: "./worker/db/schema.ts",
+  schema: "./src/server/db/schema.ts",
   out: "./drizzle",
   dialect: "sqlite",
   dbCredentials: {

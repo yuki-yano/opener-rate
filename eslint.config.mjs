@@ -10,7 +10,7 @@ import { defineConfig } from "eslint/config";
 
 export default defineConfig([
   {
-    files: ["src/**/*.{ts,tsx}", "worker/**/*.{ts,tsx}"],
+    files: ["src/**/*.{ts,tsx}"],
   },
   {
     languageOptions: {
@@ -22,7 +22,7 @@ export default defineConfig([
       parserOptions: {
         project: [
           "./tsconfig.app.json",
-          "./tsconfig.worker.json",
+          "./tsconfig.server.json",
           "./tsconfig.node.json",
         ],
         tsconfigRootDir: import.meta.dirname,
