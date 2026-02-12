@@ -8,6 +8,30 @@ import type {
 
 type MatchedCardCounts = Record<number, number>;
 
+const toUniqueIndices = (indices: number[]) => Array.from(new Set(indices));
+
+const normalizeBaseConditions = (conditions: CompiledBaseCondition[]) =>
+  conditions
+    .map((condition) => ({
+      ...condition,
+      indices: toUniqueIndices(condition.indices),
+    }))
+    .sort((left, right) => {
+      const optionDiff = left.indices.length - right.indices.length;
+      if (optionDiff !== 0) return optionDiff;
+      return left.count - right.count;
+    });
+
+const totalAvailableForIndices = (
+  availableCounts: number[],
+  indices: number[],
+) => indices.reduce((sum, index) => sum + (availableCounts[index] ?? 0), 0);
+
+const serializeStateForIndices = (
+  availableCounts: number[],
+  indices: number[],
+) => indices.map((index) => availableCounts[index] ?? 0).join(",");
+
 const addUsageCount = (
   usage: MatchedCardCounts,
   index: number,
@@ -27,16 +51,53 @@ const canSatisfyBaseConditions = (
   usage?: MatchedCardCounts,
 ): boolean => {
   if (conditions.length === 0) return true;
+  const normalizedConditions = normalizeBaseConditions(conditions);
+  for (const condition of normalizedConditions) {
+    if (
+      totalAvailableForIndices(availableCounts, condition.indices) <
+      condition.count
+    ) {
+      return false;
+    }
+  }
+  const memo = usage == null ? new Map<string, boolean>() : null;
+  const memoTargetIndices =
+    memo == null
+      ? []
+      : toUniqueIndices(
+          normalizedConditions.flatMap((condition) => condition.indices),
+        );
 
   const visit = (conditionIndex: number, slotIndex: number): boolean => {
-    if (conditionIndex >= conditions.length) return true;
-
-    const condition = conditions[conditionIndex];
-    if (slotIndex >= condition.count) {
-      return visit(conditionIndex + 1, 0);
+    if (conditionIndex >= normalizedConditions.length) return true;
+    const memoKey =
+      memo == null
+        ? null
+        : `${conditionIndex}:${slotIndex}:${serializeStateForIndices(
+            availableCounts,
+            memoTargetIndices,
+          )}`;
+    if (memo != null && memoKey != null) {
+      const memoized = memo.get(memoKey);
+      if (memoized != null) return memoized;
     }
 
-    for (const index of condition.indices) {
+    const condition = normalizedConditions[conditionIndex];
+    if (slotIndex >= condition.count) {
+      const result = visit(conditionIndex + 1, 0);
+      if (memo != null && memoKey != null) {
+        memo.set(memoKey, result);
+      }
+      return result;
+    }
+
+    const candidateIndices = condition.indices
+      .filter((index) => (availableCounts[index] ?? 0) > 0)
+      .sort(
+        (left, right) =>
+          (availableCounts[left] ?? 0) - (availableCounts[right] ?? 0),
+      );
+    for (const index of candidateIndices) {
       if ((availableCounts[index] ?? 0) <= 0) continue;
       availableCounts[index] -= 1;
       if (usage != null) {
@@ -44,6 +105,9 @@ const canSatisfyBaseConditions = (
       }
       if (visit(conditionIndex, slotIndex + 1)) {
         availableCounts[index] += 1;
+        if (memo != null && memoKey != null) {
+          memo.set(memoKey, true);
+        }
         return true;
       }
       if (usage != null) {
@@ -52,6 +116,9 @@ const canSatisfyBaseConditions = (
       availableCounts[index] += 1;
     }
 
+    if (memo != null && memoKey != null) {
+      memo.set(memoKey, false);
+    }
     return false;
   };
 
@@ -116,17 +183,13 @@ const evaluateCompiledConditionsWithDetail = (
         break;
       }
       case "required_distinct": {
-        const selected: number[] = [];
-        for (const index of condition.indices) {
-          if ((context.handCounts[index] ?? 0) <= 0) continue;
-          if (selected.includes(index)) continue;
-          selected.push(index);
-          if (selected.length >= condition.count) break;
-        }
-        if (selected.length < condition.count) {
+        const distinctIndices = toUniqueIndices(condition.indices).filter(
+          (index) => (context.handCounts[index] ?? 0) > 0,
+        );
+        if (distinctIndices.length < condition.count) {
           return { isMatched: false, matchedCardCounts: {} };
         }
-        requiredDistinctSelections.push(selected);
+        requiredDistinctSelections.push(distinctIndices);
         break;
       }
       case "required": {

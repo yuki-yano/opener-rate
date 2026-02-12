@@ -6,18 +6,25 @@ import type {
   CalculateOutput,
 } from "../../../../shared/apiSchemas";
 import { openerRateApi } from "../../api/opener-rate-api";
+import { ApiClientError } from "../../api/errors";
 import {
   calculateInputAtom,
   isShortUrlGenerationLockedAtom,
 } from "../derived/atoms";
-import { runCalculateAtom, seedSharedUrlAsGeneratedAtom } from "./atoms";
+import {
+  runCalculateAtom,
+  runCreateShortUrlAtom,
+  seedSharedUrlAsGeneratedAtom,
+} from "./atoms";
 import {
   calculationResultAtom,
   previousCalculationResultAtom,
   savedInputAtom,
   shortUrlCacheAtom,
+  shortUrlErrorAtom,
   shortUrlInputAtom,
   shortUrlLockedUntilChangeAtom,
+  shortUrlLoadingAtom,
   shortUrlResultAtom,
 } from "../ui/atoms";
 
@@ -104,5 +111,44 @@ describe("seedSharedUrlAsGeneratedAtom", () => {
     expect(store.get(shortUrlCacheAtom)[sharedUrl]).toBe(sharedUrl);
     expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+  });
+});
+
+describe("runCreateShortUrlAtom", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("maps network_error to a friendly message", async () => {
+    const store = createStore();
+    vi.spyOn(openerRateApi, "createShortUrl").mockRejectedValue(
+      new ApiClientError({
+        code: "network_error",
+        message: "通信エラーが発生しました",
+      }),
+    );
+
+    await store.set(runCreateShortUrlAtom, "https://example.com");
+
+    expect(store.get(shortUrlErrorAtom)).toBe(
+      "通信エラーが発生しました。接続状況を確認してください",
+    );
+    expect(store.get(shortUrlLoadingAtom)).toBe(false);
+  });
+
+  it("keeps server message for http_error", async () => {
+    const store = createStore();
+    vi.spyOn(openerRateApi, "createShortUrl").mockRejectedValue(
+      new ApiClientError({
+        code: "http_error",
+        message: "URL origin is not allowed",
+        status: 400,
+      }),
+    );
+
+    await store.set(runCreateShortUrlAtom, "https://example.com");
+
+    expect(store.get(shortUrlErrorAtom)).toBe("URL origin is not allowed");
+    expect(store.get(shortUrlLoadingAtom)).toBe(false);
   });
 });

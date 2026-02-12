@@ -4,6 +4,10 @@ import type {
   CompiledSubPattern,
   NormalizedDeck,
 } from "./types";
+import {
+  collectCountablePatternEffects,
+  toRateStringFromBigInt,
+} from "./calculation-shared";
 import { evaluatePatterns } from "./evaluate-pattern";
 import { evaluateSubPatterns } from "./evaluate-sub-pattern";
 
@@ -24,51 +28,6 @@ const combinations = (n: number, k: number): bigint => {
   }
   combinationMemo.set(key, result);
   return result;
-};
-
-const toRateString = (success: bigint, total: bigint) => {
-  if (total <= 0n) return "0.00";
-  const scaled = (success * 10000n) / total;
-  return (Number(scaled) / 100).toFixed(2);
-};
-
-const collectCountablePatternEffects = (
-  matchedPatternUids: string[],
-  compiledPatternByUid: Map<string, CompiledPattern>,
-) => {
-  const countableMatchedPatternUids: string[] = [];
-  const countableMatchedLabelUids = new Set<string>();
-  const penetrationByDisruptionKey: Record<string, number> = {};
-
-  for (const patternUid of matchedPatternUids) {
-    const pattern = compiledPatternByUid.get(patternUid);
-    if (pattern == null) continue;
-    if (pattern.excludeFromOverall) continue;
-
-    countableMatchedPatternUids.push(patternUid);
-    for (const label of pattern.labels) {
-      countableMatchedLabelUids.add(label.uid);
-    }
-    for (const effect of pattern.effects ?? []) {
-      if (effect.type === "add_label") {
-        for (const labelUid of effect.labelUids) {
-          countableMatchedLabelUids.add(labelUid);
-        }
-        continue;
-      }
-      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
-        const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
-        penetrationByDisruptionKey[disruptionCategoryUid] =
-          current + effect.amount;
-      }
-    }
-  }
-
-  return {
-    countableMatchedPatternUids,
-    countableMatchedLabelUids,
-    penetrationByDisruptionKey,
-  };
 };
 
 export const calculateByExact = (params: {
@@ -179,14 +138,23 @@ export const calculateByExact = (params: {
   recurse(0, normalized.deck.firstHand, 1n);
 
   return {
-    overallProbability: toRateString(overallSuccess, totalCombinations),
+    overallProbability: toRateStringFromBigInt(
+      overallSuccess,
+      totalCombinations,
+    ),
     patternSuccessRates: patternOrder.map((uid, index) => ({
       uid,
-      rate: toRateString(patternSuccess[index] ?? 0n, totalCombinations),
+      rate: toRateStringFromBigInt(
+        patternSuccess[index] ?? 0n,
+        totalCombinations,
+      ),
     })),
     labelSuccessRates: labelOrder.map((uid, index) => ({
       uid,
-      rate: toRateString(labelSuccess[index] ?? 0n, totalCombinations),
+      rate: toRateStringFromBigInt(
+        labelSuccess[index] ?? 0n,
+        totalCombinations,
+      ),
     })),
     mode: "exact",
   };

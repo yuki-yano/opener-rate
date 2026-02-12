@@ -70,7 +70,7 @@ describe("hash-backed input atoms", () => {
     vi.resetModules();
     vi.restoreAllMocks();
 
-    if (originalWindow === undefined) {
+    if (originalWindow == null) {
       delete (globalThis as { window?: Window }).window;
       return;
     }

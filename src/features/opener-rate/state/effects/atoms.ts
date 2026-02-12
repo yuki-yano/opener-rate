@@ -1,6 +1,7 @@
 import { atom } from "jotai";
 
 import { openerRateApi } from "../../api/opener-rate-api";
+import { ApiClientError } from "../../api/errors";
 import type { CalculateInput } from "../../../../shared/apiSchemas";
 import { calculateInputAtom } from "../derived/atoms";
 import {
@@ -18,6 +19,15 @@ import {
 } from "../ui/atoms";
 
 const toErrorMessage = (error: unknown) => {
+  if (error instanceof ApiClientError) {
+    if (error.code === "network_error") {
+      return "通信エラーが発生しました。接続状況を確認してください";
+    }
+    if (error.code === "invalid_response_schema") {
+      return "サーバー応答の形式が不正です。時間をおいて再試行してください";
+    }
+    return error.message;
+  }
   if (error instanceof Error) return error.message;
   return "予期しない通信エラーが発生しました";
 };

@@ -7,52 +7,12 @@ import type {
   CompiledSubPattern,
   NormalizedDeck,
 } from "./types";
+import {
+  collectCountablePatternEffects,
+  toRateStringFromNumber,
+} from "./calculation-shared";
 import { evaluatePatterns } from "./evaluate-pattern";
 import { evaluateSubPatterns } from "./evaluate-sub-pattern";
-
-const toRateString = (successCount: number, total: number) => {
-  if (total <= 0) return "0.00";
-  return ((successCount / total) * 100).toFixed(2);
-};
-
-const collectCountablePatternEffects = (
-  matchedPatternUids: string[],
-  compiledPatternByUid: Map<string, CompiledPattern>,
-) => {
-  const countableMatchedPatternUids: string[] = [];
-  const countableMatchedLabelUids = new Set<string>();
-  const penetrationByDisruptionKey: Record<string, number> = {};
-
-  for (const patternUid of matchedPatternUids) {
-    const pattern = compiledPatternByUid.get(patternUid);
-    if (pattern == null) continue;
-    if (pattern.excludeFromOverall) continue;
-
-    countableMatchedPatternUids.push(patternUid);
-    for (const label of pattern.labels) {
-      countableMatchedLabelUids.add(label.uid);
-    }
-    for (const effect of pattern.effects ?? []) {
-      if (effect.type === "add_label") {
-        for (const labelUid of effect.labelUids) {
-          countableMatchedLabelUids.add(labelUid);
-        }
-        continue;
-      }
-      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
-        const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
-        penetrationByDisruptionKey[disruptionCategoryUid] =
-          current + effect.amount;
-      }
-    }
-  }
-
-  return {
-    countableMatchedPatternUids,
-    countableMatchedLabelUids,
-    penetrationByDisruptionKey,
-  };
-};
 
 const scoreEvaluation = (
   evaluation: ReturnType<typeof evaluatePatterns>,
@@ -413,27 +373,30 @@ export const calculateBySimulation = (params: {
   }
 
   return {
-    overallProbability: toRateString(overallSuccessCount, trials),
+    overallProbability: toRateStringFromNumber(overallSuccessCount, trials),
     patternSuccessRates: patternOrder.map((uid, index) => ({
       uid,
-      rate: toRateString(patternSuccessCount[index] ?? 0, trials),
+      rate: toRateStringFromNumber(patternSuccessCount[index] ?? 0, trials),
     })),
     labelSuccessRates: labelOrder.map((uid, index) => ({
       uid,
-      rate: toRateString(labelSuccessCount[index] ?? 0, trials),
+      rate: toRateStringFromNumber(labelSuccessCount[index] ?? 0, trials),
     })),
     mode,
     vsBreakdown: vsEnabled
       ? {
-          noDisruptionSuccessRate: toRateString(
+          noDisruptionSuccessRate: toRateStringFromNumber(
             noDisruptionSuccessCount,
             trials,
           ),
-          disruptedButPenetratedRate: toRateString(
+          disruptedButPenetratedRate: toRateStringFromNumber(
             disruptedButPenetratedCount,
             trials,
           ),
-          disruptedAndFailedRate: toRateString(disruptedAndFailedCount, trials),
+          disruptedAndFailedRate: toRateStringFromNumber(
+            disruptedAndFailedCount,
+            trials,
+          ),
         }
       : undefined,
   };
