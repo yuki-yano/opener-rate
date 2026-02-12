@@ -1,4 +1,4 @@
-import { NotebookPen, Trash2 } from "lucide-react";
+import { SquarePen, Trash2 } from "lucide-react";
 import type { ReactNode } from "react";
 
 import { Button, Input, Textarea } from "../../../../components/ui";
@@ -65,7 +65,7 @@ export const NameMemoEditorItem = ({
             aria-label="メモ表示切り替え"
             onClick={onToggleMemo}
           >
-            <NotebookPen className="h-4 w-4" />
+            <SquarePen className="h-4 w-4" />
           </Button>
           <Button
             type="button"

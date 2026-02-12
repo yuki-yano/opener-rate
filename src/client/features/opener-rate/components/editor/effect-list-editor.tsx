@@ -1,11 +1,11 @@
 import { Trash2 } from "lucide-react";
 
-import { Button, Input, Select } from "../../../../components/ui";
+import { Button, Select } from "../../../../components/ui";
 import type { SubPatternEffect } from "../../../../../shared/apiSchemas";
 import type { MultiSelectOption } from "../common/multi-select";
 import { MultiSelect } from "../common/multi-select";
 import { effectTypeOptions } from "./effect-utils";
-import { toInt } from "./number-utils";
+import { NumericInput } from "./numeric-input";
 
 type EffectListEditorProps = {
   effects: SubPatternEffect[];
@@ -104,26 +104,15 @@ export const EffectListEditor = ({
                           onChangePenetrationCategories(effectIndex, next)
                         }
                       />
-                      <Input
+                      <NumericInput
                         className="h-9"
-                        type="text"
-                        inputMode="numeric"
-                        pattern="[0-9]*"
                         value={effect.amount}
+                        min={1}
+                        max={20}
                         placeholder="加算量"
-                        onChange={(event) => {
-                          const nextValue = event.target.value;
-                          if (!/^\d*$/.test(nextValue)) {
-                            return;
-                          }
-                          onChangePenetrationAmount(
-                            effectIndex,
-                            Math.max(
-                              1,
-                              Math.min(20, toInt(nextValue, effect.amount)),
-                            ),
-                          );
-                        }}
+                        onValueChange={(nextValue) =>
+                          onChangePenetrationAmount(effectIndex, nextValue)
+                        }
                       />
                     </div>
                     <p className="text-[11px] text-ui-subtext0">

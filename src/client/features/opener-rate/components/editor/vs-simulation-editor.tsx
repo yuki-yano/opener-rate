@@ -2,7 +2,7 @@ import { Plus, Trash2 } from "lucide-react";
 import { useAtom, useAtomValue } from "jotai";
 import { useMemo } from "react";
 
-import { Button, Checkbox, Input, Select } from "../../../../components/ui";
+import { Button, Checkbox, Select } from "../../../../components/ui";
 import {
   disruptionCardsAtom,
   disruptionCategoriesAtom,
@@ -16,7 +16,7 @@ import {
   editorFieldLabelClassName,
   EditorListItem,
 } from "./editor-ui";
-import { toInt } from "./number-utils";
+import { NumericInput } from "./numeric-input";
 import { SortableEditorSection } from "./sortable-editor-section";
 
 const createDefaultDisruptionName = (index: number) => `妨害札${index + 1}`;
@@ -110,46 +110,30 @@ export const VsSimulationEditor = () => {
           <div className="grid gap-3 sm:grid-cols-2">
             <label className={editorFieldLabelClassName}>
               相手デッキ枚数
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
+              <NumericInput
                 value={vs.opponentDeckSize}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  if (!/^\d*$/.test(nextValue)) {
-                    return;
-                  }
+                min={1}
+                max={120}
+                onValueChange={(nextValue) =>
                   setVs((current) => ({
                     ...current,
-                    opponentDeckSize: Math.min(
-                      120,
-                      Math.max(1, toInt(nextValue, current.opponentDeckSize)),
-                    ),
-                  }));
-                }}
+                    opponentDeckSize: nextValue,
+                  }))
+                }
               />
             </label>
             <label className={editorFieldLabelClassName}>
               相手初手枚数
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
+              <NumericInput
                 value={vs.opponentHandSize}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  if (!/^\d*$/.test(nextValue)) {
-                    return;
-                  }
+                min={1}
+                max={20}
+                onValueChange={(nextValue) =>
                   setVs((current) => ({
                     ...current,
-                    opponentHandSize: Math.min(
-                      20,
-                      Math.max(1, toInt(nextValue, current.opponentHandSize)),
-                    ),
-                  }));
-                }}
+                    opponentHandSize: nextValue,
+                  }))
+                }
               />
             </label>
           </div>
@@ -212,16 +196,11 @@ export const VsSimulationEditor = () => {
               </div>
               <label className={editorCompactFieldLabelClassName}>
                 枚数
-                <Input
-                  type="text"
-                  inputMode="numeric"
-                  pattern="[0-9]*"
+                <NumericInput
                   value={disruption.count}
-                  onChange={(event) => {
-                    const nextValue = event.target.value;
-                    if (!/^\d*$/.test(nextValue)) {
-                      return;
-                    }
+                  min={0}
+                  max={60}
+                  onValueChange={(nextValue) =>
                     setVs((current) => ({
                       ...current,
                       opponentDisruptions: current.opponentDisruptions.map(
@@ -229,15 +208,12 @@ export const VsSimulationEditor = () => {
                           target.uid === disruption.uid
                             ? {
                                 ...target,
-                                count: Math.min(
-                                  60,
-                                  Math.max(0, toInt(nextValue, target.count)),
-                                ),
+                                count: nextValue,
                               }
                             : target,
                       ),
-                    }));
-                  }}
+                    }))
+                  }
                 />
               </label>
               <Button

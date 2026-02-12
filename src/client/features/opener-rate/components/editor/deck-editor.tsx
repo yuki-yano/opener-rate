@@ -20,7 +20,7 @@ import {
 } from "../../state";
 import { SectionCard } from "../layout/section-card";
 import { editorFieldLabelClassName } from "./editor-ui";
-import { toInt } from "./number-utils";
+import { NumericInput } from "./numeric-input";
 
 const prosperityCostOptions: SelectOption[] = [
   { value: "3", label: "3" },
@@ -86,46 +86,30 @@ export const DeckEditor = () => {
       <div className="grid gap-3 sm:grid-cols-2">
         <label className={editorFieldLabelClassName}>
           デッキ枚数
-          <Input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
+          <NumericInput
             value={deck.cardCount}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              if (!/^\d*$/.test(nextValue)) {
-                return;
-              }
+            min={1}
+            max={120}
+            onValueChange={(nextValue) =>
               setDeck((current) => ({
                 ...current,
-                cardCount: Math.min(
-                  120,
-                  Math.max(1, toInt(nextValue, current.cardCount)),
-                ),
-              }));
-            }}
+                cardCount: nextValue,
+              }))
+            }
           />
         </label>
         <label className={editorFieldLabelClassName}>
           初手枚数
-          <Input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
+          <NumericInput
             value={deck.firstHand}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              if (!/^\d*$/.test(nextValue)) {
-                return;
-              }
+            min={1}
+            max={20}
+            onValueChange={(nextValue) =>
               setDeck((current) => ({
                 ...current,
-                firstHand: Math.min(
-                  20,
-                  Math.max(1, toInt(nextValue, current.firstHand)),
-                ),
-              }));
-            }}
+                firstHand: nextValue,
+              }))
+            }
           />
         </label>
       </div>
@@ -136,27 +120,19 @@ export const DeckEditor = () => {
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
           <label className={editorFieldLabelClassName}>
             金満で謙虚な壺 枚数
-            <Input
-              type="text"
-              inputMode="numeric"
-              pattern="[0-9]*"
+            <NumericInput
               value={pot.prosperity.count}
-              onChange={(event) => {
-                const nextValue = event.target.value;
-                if (!/^\d*$/.test(nextValue)) {
-                  return;
-                }
+              min={0}
+              max={3}
+              onValueChange={(nextValue) =>
                 setPot((current) => ({
                   ...current,
                   prosperity: {
                     ...current.prosperity,
-                    count: Math.max(
-                      0,
-                      Math.min(3, toInt(nextValue, current.prosperity.count)),
-                    ),
+                    count: nextValue,
                   },
-                }));
-              }}
+                }))
+              }
             />
           </label>
 
@@ -181,29 +157,18 @@ export const DeckEditor = () => {
 
         <label className={editorFieldLabelClassName}>
           強欲で貪欲な壺 / 強欲で金満な壺 枚数
-          <Input
-            type="text"
-            inputMode="numeric"
-            pattern="[0-9]*"
+          <NumericInput
             value={pot.desiresOrExtravagance.count}
-            onChange={(event) => {
-              const nextValue = event.target.value;
-              if (!/^\d*$/.test(nextValue)) {
-                return;
-              }
+            min={0}
+            max={3}
+            onValueChange={(nextValue) =>
               setPot((current) => ({
                 ...current,
                 desiresOrExtravagance: {
-                  count: Math.max(
-                    0,
-                    Math.min(
-                      3,
-                      toInt(nextValue, current.desiresOrExtravagance.count),
-                    ),
-                  ),
+                  count: nextValue,
                 },
-              }));
-            }}
+              }))
+            }
           />
         </label>
       </div>

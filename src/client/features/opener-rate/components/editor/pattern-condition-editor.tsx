@@ -1,11 +1,6 @@
 import { Trash2 } from "lucide-react";
 
-import {
-  Button,
-  Input,
-  Select,
-  type SelectOption,
-} from "../../../../components/ui";
+import { Button, Select, type SelectOption } from "../../../../components/ui";
 import type {
   BaseMatchCountCondition,
   CountCondition,
@@ -14,7 +9,7 @@ import type {
 } from "../../../../../shared/apiSchemas";
 import { MultiSelect, type MultiSelectOption } from "../common/multi-select";
 import { editorFieldLabelClassName } from "./editor-ui";
-import { toInt } from "./number-utils";
+import { NumericInput } from "./numeric-input";
 
 type PatternConditionEditorBaseProps = {
   index: number;
@@ -172,25 +167,17 @@ export const PatternConditionEditor = ({
           >
             <span>必要枚数</span>
             <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_1.75rem] items-center gap-1.5 sm:grid-cols-[3.5rem_1.75rem]">
-              <Input
+              <NumericInput
                 className="h-9"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
                 value={condition.count}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  if (!/^\d*$/.test(nextValue)) {
-                    return;
-                  }
+                min={1}
+                max={60}
+                onValueChange={(nextValue) =>
                   emitChange({
                     ...condition,
-                    count: Math.max(
-                      1,
-                      Math.min(60, toInt(nextValue, condition.count)),
-                    ),
-                  });
-                }}
+                    count: nextValue,
+                  })
+                }
               />
               <Button
                 type="button"
@@ -212,25 +199,17 @@ export const PatternConditionEditor = ({
               className={`col-start-1 row-start-1 min-w-0 ${editorFieldLabelClassName}`}
             >
               しきい値
-              <Input
+              <NumericInput
                 className="h-9"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
                 value={condition.threshold}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  if (!/^\d*$/.test(nextValue)) {
-                    return;
-                  }
+                min={0}
+                max={60}
+                onValueChange={(nextValue) =>
                   emitChange({
                     ...condition,
-                    threshold: Math.max(
-                      0,
-                      Math.min(60, toInt(nextValue, condition.threshold)),
-                    ),
-                  });
-                }}
+                    threshold: nextValue,
+                  })
+                }
               />
             </label>
             <label

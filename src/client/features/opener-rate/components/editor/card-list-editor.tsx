@@ -2,12 +2,12 @@ import { Plus } from "lucide-react";
 import { useAtom } from "jotai";
 import { useState } from "react";
 
-import { Button, Input } from "../../../../components/ui";
+import { Button } from "../../../../components/ui";
 import { cardsAtom } from "../../state";
 import { createLocalId } from "./create-local-id";
 import { EditorEmptyState } from "./editor-ui";
 import { NameMemoEditorItem } from "./name-memo-editor-item";
-import { toInt } from "./number-utils";
+import { NumericInput } from "./numeric-input";
 import { SortableEditorSection } from "./sortable-editor-section";
 
 const createDefaultCardName = (index: number) => `カード${index + 1}`;
@@ -104,30 +104,22 @@ export const CardListEditor = () => {
             nameInputClassName="border-ui-surface0/80 bg-ui-mantle text-ui-text placeholder:text-ui-overlay1"
             actionsClassName="justify-end"
             topMiddle={
-              <Input
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
+              <NumericInput
                 value={card.count}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  if (!/^\d*$/.test(nextValue)) {
-                    return;
-                  }
+                min={0}
+                max={60}
+                onValueChange={(nextValue) =>
                   setCards((current) =>
                     current.map((target) =>
                       target.uid === card.uid
                         ? {
                             ...target,
-                            count: Math.max(
-                              0,
-                              Math.min(60, toInt(nextValue, target.count)),
-                            ),
+                            count: nextValue,
                           }
                         : target,
                     ),
-                  );
-                }}
+                  )
+                }
               />
             }
           />

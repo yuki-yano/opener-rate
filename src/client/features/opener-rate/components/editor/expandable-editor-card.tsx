@@ -2,7 +2,7 @@ import {
   ChevronDown,
   ChevronRight,
   Copy,
-  NotebookPen,
+  SquarePen,
   Trash2,
 } from "lucide-react";
 import type { ReactNode } from "react";
@@ -102,7 +102,7 @@ export const ExpandableEditorCard = ({
               onToggleMemo();
             }}
           >
-            <NotebookPen className="h-4 w-4" />
+            <SquarePen className="h-4 w-4" />
           </Button>
           <Button
             type="button"

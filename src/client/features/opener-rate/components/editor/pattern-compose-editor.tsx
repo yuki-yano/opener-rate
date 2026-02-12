@@ -33,7 +33,7 @@ import {
   type ComposeSource,
 } from "./pattern-compose";
 import { editorCompactFieldLabelClassName } from "./editor-ui";
-import { toInt } from "./number-utils";
+import { NumericInput } from "./numeric-input";
 
 const createDefaultSubPatternName = (index: number) =>
   `サブパターン${index + 1}`;
@@ -462,28 +462,13 @@ export const PatternComposeDialogTrigger = () => {
             </label>
             <label className={editorCompactFieldLabelClassName}>
               手動貫通加算（カテゴリごと）
-              <Input
+              <NumericInput
                 className="h-9"
-                type="text"
-                inputMode="numeric"
-                pattern="[0-9]*"
                 disabled={isComposeLocked}
                 value={effectiveManualPenetrationAmount}
-                onChange={(event) => {
-                  const nextValue = event.target.value;
-                  if (!/^\d*$/.test(nextValue)) {
-                    return;
-                  }
-                  setComposeManualPenetrationAmount(
-                    Math.max(
-                      0,
-                      Math.min(
-                        20,
-                        toInt(nextValue, composeManualPenetrationAmount),
-                      ),
-                    ),
-                  );
-                }}
+                min={0}
+                max={20}
+                onValueChange={setComposeManualPenetrationAmount}
               />
             </label>
             <label className={editorCompactFieldLabelClassName}>
