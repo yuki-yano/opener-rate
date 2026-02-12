@@ -14,18 +14,44 @@ import {
 import { evaluatePatterns } from "./evaluate-pattern";
 import { evaluateSubPatterns } from "./evaluate-sub-pattern";
 
-const scoreEvaluation = (
-  evaluation: ReturnType<typeof evaluatePatterns>,
-  compiledPatternByUid: Map<string, CompiledPattern>,
-) =>
-  (collectCountablePatternEffects(
+const scoreEvaluation = (params: {
+  evaluation: ReturnType<typeof evaluatePatterns>;
+  compiledPatternByUid: Map<string, CompiledPattern>;
+  compiledSubPatterns: CompiledSubPattern[];
+  handCounts: number[];
+  deckCounts: number[];
+}) => {
+  const {
+    evaluation,
+    compiledPatternByUid,
+    compiledSubPatterns,
+    handCounts,
+    deckCounts,
+  } = params;
+  const countablePatternEffects = collectCountablePatternEffects(
     evaluation.matchedPatternUids,
     compiledPatternByUid,
-  ).countableMatchedPatternUids.length > 0
-    ? 1_000_000
-    : 0) +
-  evaluation.matchedPatternUids.length * 1000 +
-  evaluation.matchedLabelUids.length;
+  );
+  const countableSubPatternEvaluation = evaluateSubPatterns({
+    compiledSubPatterns,
+    context: { handCounts, deckCounts },
+    matchedPatternUids: countablePatternEffects.countableMatchedPatternUids,
+    matchedCardCountsByPatternUid: evaluation.matchedCardCountsByPatternUid,
+  });
+  const countableMatchedLabelCount = new Set([
+    ...countablePatternEffects.countableMatchedLabelUids,
+    ...countableSubPatternEvaluation.addedLabelUids,
+  ]).size;
+  const hasCountableSuccess =
+    countablePatternEffects.countableMatchedPatternUids.length > 0 ||
+    countableMatchedLabelCount > 0;
+
+  return (
+    (hasCountableSuccess ? 1_000_000 : 0) +
+    countablePatternEffects.countableMatchedPatternUids.length * 1000 +
+    countableMatchedLabelCount
+  );
+};
 
 const createDeckOrder = (deckCounts: number[]) => {
   const deckOrder: number[] = [];
@@ -51,22 +77,22 @@ const createOpponentDeckOrder = (params: {
 }) => {
   const { opponentDeckSize, opponentDisruptions } = params;
   const deckOrder: number[] = [];
-  let totalDisruptionCount = 0;
+  let remainingSlots = Math.max(0, opponentDeckSize);
 
   for (
     let disruptionIndex = 0;
-    disruptionIndex < opponentDisruptions.length;
+    disruptionIndex < opponentDisruptions.length && remainingSlots > 0;
     disruptionIndex += 1
   ) {
     const disruption = opponentDisruptions[disruptionIndex];
-    for (let i = 0; i < disruption.count; i += 1) {
+    const count = Math.min(disruption.count, remainingSlots);
+    for (let i = 0; i < count; i += 1) {
       deckOrder.push(disruptionIndex);
-      totalDisruptionCount += 1;
     }
+    remainingSlots -= count;
   }
 
-  const unknownCount = Math.max(0, opponentDeckSize - totalDisruptionCount);
-  for (let i = 0; i < unknownCount; i += 1) {
+  for (let i = 0; i < remainingSlots; i += 1) {
     deckOrder.push(-1);
   }
 
@@ -158,6 +184,7 @@ const runPotResolution = (
   normalized: NormalizedDeck,
   compiledPatterns: CompiledPattern[],
   compiledPatternByUid: Map<string, CompiledPattern>,
+  compiledSubPatterns: CompiledSubPattern[],
   handCounts: number[],
   deckCounts: number[],
   remainingDeckOrder: number[],
@@ -192,7 +219,13 @@ const runPotResolution = (
           handCounts: candidateHand,
           deckCounts: candidateDeck,
         });
-        const score = scoreEvaluation(evaluation, compiledPatternByUid);
+        const score = scoreEvaluation({
+          evaluation,
+          compiledPatternByUid,
+          compiledSubPatterns,
+          handCounts: candidateHand,
+          deckCounts: candidateDeck,
+        });
         if (score > bestScore) {
           bestScore = score;
           bestRevealPosition = revealPosition;
@@ -287,6 +320,7 @@ export const calculateBySimulation = (params: {
       normalized,
       compiledPatterns,
       compiledPatternByUid,
+      compiledSubPatterns,
       handCounts,
       deckCounts,
       remainingDeckOrder,

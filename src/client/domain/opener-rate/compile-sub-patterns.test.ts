@@ -76,6 +76,7 @@ describe("compileSubPatterns", () => {
       aIndex ?? -1,
       bIndex ?? -1,
     ]);
+    expect(compiled[0]?.hasTriggerSourceUids).toBe(true);
     expect(compiled[0]?.triggerConditions).toEqual([
       {
         mode: "required",

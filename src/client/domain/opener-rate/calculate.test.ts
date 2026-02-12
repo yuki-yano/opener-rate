@@ -182,6 +182,138 @@ describe("calculateOpenerRateDomain", () => {
     ]);
   });
 
+  it("returns card_count_exceeded error output when deck size is exceeded", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "a", name: "A", count: 2, memo: "" }],
+      patterns: [
+        {
+          uid: "p-required-a",
+          name: "Require A",
+          active: true,
+          conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [{ uid: "l1", name: "label1", memo: "" }],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 10000,
+      },
+    });
+
+    expect(result.mode).toBe("exact");
+    expect(result.overallProbability).toBe("0.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-required-a", rate: "0.00" },
+    ]);
+    expect(result.labelSuccessRates).toEqual([{ uid: "l1", rate: "0.00" }]);
+    expect(result.error).toEqual({
+      type: "card_count_exceeded",
+      deckSize: 1,
+      totalCards: 2,
+      excess: 1,
+    });
+  });
+
+  it("falls back to simulation mode when exact mode is requested with pot enabled", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [],
+      patterns: [],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 1, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 1000,
+      },
+    });
+
+    expect(result.mode).toBe("simulation");
+  });
+
+  it("falls back to simulation mode when exact mode is requested with vs enabled", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [],
+      patterns: [],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "exact",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 1,
+        opponentDisruptions: [],
+      },
+    });
+
+    expect(result.mode).toBe("simulation");
+  });
+
+  it("returns 0.00 rates when simulation trials is zero", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 0,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 1,
+        opponentDisruptions: [],
+      },
+    });
+
+    expect(result.mode).toBe("simulation");
+    expect(result.overallProbability).toBe("0.00");
+    expect(result.patternSuccessRates).toEqual([
+      { uid: "p-base", rate: "0.00" },
+    ]);
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "0.00",
+      disruptedAndFailedRate: "0.00",
+    });
+  });
+
   it("supports draw_total with cap1/raw rules", () => {
     const result = calculateOpenerRateDomain({
       deck: { cardCount: 4, firstHand: 2 },
@@ -579,6 +711,62 @@ describe("calculateOpenerRateDomain", () => {
     expect(noLimit.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
   });
 
+  it("caps opponent disruptions by opponent deck size", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-negate"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 2,
+        opponentDisruptions: [
+          {
+            uid: "d-negate",
+            disruptionCardUid: "dc-negate",
+            disruptionCategoryUid: "cat-negate",
+            name: "無効妨害",
+            count: 2,
+            oncePerName: false,
+          },
+        ],
+      },
+    });
+
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "100.00",
+      disruptedAndFailedRate: "0.00",
+    });
+  });
+
   it("supports grouped disruption penetration by category key", () => {
     const baseInput: CalculateInput = {
       deck: { cardCount: 1, firstHand: 1 },
@@ -682,6 +870,62 @@ describe("calculateOpenerRateDomain", () => {
     expect(notEnough.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
   });
 
+  it("matches disruption penetration by name key when category/card uid is absent", () => {
+    const result = calculateOpenerRateDomain({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["Negate"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "d-name-only",
+            disruptionCardUid: undefined,
+            disruptionCategoryUid: undefined,
+            name: "Negate",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "100.00",
+      disruptedAndFailedRate: "0.00",
+    });
+  });
+
   it("does not consume prosperity when remaining deck is smaller than cost", () => {
     const result = calculateOpenerRateDomain({
       deck: { cardCount: 1, firstHand: 1 },
@@ -755,6 +999,78 @@ describe("calculateOpenerRateDomain", () => {
       expect(result.overallProbability).toBe("100.00");
       expect(result.patternSuccessRates).toEqual([
         { uid: "p-target", rate: "100.00" },
+      ]);
+    } finally {
+      randomSpy.mockRestore();
+    }
+  });
+
+  it("prioritizes countable sub-pattern labels when selecting prosperity reveal", () => {
+    const randomSpy = vi.spyOn(Math, "random").mockReturnValue(0);
+    try {
+      const result = calculateOpenerRateDomain({
+        deck: { cardCount: 7, firstHand: 1 },
+        cards: [{ uid: "a", name: "A", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-a",
+            name: "Aを引く",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["a"] }],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+          {
+            uid: "p-desires",
+            name: "強欲を引く",
+            active: true,
+            conditions: [
+              { mode: "required", count: 1, uids: ["desires_card"] },
+            ],
+            labels: [],
+            effects: [],
+            memo: "",
+          },
+        ],
+        subPatterns: [
+          {
+            uid: "sp-a-label",
+            name: "Aでラベル付与",
+            active: true,
+            basePatternUids: ["p-a"],
+            triggerConditions: [
+              {
+                mode: "required",
+                count: 1,
+                uids: ["a"],
+              },
+            ],
+            triggerSourceUids: [],
+            applyLimit: "once_per_trial",
+            effects: [{ type: "add_label", labelUids: ["l-a"] }],
+            memo: "",
+          },
+        ],
+        labels: [{ uid: "l-a", name: "Aラベル", memo: "" }],
+        pot: {
+          desiresOrExtravagance: { count: 1 },
+          prosperity: { count: 1, cost: 6 },
+        },
+        settings: {
+          mode: "simulation",
+          simulationTrials: 1,
+        },
+      });
+
+      expect(result.mode).toBe("simulation");
+      expect(result.overallProbability).toBe("100.00");
+      expect(result.patternSuccessRates).toEqual([
+        { uid: "p-a", rate: "100.00" },
+        { uid: "p-desires", rate: "0.00" },
+      ]);
+      expect(result.labelSuccessRates).toEqual([
+        { uid: "l-a", rate: "100.00" },
       ]);
     } finally {
       randomSpy.mockRestore();

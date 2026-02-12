@@ -23,6 +23,9 @@ const resolveApplyCount = (
   }
 
   if (subPattern.triggerSourceIndices.length === 0) {
+    if (subPattern.hasTriggerSourceUids === true) {
+      return 0;
+    }
     return 1;
   }
 

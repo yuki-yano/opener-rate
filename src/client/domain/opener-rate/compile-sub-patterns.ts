@@ -18,4 +18,5 @@ export const compileSubPatterns = (
     triggerSourceIndices: toUniqueIndices(
       toIndices(normalized.uidToIndex, subPattern.triggerSourceUids),
     ),
+    hasTriggerSourceUids: subPattern.triggerSourceUids.length > 0,
   }));

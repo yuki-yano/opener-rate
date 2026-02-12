@@ -74,6 +74,39 @@ describe("evaluateSubPatterns", () => {
     expect(result.penetrationByDisruptionKey).toEqual({ "cat-negate": 2 });
   });
 
+  it("does not apply once_per_distinct_uid when trigger sources are configured but unresolved", () => {
+    const compiledSubPatterns: CompiledSubPattern[] = [
+      {
+        uid: "sp1",
+        name: "with墓穴",
+        active: true,
+        basePatternUids: ["p1"],
+        triggerConditions: [
+          { mode: "required", count: 1, uids: ["grave"], indices: [1] },
+        ],
+        triggerSourceIndices: [],
+        hasTriggerSourceUids: true,
+        applyLimit: "once_per_distinct_uid",
+        effects: [
+          {
+            type: "add_penetration",
+            disruptionCategoryUids: ["cat-negate"],
+            amount: 1,
+          },
+        ],
+        memo: "",
+      },
+    ];
+
+    const result = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([0, 1]),
+      matchedPatternUids: ["p1"],
+    });
+
+    expect(result.penetrationByDisruptionKey).toEqual({});
+  });
+
   it("does not apply when base pattern is not matched", () => {
     const compiledSubPatterns: CompiledSubPattern[] = [
       {
@@ -98,6 +131,36 @@ describe("evaluateSubPatterns", () => {
     });
 
     expect(result.addedLabelUids).toEqual([]);
+  });
+
+  it("requires at least one matched pattern when basePatternUids is empty", () => {
+    const compiledSubPatterns: CompiledSubPattern[] = [
+      {
+        uid: "sp1",
+        name: "any-base",
+        active: true,
+        basePatternUids: [],
+        triggerConditions: [],
+        triggerSourceIndices: [],
+        applyLimit: "once_per_trial",
+        effects: [{ type: "add_label", labelUids: ["l-hit"] }],
+        memo: "",
+      },
+    ];
+
+    const withoutBase = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([0]),
+      matchedPatternUids: [],
+    });
+    const withBase = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([0]),
+      matchedPatternUids: ["p1"],
+    });
+
+    expect(withoutBase.addedLabelUids).toEqual([]);
+    expect(withBase.addedLabelUids).toEqual(["l-hit"]);
   });
 
   it("applies base_match_total when any matched base pattern satisfies", () => {

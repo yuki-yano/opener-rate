@@ -71,6 +71,7 @@ export type CompiledSubPattern = Omit<
 > & {
   triggerConditions: CompiledSubPatternTriggerCondition[];
   triggerSourceIndices: number[];
+  hasTriggerSourceUids?: boolean;
 };
 
 export type EvaluationContext = {
