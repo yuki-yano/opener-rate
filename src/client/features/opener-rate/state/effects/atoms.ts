@@ -156,11 +156,20 @@ export const runCreateShortUrlAtom = atom(
     set(shortUrlResultAtom, null);
     try {
       const response = await openerRateApi.createShortUrl(url);
+      const currentHref = getCurrentHref();
+      const shouldLock = currentHref != null && currentHref === url;
       set(shortUrlResultAtom, response.shortenUrl);
       set(shortUrlInputAtom, response.shortenUrl);
-      set(shortUrlLockedUntilChangeAtom, false);
-      set(shortUrlLockedSourceHrefAtom, null);
-      writeShortUrlLockState(null);
+      set(shortUrlLockedUntilChangeAtom, shouldLock);
+      set(shortUrlLockedSourceHrefAtom, shouldLock ? url : null);
+      writeShortUrlLockState(
+        shouldLock
+          ? {
+              sourceHref: url,
+              sharedShortUrl: response.shortenUrl,
+            }
+          : null,
+      );
       set(shortUrlCacheAtom, (prev) => ({
         ...prev,
         [url]: response.shortenUrl,
@@ -181,9 +190,12 @@ export const runShareCurrentUrlAtom = atom(null, async (get, set) => {
     set(shortUrlInputAtom, cachedShortUrl);
     set(shortUrlResultAtom, cachedShortUrl);
     set(shortUrlErrorAtom, null);
-    set(shortUrlLockedUntilChangeAtom, false);
-    set(shortUrlLockedSourceHrefAtom, null);
-    writeShortUrlLockState(null);
+    set(shortUrlLockedUntilChangeAtom, true);
+    set(shortUrlLockedSourceHrefAtom, currentUrl);
+    writeShortUrlLockState({
+      sourceHref: currentUrl,
+      sharedShortUrl: cachedShortUrl,
+    });
     return;
   }
 

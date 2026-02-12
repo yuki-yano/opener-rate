@@ -10,6 +10,7 @@ import {
   hydrateShortUrlLockAtom,
   runCalculateAtom,
   runCreateShortUrlAtom,
+  runShareCurrentUrlAtom,
   seedSharedUrlAsGeneratedAtom,
 } from "./atoms";
 import {
@@ -320,5 +321,70 @@ describe("runCreateShortUrlAtom", () => {
 
     expect(store.get(shortUrlErrorAtom)).toBe("URL origin is not allowed");
     expect(store.get(shortUrlLoadingAtom)).toBe(false);
+  });
+});
+
+describe("runShareCurrentUrlAtom", () => {
+  const originalWindow = globalThis.window;
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+    if (originalWindow == null) {
+      delete (globalThis as { window?: Window }).window;
+      return;
+    }
+    Object.defineProperty(globalThis, "window", {
+      value: originalWindow,
+      configurable: true,
+      writable: true,
+    });
+  });
+
+  it("locks as shared after create succeeds", async () => {
+    const mockWindow = createMockWindow("https://example.com/#deck=abc");
+    setGlobalWindow(mockWindow);
+    const store = createStore();
+
+    vi.spyOn(openerRateApi, "createShortUrl").mockResolvedValue({
+      shortenUrl: "https://example.com/short_url/abc123de",
+    });
+
+    await store.set(runShareCurrentUrlAtom);
+
+    expect(store.get(shortUrlInputAtom)).toBe(
+      "https://example.com/short_url/abc123de",
+    );
+    expect(store.get(shortUrlResultAtom)).toBe(
+      "https://example.com/short_url/abc123de",
+    );
+    expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
+      "https://example.com/#deck=abc",
+    );
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+  });
+
+  it("locks as shared when cached short URL exists", async () => {
+    const mockWindow = createMockWindow("https://example.com/#deck=abc");
+    setGlobalWindow(mockWindow);
+    const store = createStore();
+    store.set(shortUrlCacheAtom, {
+      "https://example.com/#deck=abc":
+        "https://example.com/short_url/cached123",
+    });
+
+    await store.set(runShareCurrentUrlAtom);
+
+    expect(store.get(shortUrlInputAtom)).toBe(
+      "https://example.com/short_url/cached123",
+    );
+    expect(store.get(shortUrlResultAtom)).toBe(
+      "https://example.com/short_url/cached123",
+    );
+    expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
+      "https://example.com/#deck=abc",
+    );
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
   });
 });
