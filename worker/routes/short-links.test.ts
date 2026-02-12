@@ -60,6 +60,55 @@ describe("shortLinkRoutes", () => {
     );
   });
 
+  it("resolves responseOrigin from x-forwarded headers", async () => {
+    const response = await shortLinkRoutes.request(
+      "https://consistency-rate.pages.dev/api/shorten_url/create",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-forwarded-proto": "http",
+          "x-forwarded-host": "share.example.com",
+        },
+        body: JSON.stringify({ url: "https://consistency-rate.pages.dev/" }),
+      },
+      env,
+    );
+
+    expect(response.status).toBe(200);
+    expect(serviceMocks.createShortUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trustedOrigin: "https://consistency-rate.pages.dev",
+        responseOrigin: "http://share.example.com",
+      }),
+    );
+  });
+
+  it("normalizes local forwarded host 0.0.0.0 to 127.0.0.1", async () => {
+    const response = await shortLinkRoutes.request(
+      "http://127.0.0.1:8787/api/shorten_url/create",
+      {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-forwarded-proto": "http",
+          "x-forwarded-host": "0.0.0.0:8787",
+          host: "0.0.0.0:8787",
+        },
+        body: JSON.stringify({ url: "http://127.0.0.1:8787/" }),
+      },
+      env,
+    );
+
+    expect(response.status).toBe(200);
+    expect(serviceMocks.createShortUrl).toHaveBeenCalledWith(
+      expect.objectContaining({
+        trustedOrigin: "http://127.0.0.1:8787",
+        responseOrigin: "http://127.0.0.1:8787",
+      }),
+    );
+  });
+
   it("falls back to root when resolved target is non-http(s)", async () => {
     serviceMocks.resolveShortUrlTarget.mockResolvedValue("javascript:alert(1)");
 
@@ -135,5 +184,66 @@ describe("shortLinkRoutes", () => {
     expect(html).toContain(
       'window.location.replace("https://consistency-rate.pages.dev/?deckName=test")',
     );
+  });
+
+  it("redirects when resolved target matches configured APP_ORIGIN", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
+      "https://app.example.com/?deckName=shared",
+    );
+
+    const response = await shortLinkRoutes.request(
+      "https://preview.example.com/short_url/abc123de",
+      undefined,
+      {
+        DB: {} as D1Database,
+        APP_ORIGIN: "https://app.example.com",
+      },
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain(
+      'window.location.replace("https://app.example.com/?deckName=shared")',
+    );
+  });
+
+  it("redirects when local origins differ by hostname", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
+      "http://localhost:5173/?deckName=local",
+    );
+
+    const response = await shortLinkRoutes.request(
+      "http://127.0.0.1:8787/short_url/abc123de",
+      undefined,
+      env,
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain(
+      'window.location.replace("http://localhost:5173/?deckName=local")',
+    );
+  });
+
+  it("falls back when APP_ORIGIN config is invalid", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
+      "https://app.example.com/?deckName=shared",
+    );
+
+    const response = await shortLinkRoutes.request(
+      "https://preview.example.com/short_url/abc123de",
+      undefined,
+      {
+        DB: {} as D1Database,
+        APP_ORIGIN: "not-a-url",
+      },
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain(
+      'window.location.replace("https://preview.example.com/")',
+    );
+    expect(html).not.toContain("https://app.example.com/?deckName=shared");
   });
 });
