@@ -49,7 +49,7 @@ export const SectionCard = ({
         )}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className="space-y-0.5">
+          <div className={cn("space-y-0.5", floatingActions && "pr-12")}>
             <h2 className="text-sm font-semibold text-ui-text">{title}</h2>
             {description ? (
               <p className="text-xs text-ui-subtext0">{description}</p>
