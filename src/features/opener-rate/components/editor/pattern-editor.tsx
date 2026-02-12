@@ -236,8 +236,16 @@ export const PatternEditor = () => {
               isMemoExpanded={isMemoExpanded}
               name={pattern.name}
               namePlaceholder="パターン名（必須）"
-              activeContainerClassName="border-ui-blue/65 bg-ui-crust/82"
-              inactiveContainerClassName="border-ui-red/65 bg-ui-crust/82"
+              activeContainerClassName={
+                isExcludedFromOverall
+                  ? "border-ui-yellow/65 bg-ui-crust/82"
+                  : "border-ui-blue/65 bg-ui-crust/82"
+              }
+              inactiveContainerClassName={
+                isExcludedFromOverall
+                  ? "border-ui-yellow/65 bg-ui-crust/82"
+                  : "border-ui-red/65 bg-ui-crust/82"
+              }
               activeAriaLabel="パターン有効切り替え"
               memoAriaLabel="メモ表示切り替え"
               duplicateAriaLabel="パターン複製"
