@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 
-import { resolveRateDiff } from "./rate-diff";
+import {
+  rateBadgeClassName,
+  resolvePatternRateBadgeClassName,
+  resolveRateDiff,
+} from "./rate-diff";
 
 describe("resolveRateDiff", () => {
   it("差分が閾値未満なら null を返す", () => {
@@ -23,5 +27,19 @@ describe("resolveRateDiff", () => {
 
   it("現在値が数値でない場合は null を返す", () => {
     expect(resolveRateDiff("not-a-number", "10.00")).toBeNull();
+  });
+});
+
+describe("resolvePatternRateBadgeClassName", () => {
+  it("合計対象なら既定クラスを返す", () => {
+    expect(resolvePatternRateBadgeClassName(false)).toBe(rateBadgeClassName);
+  });
+
+  it("合計除外なら黄色系クラスを返す", () => {
+    const className = resolvePatternRateBadgeClassName(true);
+    expect(className).toContain(rateBadgeClassName);
+    expect(className).toContain("border-ui-yellow/60");
+    expect(className).toContain("bg-ui-yellow/16");
+    expect(className).toContain("text-ui-yellow");
   });
 });

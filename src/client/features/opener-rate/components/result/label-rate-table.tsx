@@ -67,6 +67,7 @@ export const LabelRateTable = () => {
               name={label.name.trim() || "名称未設定"}
               rate={rate}
               diff={rateDiff}
+              isExcludedFromOverall={false}
             />
           );
         })}

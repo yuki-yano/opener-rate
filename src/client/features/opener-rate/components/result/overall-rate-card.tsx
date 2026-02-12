@@ -160,6 +160,7 @@ export const OverallRateCard = () => {
                   name={pattern.name.trim() || "名称未設定"}
                   rate={rate}
                   diff={rateDiff}
+                  isExcludedFromOverall={pattern.excludeFromOverall === true}
                 />
               );
             })
