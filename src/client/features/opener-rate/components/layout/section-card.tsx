@@ -49,14 +49,19 @@ export const SectionCard = ({
         )}
       >
         <div className="flex items-start justify-between gap-3">
-          <div className={cn("space-y-0.5", floatingActions && "pr-12")}>
+          <div
+            className={cn(
+              "min-w-0 flex-1 space-y-0.5",
+              floatingActions && !actions && "pr-12",
+            )}
+          >
             <h2 className="text-sm font-semibold text-ui-text">{title}</h2>
             {description ? (
               <p className="text-xs text-ui-text3">{description}</p>
             ) : null}
           </div>
           {actions ? (
-            <div className="flex items-center gap-2">{actions}</div>
+            <div className="flex shrink-0 items-center gap-2">{actions}</div>
           ) : null}
         </div>
       </header>
