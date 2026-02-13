@@ -155,6 +155,11 @@ const buildRedirectHtml = (
 </html>`;
 };
 
+const resolveForwardedMode = (requestUrl: string): "ai" | null => {
+  const mode = new URL(requestUrl).searchParams.get("mode");
+  return mode === "ai" ? "ai" : null;
+};
+
 export const createShortUrlRoute = app.post(
   "/api/shorten_url/create",
   zValidator("json", shortenUrlRequestSchema),
@@ -190,6 +195,7 @@ export const resolveShortUrlRoute = app.get(
       bindings: c.env,
       key,
     });
+    const forwardedMode = resolveForwardedMode(c.req.url);
 
     if (shortLink == null) {
       return c.html(buildRedirectHtml(fallbackTargetUrl, null));
@@ -203,6 +209,9 @@ export const resolveShortUrlRoute = app.get(
       });
       if (parsedTargetUrl == null) {
         return c.html(buildRedirectHtml(fallbackTargetUrl, null));
+      }
+      if (forwardedMode != null) {
+        parsedTargetUrl.searchParams.set("mode", forwardedMode);
       }
       const deckName =
         shortLink.deckName ?? extractDeckNameFromTargetUrl(parsedTargetUrl);

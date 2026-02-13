@@ -192,6 +192,25 @@ describe("shortLinkRoutes", () => {
     );
   });
 
+  it("keeps mode=ai query param when resolving short url", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://consistency-rate.pages.dev/?deckName=test",
+      deckName: "test",
+    });
+
+    const response = await shortLinkRoutes.request(
+      "https://consistency-rate.pages.dev/short_url/abc123de?mode=ai",
+      undefined,
+      env,
+    );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain(
+      'window.location.replace("https://consistency-rate.pages.dev/?deckName=test&mode=ai")',
+    );
+  });
+
   it("falls back to deckName extraction from target url when DB deckName is null", async () => {
     serviceMocks.resolveShortUrlTarget.mockResolvedValue({
       targetUrl:
