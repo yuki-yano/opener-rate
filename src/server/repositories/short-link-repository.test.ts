@@ -12,6 +12,7 @@ describe("shortLinkRepository", () => {
     >[0];
 
     await shortLinkRepository.create(db, {
+      deckName: "test",
       key: "abc123de",
       targetUrl: "https://consistency-rate.pages.dev/?deckName=test",
       now: 1730000000000,
@@ -21,6 +22,7 @@ describe("shortLinkRepository", () => {
     expect(values).toHaveBeenCalledWith({
       key: "abc123de",
       targetUrl: "https://consistency-rate.pages.dev/?deckName=test",
+      deckName: "test",
       createdAt: 1730000000000,
       updatedAt: 1730000000000,
     });
@@ -41,11 +43,12 @@ describe("shortLinkRepository", () => {
   });
 
   it("returns stored target url when key exists", async () => {
-    const limit = vi
-      .fn()
-      .mockResolvedValue([
-        { targetUrl: "https://consistency-rate.pages.dev/?deckName=shared" },
-      ]);
+    const limit = vi.fn().mockResolvedValue([
+      {
+        targetUrl: "https://consistency-rate.pages.dev/?deckName=shared",
+        deckName: "shared",
+      },
+    ]);
     const where = vi.fn().mockReturnValue({ limit });
     const from = vi.fn().mockReturnValue({ where });
     const select = vi.fn().mockReturnValue({ from });
@@ -55,6 +58,9 @@ describe("shortLinkRepository", () => {
 
     const found = await shortLinkRepository.findTargetUrlByKey(db, "abc123de");
 
-    expect(found).toBe("https://consistency-rate.pages.dev/?deckName=shared");
+    expect(found).toEqual({
+      targetUrl: "https://consistency-rate.pages.dev/?deckName=shared",
+      deckName: "shared",
+    });
   });
 });

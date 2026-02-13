@@ -2,6 +2,7 @@ import { zValidator } from "@hono/zod-validator";
 import { Hono } from "hono";
 
 import { shortenUrlRequestSchema } from "../../shared/apiSchemas";
+import { extractDeckNameFromTargetUrl } from "../lib/deck-name";
 import {
   createShortUrl,
   resolveShortUrlTarget,
@@ -96,41 +97,6 @@ const resolveSafeRedirectTarget = (params: {
   return null;
 };
 
-const decodeNestedURIComponent = (value: string) => {
-  let current = value;
-  for (let i = 0; i < 3; i += 1) {
-    try {
-      const decoded = decodeURIComponent(current);
-      if (decoded === current) break;
-      current = decoded;
-    } catch {
-      break;
-    }
-  }
-  return current;
-};
-
-const extractDeckName = (raw: string | null | undefined) => {
-  if (raw == null || raw.length === 0) return null;
-  const decoded = decodeNestedURIComponent(raw);
-  const trimmed = decoded.trim();
-  return trimmed.length === 0 ? null : trimmed;
-};
-
-const extractDeckNameFromHash = (rawHash: string) => {
-  if (rawHash.length === 0) return null;
-  const hash = rawHash.startsWith("#") ? rawHash.slice(1) : rawHash;
-  if (hash.length === 0) return null;
-  const hashParams = new URLSearchParams(hash);
-  return extractDeckName(hashParams.get("deckName"));
-};
-
-const extractDeckNameFromTargetUrl = (targetUrl: URL) => {
-  const fromHash = extractDeckNameFromHash(targetUrl.hash);
-  if (fromHash != null) return fromHash;
-  return extractDeckName(targetUrl.searchParams.get("deckName"));
-};
-
 const escapeHtml = (value: string) =>
   value
     .replaceAll("&", "&amp;")
@@ -220,25 +186,26 @@ export const resolveShortUrlRoute = app.get(
       trustedOrigin,
     ).toString();
     const fallbackTargetUrl = new URL("/", trustedOrigin).toString();
-    const targetUrl = await resolveShortUrlTarget({
+    const shortLink = await resolveShortUrlTarget({
       bindings: c.env,
       key,
     });
 
-    if (targetUrl == null) {
+    if (shortLink == null) {
       return c.html(buildRedirectHtml(fallbackTargetUrl, null));
     }
 
     try {
       const parsedTargetUrl = resolveSafeRedirectTarget({
-        targetUrl,
+        targetUrl: shortLink.targetUrl,
         trustedOrigin,
         configuredOrigin: c.env.APP_ORIGIN,
       });
       if (parsedTargetUrl == null) {
         return c.html(buildRedirectHtml(fallbackTargetUrl, null));
       }
-      const deckName = extractDeckNameFromTargetUrl(parsedTargetUrl);
+      const deckName =
+        shortLink.deckName ?? extractDeckNameFromTargetUrl(parsedTargetUrl);
       return c.html(
         buildRedirectHtml(parsedTargetUrl.toString(), deckName, sourceShortUrl),
       );

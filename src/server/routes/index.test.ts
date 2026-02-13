@@ -22,9 +22,10 @@ describe("route", () => {
     serviceMocks.createShortUrl.mockResolvedValue({
       shortenUrl: "https://consistency-rate.pages.dev/short_url/abc123de",
     });
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "https://consistency-rate.pages.dev/?deckName=test",
-    );
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://consistency-rate.pages.dev/?deckName=test",
+      deckName: "test",
+    });
   });
 
   it("serves health endpoint", async () => {

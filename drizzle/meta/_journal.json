@@ -15,6 +15,13 @@
       "when": 1770874417476,
       "tag": "0001_short_titanium_man",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "6",
+      "when": 1770978798329,
+      "tag": "0002_giant_vindicator",
+      "breakpoints": true
     }
   ]
 }

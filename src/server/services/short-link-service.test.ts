@@ -107,6 +107,23 @@ describe("createShortUrl", () => {
     );
   });
 
+  it("stores extracted deckName with max length cap", async () => {
+    const longDeckName = "A".repeat(120);
+
+    await createShortUrl({
+      bindings: { DB: {} as D1Database },
+      url: `https://consistency-rate.pages.dev/?deckName=${longDeckName}`,
+      trustedOrigin: "https://consistency-rate.pages.dev",
+    });
+
+    expect(mocks.create).toHaveBeenCalledWith(
+      { kind: "db" },
+      expect.objectContaining({
+        deckName: "A".repeat(100),
+      }),
+    );
+  });
+
   it("retries with a new key when insert hits unique constraint", async () => {
     mocks.create
       .mockRejectedValueOnce(

@@ -1,11 +1,20 @@
 import { sql } from "drizzle-orm";
-import { index, integer, sqliteTable, text } from "drizzle-orm/sqlite-core";
+import {
+  check,
+  index,
+  integer,
+  sqliteTable,
+  text,
+} from "drizzle-orm/sqlite-core";
+
+import { DECK_NAME_MAX_LENGTH } from "../lib/deck-name";
 
 export const shortLinks = sqliteTable(
   "short_links",
   {
     key: text("key").primaryKey(),
     targetUrl: text("target_url").notNull(),
+    deckName: text("deck_name"),
     createdAt: integer("created_at", { mode: "number" })
       .notNull()
       .default(sql`(strftime('%s','now') * 1000)`),
@@ -13,7 +22,13 @@ export const shortLinks = sqliteTable(
       .notNull()
       .default(sql`(strftime('%s','now') * 1000)`),
   },
-  (table) => [index("idx_short_links_created_at").on(table.createdAt)],
+  (table) => [
+    index("idx_short_links_created_at").on(table.createdAt),
+    check(
+      "chk_short_links_deck_name_length",
+      sql`${table.deckName} is null or length(${table.deckName}) <= ${DECK_NAME_MAX_LENGTH}`,
+    ),
+  ],
 );
 
 export type ShortLink = typeof shortLinks.$inferSelect;

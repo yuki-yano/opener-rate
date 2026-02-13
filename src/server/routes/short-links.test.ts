@@ -110,7 +110,10 @@ describe("shortLinkRoutes", () => {
   });
 
   it("falls back to root when resolved target is non-http(s)", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue("javascript:alert(1)");
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "javascript:alert(1)",
+      deckName: null,
+    });
 
     const response = await shortLinkRoutes.request(
       "https://consistency-rate.pages.dev/short_url/abc123de",
@@ -127,9 +130,10 @@ describe("shortLinkRoutes", () => {
   });
 
   it("falls back to root when resolved target is different origin", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "https://evil.example/path",
-    );
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://evil.example/path",
+      deckName: null,
+    });
 
     const response = await shortLinkRoutes.request(
       "https://consistency-rate.pages.dev/short_url/abc123de",
@@ -146,9 +150,10 @@ describe("shortLinkRoutes", () => {
   });
 
   it("falls back to trusted-origin root when origin header is forged", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "https://evil.example/path",
-    );
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://evil.example/path",
+      deckName: null,
+    });
 
     const response = await shortLinkRoutes.request(
       "https://consistency-rate.pages.dev/short_url/abc123de",
@@ -169,9 +174,10 @@ describe("shortLinkRoutes", () => {
   });
 
   it("redirects when resolved target is safe same-origin url", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "https://consistency-rate.pages.dev/?deckName=test",
-    );
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://consistency-rate.pages.dev/?deckName=test",
+      deckName: "test",
+    });
 
     const response = await shortLinkRoutes.request(
       "https://consistency-rate.pages.dev/short_url/abc123de",
@@ -186,10 +192,12 @@ describe("shortLinkRoutes", () => {
     );
   });
 
-  it("builds OGP title from deckName in hash", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "https://consistency-rate.pages.dev/#deckName=%E9%9D%92%E7%9C%BC",
-    );
+  it("falls back to deckName extraction from target url when DB deckName is null", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl:
+        "https://consistency-rate.pages.dev/#deckName=%E9%9D%92%E7%9C%BC",
+      deckName: null,
+    });
 
     const response = await shortLinkRoutes.request(
       "https://consistency-rate.pages.dev/short_url/abc123de",
@@ -207,10 +215,30 @@ describe("shortLinkRoutes", () => {
     );
   });
 
-  it("redirects when resolved target matches configured APP_ORIGIN", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "https://app.example.com/?deckName=shared",
+  it("uses stored deckName for OGP title", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://consistency-rate.pages.dev/?deckName=query-name",
+      deckName: "DB名",
+    });
+
+    const response = await shortLinkRoutes.request(
+      "https://consistency-rate.pages.dev/short_url/abc123de",
+      undefined,
+      env,
     );
+    const html = await response.text();
+
+    expect(response.status).toBe(200);
+    expect(html).toContain(
+      '<meta property="og:title" content="初動率シミュレーター - DB名" />',
+    );
+  });
+
+  it("redirects when resolved target matches configured APP_ORIGIN", async () => {
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://app.example.com/?deckName=shared",
+      deckName: "shared",
+    });
 
     const response = await shortLinkRoutes.request(
       "https://preview.example.com/short_url/abc123de",
@@ -229,9 +257,10 @@ describe("shortLinkRoutes", () => {
   });
 
   it("redirects when local origins differ by hostname", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "http://localhost:5173/?deckName=local",
-    );
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "http://localhost:5173/?deckName=local",
+      deckName: "local",
+    });
 
     const response = await shortLinkRoutes.request(
       "http://127.0.0.1:8787/short_url/abc123de",
@@ -247,9 +276,10 @@ describe("shortLinkRoutes", () => {
   });
 
   it("falls back when APP_ORIGIN config is invalid", async () => {
-    serviceMocks.resolveShortUrlTarget.mockResolvedValue(
-      "https://app.example.com/?deckName=shared",
-    );
+    serviceMocks.resolveShortUrlTarget.mockResolvedValue({
+      targetUrl: "https://app.example.com/?deckName=shared",
+      deckName: "shared",
+    });
 
     const response = await shortLinkRoutes.request(
       "https://preview.example.com/short_url/abc123de",

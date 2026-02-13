@@ -1,5 +1,6 @@
 import { HTTPException } from "hono/http-exception";
 
+import { extractDeckNameFromTargetUrlString } from "../lib/deck-name";
 import { getDb } from "../db/client";
 import { shortLinkRepository } from "../repositories/short-link-repository";
 import type { Bindings } from "../types";
@@ -104,6 +105,7 @@ export const createShortUrl = async (params: {
     trustedOrigin: params.trustedOrigin,
     bindings: params.bindings,
   });
+  const deckName = extractDeckNameFromTargetUrlString(safeTargetUrl);
   const db = getDb(params.bindings.DB);
   const now = Date.now();
   let key: string | null = null;
@@ -111,6 +113,7 @@ export const createShortUrl = async (params: {
     const candidate = createCandidateKey();
     try {
       await shortLinkRepository.create(db, {
+        deckName,
         key: candidate,
         now,
         targetUrl: safeTargetUrl,
