@@ -65,6 +65,7 @@ export type UseAiChatControllerResult = {
   parsedError: null | string;
   restoreHistory: () => Promise<void>;
   retry: () => Promise<void>;
+  resetChat: () => void;
   resetSystemPromptToDefault: () => void;
   saveHistory: () => Promise<void>;
   saveSystemPrompt: () => void;
@@ -328,6 +329,21 @@ export const useAiChatController = (): UseAiChatControllerResult => {
     await regenerate();
   };
 
+  const resetChat = () => {
+    void stop();
+    setMessages([]);
+    setInput("");
+    setHistoryIdToRestore("");
+    setSavedHistoryKey(null);
+    setApplyFeedback(null);
+    setUiMessage({
+      kind: "success",
+      text: "チャットをリセットしました",
+    });
+    setHistoryPopoverOpen(false);
+    lastSentStateRef.current = null;
+  };
+
   return {
     aiProvider,
     applyFeedback,
@@ -352,6 +368,7 @@ export const useAiChatController = (): UseAiChatControllerResult => {
     loadingLabel,
     openSystemPromptDialog,
     parsedError,
+    resetChat,
     resetSystemPromptToDefault,
     restoreHistory,
     retry,

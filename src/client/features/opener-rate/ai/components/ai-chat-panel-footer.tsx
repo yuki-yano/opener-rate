@@ -5,8 +5,8 @@ import {
   Check,
   Copy,
   History,
-  Loader2,
   SendHorizontal,
+  Square,
 } from "lucide-react";
 
 import { AiChatHistoryPopover } from "./ai-chat-history-popover";
@@ -124,18 +124,6 @@ export const AiChatPanelFooter = ({
                 データを適用
               </Button>
             ) : null}
-
-            {controller.isLoading ? (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="border-ui-red/40 bg-ui-red/8 text-ui-red hover:bg-ui-red/14"
-                onClick={controller.stopGeneration}
-              >
-                停止
-              </Button>
-            ) : null}
           </div>
         </div>
       </div>
@@ -160,18 +148,22 @@ export const AiChatPanelFooter = ({
           }}
         />
         <Button
-          type="submit"
+          type={controller.isLoading ? "button" : "submit"}
+          variant={controller.isLoading ? "outline" : "default"}
           size="sm"
           className={cn(
             "h-10 shrink-0 rounded-lg px-4",
-            aiPrimaryActionButtonClassName,
+            controller.isLoading
+              ? "border-ui-red/40 bg-ui-red/8 text-ui-red hover:bg-ui-red/14"
+              : aiPrimaryActionButtonClassName,
           )}
-          disabled={!controller.canSendMessage}
+          disabled={controller.isLoading ? false : !controller.canSendMessage}
+          onClick={controller.isLoading ? controller.stopGeneration : undefined}
         >
           {controller.isLoading ? (
             <span className="inline-flex items-center gap-1.5">
-              <Loader2 className="h-4 w-4 animate-spin" />
-              送信中...
+              <Square className="h-4 w-4" />
+              停止
             </span>
           ) : (
             <span className="inline-flex items-center gap-1.5">

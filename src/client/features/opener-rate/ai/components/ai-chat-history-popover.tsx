@@ -6,7 +6,7 @@ import {
   PopoverTrigger,
 } from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
-import { History, Loader2, Plus, Save } from "lucide-react";
+import { History, Loader2, Plus, RotateCcw, Save } from "lucide-react";
 
 import { aiPrimaryActionButtonClassName } from "./ai-chat-panel-style";
 import type { UseAiChatControllerResult } from "./use-ai-chat-controller";
@@ -47,6 +47,16 @@ export const AiChatHistoryPopover = ({
             現在の会話を保存、または履歴キーから復元できます。
           </p>
         </div>
+
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full justify-start border-ui-red/40 bg-ui-red/8 text-ui-red hover:bg-ui-red/14"
+          onClick={controller.resetChat}
+        >
+          <RotateCcw className="mr-2 h-4 w-4" />
+          チャットをリセット
+        </Button>
 
         <Button
           type="button"
