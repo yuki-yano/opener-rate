@@ -27,6 +27,7 @@ type MultiSelectProps = {
   options: MultiSelectOption[];
   value: string[];
   onChange: (next: string[]) => void;
+  triggerClassName?: string;
   placeholder?: string;
   emptyText?: string;
   disabled?: boolean;
@@ -42,6 +43,7 @@ export const MultiSelect = ({
   options,
   value,
   onChange,
+  triggerClassName,
   placeholder = "項目を選択",
   emptyText = "候補がありません",
   disabled = false,
@@ -93,6 +95,7 @@ export const MultiSelect = ({
               selectTriggerInteractionClassName,
               selectTriggerFocusClassName,
               selectedOptions.length === 0 && "text-ui-tone2",
+              triggerClassName,
             )}
           >
             <span className="min-w-0 flex-1 py-1.5">
