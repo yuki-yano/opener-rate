@@ -105,6 +105,7 @@ export const CardListEditor = () => {
             actionsClassName="justify-end"
             topMiddle={
               <NumericInput
+                className="h-10"
                 value={card.count}
                 min={0}
                 max={60}

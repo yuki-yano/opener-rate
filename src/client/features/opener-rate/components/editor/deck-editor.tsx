@@ -1,7 +1,8 @@
-import { useAtom, useAtomValue } from "jotai";
+import { useAtom } from "jotai";
 import { useEffect } from "react";
 
 import {
+  Checkbox,
   Input,
   RadioCardGroup,
   Select,
@@ -49,7 +50,7 @@ export const DeckEditor = () => {
   const [modeAutoSwitchedByVs, setModeAutoSwitchedByVs] = useAtom(
     modeAutoSwitchedByVsAtom,
   );
-  const vs = useAtomValue(vsAtom);
+  const [vs, setVs] = useAtom(vsAtom);
 
   useEffect(() => {
     if (vs.enabled && mode === "exact") {
@@ -195,11 +196,6 @@ export const DeckEditor = () => {
               }
             }}
           />
-          {modeAutoSwitchedByVs && vs.enabled ? (
-            <p className="text-[11px] text-ui-tone2">
-              対戦シミュレーションが有効なため、計算モードをシミュレーションへ自動変更しています。無効化すると厳密計算へ戻ります。
-            </p>
-          ) : null}
         </label>
         <label className={editorFieldLabelClassName}>
           試行回数
@@ -212,6 +208,60 @@ export const DeckEditor = () => {
           />
         </label>
       </div>
+
+      <div className="space-y-3 rounded-md border border-ui-border1/70 bg-ui-layer2/55 p-3">
+        <Checkbox
+          checked={vs.enabled}
+          onChange={(event) =>
+            setVs((current) => ({
+              ...current,
+              enabled: event.target.checked,
+            }))
+          }
+          label="対戦シミュレーションを有効化"
+          className="h-10 px-3 text-sm"
+        />
+
+        <div className="grid gap-3 sm:grid-cols-2">
+          <label className={editorFieldLabelClassName}>
+            相手デッキ枚数
+            <NumericInput
+              className="sm:w-full"
+              disabled={!vs.enabled}
+              value={vs.opponentDeckSize}
+              min={1}
+              max={120}
+              onValueChange={(nextValue) =>
+                setVs((current) => ({
+                  ...current,
+                  opponentDeckSize: nextValue,
+                }))
+              }
+            />
+          </label>
+          <label className={editorFieldLabelClassName}>
+            相手初手枚数
+            <NumericInput
+              className="sm:w-full"
+              disabled={!vs.enabled}
+              value={vs.opponentHandSize}
+              min={1}
+              max={20}
+              onValueChange={(nextValue) =>
+                setVs((current) => ({
+                  ...current,
+                  opponentHandSize: nextValue,
+                }))
+              }
+            />
+          </label>
+        </div>
+      </div>
+      {modeAutoSwitchedByVs && vs.enabled ? (
+        <p className="text-[11px] text-ui-tone2">
+          有効化中は計算モードをシミュレーションに固定します。
+        </p>
+      ) : null}
     </SectionCard>
   );
 };

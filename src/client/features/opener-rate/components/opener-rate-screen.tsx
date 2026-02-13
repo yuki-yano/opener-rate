@@ -15,7 +15,6 @@ import { DisruptionCardEditor } from "./editor/disruption-card-editor";
 import { LabelEditor } from "./editor/label-editor";
 import { PatternEditor } from "./editor/pattern-editor";
 import { SubPatternEditor } from "./editor/sub-pattern-editor";
-import { VsSimulationEditor } from "./editor/vs-simulation-editor";
 import { LabelRateTable } from "./result/label-rate-table";
 import { OverallRateCard } from "./result/overall-rate-card";
 import { ShortUrlCard } from "./result/short-url-card";
@@ -135,9 +134,8 @@ export const OpenerRateScreen = () => {
             <CardListEditor />
             <LabelEditor />
             <PatternEditor />
-            <DisruptionCardEditor />
             <SubPatternEditor />
-            <VsSimulationEditor />
+            <DisruptionCardEditor />
           </section>
         </main>
       </div>

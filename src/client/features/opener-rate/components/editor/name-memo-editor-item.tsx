@@ -24,6 +24,8 @@ type NameMemoEditorItemProps = {
   topGridClassName: string;
   nameInputClassName?: string;
   actionsClassName?: string;
+  actionButtonsClassName?: string;
+  actionBottom?: ReactNode;
   topMiddle?: ReactNode;
   children?: ReactNode;
 };
@@ -43,6 +45,8 @@ export const NameMemoEditorItem = ({
   topGridClassName,
   nameInputClassName,
   actionsClassName,
+  actionButtonsClassName,
+  actionBottom,
   topMiddle,
   children,
 }: NameMemoEditorItemProps) => {
@@ -57,25 +61,30 @@ export const NameMemoEditorItem = ({
         />
         {topMiddle}
         <div className={cn("flex items-center gap-1", actionsClassName)}>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={isMemoExpanded ? "text-ui-primary" : undefined}
-            aria-label="メモ表示切り替え"
-            onClick={onToggleMemo}
+          <div
+            className={cn("flex items-center gap-1", actionButtonsClassName)}
           >
-            <SquarePen className="h-4 w-4" />
-          </Button>
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            aria-label={removeAriaLabel}
-            onClick={onRemove}
-          >
-            <Trash2 className="h-4 w-4 text-ui-red" />
-          </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={isMemoExpanded ? "text-ui-primary" : undefined}
+              aria-label="メモ表示切り替え"
+              onClick={onToggleMemo}
+            >
+              <SquarePen className="h-4 w-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              aria-label={removeAriaLabel}
+              onClick={onRemove}
+            >
+              <Trash2 className="h-4 w-4 text-ui-red" />
+            </Button>
+          </div>
+          {actionBottom}
         </div>
       </div>
       {children}

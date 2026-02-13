@@ -346,7 +346,8 @@ const resolveMaxPenetrationByDisruptionKey = (params: {
     for (const effect of pattern.effects ?? []) {
       if (effect.type !== "add_penetration") continue;
       for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
-        const current = maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        const current =
+          maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
         maxPenetrationByDisruptionKey[disruptionCategoryUid] =
           current + effect.amount;
       }
@@ -360,7 +361,8 @@ const resolveMaxPenetrationByDisruptionKey = (params: {
     for (const effect of subPattern.effects) {
       if (effect.type !== "add_penetration") continue;
       for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
-        const current = maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        const current =
+          maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
         maxPenetrationByDisruptionKey[disruptionCategoryUid] =
           current + effect.amount * maxApplyCount;
       }

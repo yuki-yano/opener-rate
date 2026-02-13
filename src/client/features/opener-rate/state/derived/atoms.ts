@@ -42,19 +42,31 @@ export const deckSizeExceededAtom = atom((get) => {
 });
 
 export const calculateInputAtom = atom<CalculateInput>((get) => {
+  const disruptionCards = get(disruptionCardsAtom);
   const disruptionCardByUid = new Map(
-    get(disruptionCardsAtom).map((card) => [card.uid, card] as const),
+    disruptionCards.map((card) => [card.uid, card] as const),
   );
   const vs = get(vsAtom);
+  const opponentDisruptionByCardUid = new Map(
+    vs.opponentDisruptions
+      .filter((entry) => {
+        const disruptionCardUid = entry.disruptionCardUid;
+        return (
+          disruptionCardUid != null &&
+          disruptionCardByUid.has(disruptionCardUid)
+        );
+      })
+      .map((entry) => [entry.disruptionCardUid as string, entry] as const),
+  );
   const syncedVs = {
     ...vs,
-    opponentDisruptions: vs.opponentDisruptions.map((entry) => {
-      if (entry.disruptionCardUid == null) return entry;
-      const source = disruptionCardByUid.get(entry.disruptionCardUid);
-      if (source == null) return entry;
+    opponentDisruptions: disruptionCards.map((source) => {
+      const existing = opponentDisruptionByCardUid.get(source.uid);
       return {
-        ...entry,
+        uid: existing?.uid ?? `vs_${source.uid}`,
+        disruptionCardUid: source.uid,
         name: source.name,
+        count: existing?.count ?? 0,
         oncePerName: source.oncePerName,
         disruptionCategoryUid: source.disruptionCategoryUid,
       };

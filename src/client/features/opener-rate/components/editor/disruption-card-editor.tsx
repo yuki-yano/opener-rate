@@ -3,10 +3,15 @@ import { useAtom } from "jotai";
 import { useMemo, useState } from "react";
 
 import { Button, Checkbox, Select } from "../../../../components/ui";
-import { disruptionCategoriesAtom, disruptionCardsAtom } from "../../state";
+import {
+  disruptionCategoriesAtom,
+  disruptionCardsAtom,
+  vsAtom,
+} from "../../state";
 import { createLocalId } from "./create-local-id";
 import { EditorEmptyState } from "./editor-ui";
 import { NameMemoEditorItem } from "./name-memo-editor-item";
+import { NumericInput } from "./numeric-input";
 import { SortableEditorSection } from "./sortable-editor-section";
 
 const createDefaultCategoryName = (index: number) => `妨害カテゴリ${index + 1}`;
@@ -17,6 +22,7 @@ export const DisruptionCardEditor = () => {
     disruptionCategoriesAtom,
   );
   const [disruptionCards, setDisruptionCards] = useAtom(disruptionCardsAtom);
+  const [vs, setVs] = useAtom(vsAtom);
   const [expandedCategoryMemoUids, setExpandedCategoryMemoUids] = useState<
     string[]
   >([]);
@@ -38,6 +44,14 @@ export const DisruptionCardEditor = () => {
     () => [{ value: "", label: "カテゴリなし" }, ...categoryOptions],
     [categoryOptions],
   );
+  const opponentDisruptionCountByCardUid = useMemo(() => {
+    const countByUid = new Map<string, number>();
+    for (const disruption of vs.opponentDisruptions) {
+      if (disruption.disruptionCardUid == null) continue;
+      countByUid.set(disruption.disruptionCardUid, disruption.count);
+    }
+    return countByUid;
+  }, [vs.opponentDisruptions]);
 
   const handleAddCategory = () => {
     setDisruptionCategories((current) => [
@@ -152,7 +166,7 @@ export const DisruptionCardEditor = () => {
 
       <SortableEditorSection
         title="妨害カード一覧"
-        description="サブパターンと対戦シミュレーションで共有する妨害カードを管理します。"
+        description="サブパターンと対戦シミュレーションで共有する妨害カードと枚数を管理します。"
         floatingActions={
           <Button
             size="icon"
@@ -208,6 +222,12 @@ export const DisruptionCardEditor = () => {
                 setDisruptionCards((current) =>
                   current.filter((target) => target.uid !== disruptionCard.uid),
                 );
+                setVs((current) => ({
+                  ...current,
+                  opponentDisruptions: current.opponentDisruptions.filter(
+                    (target) => target.disruptionCardUid !== disruptionCard.uid,
+                  ),
+                }));
               }}
               isNameEmpty={isNameEmpty}
               nameErrorMessage="妨害カード名は必須です。"
@@ -221,32 +241,99 @@ export const DisruptionCardEditor = () => {
                   ),
                 )
               }
-              topGridClassName="grid-cols-[minmax(0,1fr)_4.25rem] sm:grid-cols-[minmax(0,1fr)_auto]"
-              actionsClassName="w-[4.25rem] justify-end sm:w-auto sm:justify-start"
-            >
-              <div className="grid grid-cols-[minmax(0,1fr)_4.25rem] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
-                <label className="space-y-1 text-[11px] text-ui-text3">
-                  妨害カテゴリ（任意）
-                  <Select
-                    ariaLabel="妨害カテゴリ"
-                    disabled={categoryOptions.length === 0}
-                    value={disruptionCard.disruptionCategoryUid ?? ""}
-                    options={categorySelectOptions}
-                    onChange={(nextUid) =>
-                      setDisruptionCards((current) =>
-                        current.map((target) =>
-                          target.uid === disruptionCard.uid
-                            ? {
-                                ...target,
-                                disruptionCategoryUid:
-                                  nextUid.length > 0 ? nextUid : undefined,
-                              }
-                            : target,
-                        ),
-                      )
+              topMiddle={
+                <div className="col-start-1 row-start-2 grid grid-cols-[4rem_minmax(0,1fr)] items-end gap-2">
+                  <NumericInput
+                    aria-label="対戦枚数"
+                    className="h-10 w-full sm:w-full"
+                    value={
+                      opponentDisruptionCountByCardUid.get(
+                        disruptionCard.uid,
+                      ) ?? 0
+                    }
+                    min={0}
+                    max={60}
+                    onValueChange={(nextValue) =>
+                      setVs((current) => {
+                        const index = current.opponentDisruptions.findIndex(
+                          (target) =>
+                            target.disruptionCardUid === disruptionCard.uid,
+                        );
+                        if (nextValue === 0) {
+                          if (index < 0) return current;
+                          return {
+                            ...current,
+                            opponentDisruptions:
+                              current.opponentDisruptions.filter(
+                                (target) =>
+                                  target.disruptionCardUid !==
+                                  disruptionCard.uid,
+                              ),
+                          };
+                        }
+
+                        const nextDisruption = {
+                          uid:
+                            index >= 0
+                              ? (current.opponentDisruptions[index]?.uid ??
+                                createLocalId("disruption"))
+                              : createLocalId("disruption"),
+                          disruptionCardUid: disruptionCard.uid,
+                          name: disruptionCard.name,
+                          count: nextValue,
+                          oncePerName: disruptionCard.oncePerName,
+                          disruptionCategoryUid:
+                            disruptionCard.disruptionCategoryUid,
+                        };
+
+                        if (index < 0) {
+                          return {
+                            ...current,
+                            opponentDisruptions: [
+                              ...current.opponentDisruptions,
+                              nextDisruption,
+                            ],
+                          };
+                        }
+
+                        return {
+                          ...current,
+                          opponentDisruptions: current.opponentDisruptions.map(
+                            (target, targetIndex) =>
+                              targetIndex === index ? nextDisruption : target,
+                          ),
+                        };
+                      })
                     }
                   />
-                </label>
+                  <label className="space-y-1 text-[11px] text-ui-text3">
+                    妨害カテゴリ（任意）
+                    <Select
+                      ariaLabel="妨害カテゴリ"
+                      disabled={categoryOptions.length === 0}
+                      value={disruptionCard.disruptionCategoryUid ?? ""}
+                      options={categorySelectOptions}
+                      onChange={(nextUid) =>
+                        setDisruptionCards((current) =>
+                          current.map((target) =>
+                            target.uid === disruptionCard.uid
+                              ? {
+                                  ...target,
+                                  disruptionCategoryUid:
+                                    nextUid.length > 0 ? nextUid : undefined,
+                                }
+                              : target,
+                          ),
+                        )
+                      }
+                    />
+                  </label>
+                </div>
+              }
+              topGridClassName="grid-cols-[minmax(0,1fr)_5rem]"
+              actionsClassName="row-span-2 flex w-[5rem] flex-col items-stretch justify-between gap-2"
+              actionButtonsClassName="grid grid-cols-2 gap-1"
+              actionBottom={
                 <Checkbox
                   checked={disruptionCard.oncePerName}
                   onChange={(event) =>
@@ -259,10 +346,10 @@ export const DisruptionCardEditor = () => {
                     )
                   }
                   label="ターン1"
-                  className="h-10 w-full justify-center border-transparent bg-transparent px-0 shadow-none hover:border-transparent sm:w-auto"
+                  className="h-10 w-full justify-center border-transparent bg-transparent px-1 text-[11px] shadow-none hover:border-transparent"
                 />
-              </div>
-            </NameMemoEditorItem>
+              }
+            />
           );
         }}
       />
