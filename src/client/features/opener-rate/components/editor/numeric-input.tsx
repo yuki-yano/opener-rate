@@ -2,6 +2,7 @@ import type { ComponentProps } from "react";
 import { useState } from "react";
 
 import { Input } from "../../../../components/ui";
+import { cn } from "../../../../lib/cn";
 
 type NumericInputProps = Omit<
   ComponentProps<typeof Input>,
@@ -39,6 +40,7 @@ export const NumericInput = ({
   onValueChange,
   onFocus,
   onBlur,
+  className,
   ...props
 }: NumericInputProps) => {
   const [draftValue, setDraftValue] = useState(String(value));
@@ -47,6 +49,7 @@ export const NumericInput = ({
   return (
     <Input
       {...props}
+      className={cn("h-9 w-full sm:w-14", className)}
       type="text"
       inputMode="numeric"
       pattern="[0-9]*"

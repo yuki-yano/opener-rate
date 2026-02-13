@@ -143,14 +143,63 @@ export const PatternConditionEditor = ({
     (onChange as (next: PatternCondition) => void)(next as PatternCondition);
   };
 
+  const conditionTypeField = (
+    <label className={`min-w-0 ${editorFieldLabelClassName}`}>
+      <span>条件</span>
+      <Select
+        ariaLabel={`条件${index + 1}の種類`}
+        triggerClassName="h-9"
+        listClassName="max-h-none overflow-visible"
+        value={condition.mode}
+        options={modeOptions}
+        onChange={(next) =>
+          emitChange(
+            switchConditionMode(
+              condition,
+              next as EditableCondition["mode"],
+              scope,
+            ),
+          )
+        }
+      />
+    </label>
+  );
+
   return (
     <div className="min-w-0 space-y-2 rounded-md border border-ui-border1/80 bg-ui-layer1 p-2.5">
       {!isCountCondition(condition) ? (
-        <div className="grid min-w-0 items-start gap-2 sm:grid-cols-[minmax(0,1fr)_max-content]">
-          <label
-            className={`order-2 min-w-0 self-start sm:order-1 ${editorFieldLabelClassName}`}
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_1.75rem] gap-x-1.5 gap-y-2 sm:grid-cols-[3.5rem_minmax(0,1fr)_1.75rem]">
+          <span className="col-start-1 row-start-1 text-xs text-ui-text3 sm:col-start-1 sm:row-start-1">
+            必要枚数
+          </span>
+          <div className="col-start-1 row-start-2 min-w-0 sm:col-start-1 sm:row-start-2">
+            <NumericInput
+              className="h-9"
+              value={condition.count}
+              min={1}
+              max={60}
+              onValueChange={(nextValue) =>
+                emitChange({
+                  ...condition,
+                  count: nextValue,
+                })
+              }
+            />
+          </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="col-start-2 row-start-2 h-7 w-7 self-center justify-self-end sm:col-start-3 sm:row-start-2"
+            aria-label="条件削除"
+            onClick={onRemove}
           >
-            <span>対象カード</span>
+            <Trash2 className={removeIconClassName} />
+          </Button>
+          <span className="col-start-1 row-start-3 text-xs text-ui-text3 sm:col-start-2 sm:row-start-1">
+            対象カード
+          </span>
+          <div className="col-start-1 row-start-4 min-w-0 sm:col-start-2 sm:row-start-2">
             <MultiSelect
               options={cardOptions}
               value={condition.uids}
@@ -162,191 +211,146 @@ export const PatternConditionEditor = ({
               }
               placeholder="対象カードを選択"
             />
-          </label>
-          <div
-            className={`order-1 w-full self-start sm:order-2 sm:w-auto ${editorFieldLabelClassName}`}
-          >
-            <span>必要枚数</span>
-            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_1.75rem] items-center gap-1.5 sm:grid-cols-[3.5rem_1.75rem]">
-              <NumericInput
-                className="h-9"
-                value={condition.count}
-                min={1}
-                max={60}
-                onValueChange={(nextValue) =>
-                  emitChange({
-                    ...condition,
-                    count: nextValue,
-                  })
-                }
-              />
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="h-7 w-7 justify-self-end"
-                aria-label="条件削除"
-                onClick={onRemove}
-              >
-                <Trash2 className={removeIconClassName} />
-              </Button>
-            </div>
+          </div>
+          <div className="col-start-1 row-start-5 min-w-0 sm:col-span-2 sm:row-start-3">
+            {conditionTypeField}
           </div>
         </div>
       ) : (
-        <div className="space-y-2">
-          <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)_2rem] sm:items-end">
-            <label
-              className={`col-start-1 row-start-1 min-w-0 ${editorFieldLabelClassName}`}
-            >
-              しきい値
-              <NumericInput
-                className="h-9"
-                value={condition.threshold}
-                min={0}
-                max={60}
-                onValueChange={(nextValue) =>
-                  emitChange({
-                    ...condition,
-                    threshold: nextValue,
-                  })
-                }
-              />
-            </label>
-            <label
-              className={`col-start-1 row-start-2 min-w-0 sm:col-start-2 sm:row-start-1 ${editorFieldLabelClassName}`}
-            >
-              判定
-              <Select
-                ariaLabel={`条件${index + 1}の判定`}
-                triggerClassName="h-9"
-                value={condition.operator}
-                options={countOperatorOptions}
-                onChange={(next) =>
-                  emitChange({
-                    ...condition,
-                    operator: next === "eq" ? "eq" : "gte",
-                  })
-                }
-              />
-            </label>
-            <Button
-              type="button"
-              variant="ghost"
-              size="icon"
-              className="col-start-2 row-start-1 h-8 w-8 self-end justify-self-end sm:col-start-3 sm:row-start-1 sm:self-auto"
-              aria-label="条件削除"
-              onClick={onRemove}
-            >
-              <Trash2 className={removeIconClassName} />
-            </Button>
-            <div className="col-span-2 row-start-3 flex min-w-0 items-end sm:col-span-2 sm:col-start-1 sm:row-start-2 sm:justify-start">
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="h-9 w-full whitespace-nowrap px-2 text-[11px] sm:px-3 sm:text-xs"
-                onClick={() =>
-                  emitChange({
-                    ...condition,
-                    rules: [...condition.rules, { mode: "cap1", uids: [] }],
-                  })
-                }
-              >
-                集計ルール追加
-              </Button>
-            </div>
-          </div>
-
-          <div className="space-y-1.5">
-            {condition.rules.map((rule, ruleIndex) => (
-              <div
-                key={`${index}-rule-${ruleIndex}`}
-                className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5"
-              >
-                <Select
-                  ariaLabel={`条件${index + 1}ルール${ruleIndex + 1}の集計方式`}
-                  className="col-start-1 row-start-1 min-w-0"
-                  triggerClassName="h-9 whitespace-nowrap"
-                  value={rule.mode}
-                  options={countRuleModeOptions}
-                  onChange={(next) =>
+        <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2">
+          <div className="col-start-1 row-start-1 min-w-0 space-y-2">
+            <div className="grid min-w-0 gap-2 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)] sm:items-end">
+              <label className={`min-w-0 ${editorFieldLabelClassName}`}>
+                しきい値
+                <NumericInput
+                  className="h-9"
+                  value={condition.threshold}
+                  min={0}
+                  max={60}
+                  onValueChange={(nextValue) =>
                     emitChange({
                       ...condition,
-                      rules: condition.rules.map((target, idx) =>
-                        idx === ruleIndex
-                          ? {
-                              ...target,
-                              mode: next === "raw" ? "raw" : "cap1",
-                            }
-                          : target,
-                      ),
+                      threshold: nextValue,
                     })
                   }
                 />
+              </label>
+              <label className={`min-w-0 ${editorFieldLabelClassName}`}>
+                判定
+                <Select
+                  ariaLabel={`条件${index + 1}の判定`}
+                  triggerClassName="h-9"
+                  value={condition.operator}
+                  options={countOperatorOptions}
+                  onChange={(next) =>
+                    emitChange({
+                      ...condition,
+                      operator: next === "eq" ? "eq" : "gte",
+                    })
+                  }
+                />
+              </label>
+              <div className="sm:col-span-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  className="h-9 w-full whitespace-nowrap px-2 text-[11px] sm:w-auto sm:px-3 sm:text-xs"
+                  onClick={() =>
+                    emitChange({
+                      ...condition,
+                      rules: [...condition.rules, { mode: "cap1", uids: [] }],
+                    })
+                  }
+                >
+                  集計ルール追加
+                </Button>
+              </div>
+            </div>
 
-                <div className="col-start-1 row-start-2 min-w-0">
-                  <MultiSelect
-                    options={cardOptions}
-                    value={rule.uids}
+            <div className="space-y-1.5">
+              {condition.rules.map((rule, ruleIndex) => (
+                <div
+                  key={`${index}-rule-${ruleIndex}`}
+                  className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5"
+                >
+                  <Select
+                    ariaLabel={`条件${index + 1}ルール${ruleIndex + 1}の集計方式`}
+                    className="col-start-1 row-start-1 min-w-0"
+                    triggerClassName="h-9 whitespace-nowrap"
+                    value={rule.mode}
+                    options={countRuleModeOptions}
                     onChange={(next) =>
                       emitChange({
                         ...condition,
                         rules: condition.rules.map((target, idx) =>
                           idx === ruleIndex
-                            ? { ...target, uids: next }
+                            ? {
+                                ...target,
+                                mode: next === "raw" ? "raw" : "cap1",
+                              }
                             : target,
                         ),
                       })
                     }
-                    placeholder="ルール対象を選択"
                   />
-                </div>
 
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="icon"
-                  className="col-start-2 row-start-1 h-8 w-8 justify-self-end"
-                  aria-label="ルール削除"
-                  onClick={() =>
-                    emitChange({
-                      ...condition,
-                      rules:
-                        condition.rules.length <= 1
-                          ? condition.rules
-                          : condition.rules.filter(
-                              (_, idx) => idx !== ruleIndex,
-                            ),
-                    })
-                  }
-                >
-                  <Trash2 className={removeIconClassName} />
-                </Button>
-              </div>
-            ))}
+                  <div className="col-start-1 row-start-2 min-w-0">
+                    <MultiSelect
+                      options={cardOptions}
+                      value={rule.uids}
+                      onChange={(next) =>
+                        emitChange({
+                          ...condition,
+                          rules: condition.rules.map((target, idx) =>
+                            idx === ruleIndex
+                              ? { ...target, uids: next }
+                              : target,
+                          ),
+                        })
+                      }
+                      placeholder="ルール対象を選択"
+                    />
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="icon"
+                    className="col-start-2 row-start-1 h-8 w-8 justify-self-end"
+                    aria-label="ルール削除"
+                    onClick={() =>
+                      emitChange({
+                        ...condition,
+                        rules:
+                          condition.rules.length <= 1
+                            ? condition.rules
+                            : condition.rules.filter(
+                                (_, idx) => idx !== ruleIndex,
+                              ),
+                      })
+                    }
+                  >
+                    <Trash2 className={removeIconClassName} />
+                  </Button>
+                </div>
+              ))}
+            </div>
+
+            {conditionTypeField}
           </div>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            className="col-start-2 row-start-1 h-8 w-8 self-start justify-self-end sm:mt-6"
+            aria-label="条件削除"
+            onClick={onRemove}
+          >
+            <Trash2 className={removeIconClassName} />
+          </Button>
         </div>
       )}
-
-      <div className="min-w-0">
-        <Select
-          ariaLabel={`条件${index + 1}の種類`}
-          triggerClassName="h-9"
-          listClassName="max-h-none overflow-visible"
-          value={condition.mode}
-          options={modeOptions}
-          onChange={(next) =>
-            emitChange(
-              switchConditionMode(
-                condition,
-                next as EditableCondition["mode"],
-                scope,
-              ),
-            )
-          }
-        />
-      </div>
     </div>
   );
 };

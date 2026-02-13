@@ -100,7 +100,7 @@ export const CardListEditor = () => {
                 ),
               )
             }
-            topGridClassName="grid-cols-[minmax(0,1fr)_5.25rem_auto]"
+            topGridClassName="grid-cols-[minmax(0,1fr)_3.5rem_auto]"
             nameInputClassName={editorNameInputClassName}
             actionsClassName="justify-end"
             topMiddle={

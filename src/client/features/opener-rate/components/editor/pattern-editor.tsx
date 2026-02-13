@@ -45,7 +45,6 @@ export const PatternEditor = () => {
   const disruptionCategories = useAtomValue(disruptionCategoriesAtom);
   const labels = useAtomValue(labelsAtom);
   const cards = useAtomValue(cardsAtom);
-  const [expandedMemoUids, setExpandedMemoUids] = useState<string[]>([]);
   const [collapsedPatternUids, setCollapsedPatternUids] = useState<string[]>(
     () => patterns.map((pattern) => pattern.uid),
   );
@@ -125,10 +124,6 @@ export const PatternEditor = () => {
     setCollapsedPatternUids((current) => removeUid(current, duplicateUid));
   };
 
-  const toggleMemo = (uid: string) => {
-    setExpandedMemoUids((current) => toggleUid(current, uid));
-  };
-
   const toggleCollapsed = (uid: string) => {
     setCollapsedPatternUids((current) => toggleUid(current, uid));
   };
@@ -192,7 +187,6 @@ export const PatternEditor = () => {
         handleClassName="top-[2.1875rem] -translate-y-1/2"
         renderItem={(pattern) => {
           const isNameEmpty = pattern.name.trim().length === 0;
-          const isMemoExpanded = expandedMemoUids.includes(pattern.uid);
           const isPatternExpanded = !collapsedPatternUids.includes(pattern.uid);
           const isPatternActive = pattern.active;
           const isExcludedFromOverall = pattern.excludeFromOverall === true;
@@ -206,7 +200,8 @@ export const PatternEditor = () => {
             <ExpandableEditorCard
               isActive={isPatternActive}
               isExpanded={isPatternExpanded}
-              isMemoExpanded={isMemoExpanded}
+              isMemoExpanded={isPatternExpanded}
+              showMemoButton={false}
               expandedToggleButtonClassName="top-0 bottom-0 h-auto"
               collapsedToggleButtonClassName="top-0 bottom-0 h-auto"
               name={pattern.name}
@@ -218,7 +213,6 @@ export const PatternEditor = () => {
               }
               inactiveContainerClassName="border-ui-red/65 bg-ui-layer2/82"
               activeAriaLabel="パターン有効切り替え"
-              memoAriaLabel="メモ表示切り替え"
               duplicateAriaLabel="パターン複製"
               removeAriaLabel="パターン削除"
               nameErrorMessage={
@@ -238,12 +232,8 @@ export const PatternEditor = () => {
                   name: next,
                 }))
               }
-              onToggleMemo={() => toggleMemo(pattern.uid)}
               onDuplicate={() => handleDuplicatePattern(pattern.uid)}
               onRemove={() => {
-                setExpandedMemoUids((current) =>
-                  removeUid(current, pattern.uid),
-                );
                 setCollapsedPatternUids((current) =>
                   removeUid(current, pattern.uid),
                 );
@@ -413,6 +403,17 @@ export const PatternEditor = () => {
                     }
                   />
 
+                  <Textarea
+                    value={pattern.memo}
+                    placeholder="メモ"
+                    rows={2}
+                    onChange={(event) =>
+                      updatePattern(pattern.uid, (target) => ({
+                        ...target,
+                        memo: event.target.value,
+                      }))
+                    }
+                  />
                   <Checkbox
                     checked={isExcludedFromOverall}
                     onChange={(event) =>
@@ -424,19 +425,6 @@ export const PatternEditor = () => {
                     label="合計初動率に計算しない"
                     className="h-8 border-ui-border1/70 bg-ui-layer1"
                   />
-                  {isMemoExpanded ? (
-                    <Textarea
-                      value={pattern.memo}
-                      placeholder="メモ"
-                      rows={2}
-                      onChange={(event) =>
-                        updatePattern(pattern.uid, (target) => ({
-                          ...target,
-                          memo: event.target.value,
-                        }))
-                      }
-                    />
-                  ) : null}
                 </div>
               }
               collapsedBody={

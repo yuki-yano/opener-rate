@@ -87,6 +87,7 @@ export const DeckEditor = () => {
         <label className={editorFieldLabelClassName}>
           デッキ枚数
           <NumericInput
+            className="sm:w-full"
             value={deck.cardCount}
             min={1}
             max={120}
@@ -101,6 +102,7 @@ export const DeckEditor = () => {
         <label className={editorFieldLabelClassName}>
           初手枚数
           <NumericInput
+            className="sm:w-full"
             value={deck.firstHand}
             min={1}
             max={20}
@@ -121,6 +123,7 @@ export const DeckEditor = () => {
           <label className={editorFieldLabelClassName}>
             金満で謙虚な壺 枚数
             <NumericInput
+              className="sm:w-full"
               value={pot.prosperity.count}
               min={0}
               max={3}
@@ -158,6 +161,7 @@ export const DeckEditor = () => {
         <label className={editorFieldLabelClassName}>
           強欲で貪欲な壺 / 強欲で金満な壺 枚数
           <NumericInput
+            className="sm:w-full"
             value={pot.desiresOrExtravagance.count}
             min={0}
             max={3}
@@ -179,6 +183,7 @@ export const DeckEditor = () => {
           <RadioCardGroup
             name="calculation-mode"
             value={mode}
+            className="border-0 bg-transparent p-0"
             options={calculationModeOptions.map((option) => ({
               ...option,
               disabled: vs.enabled && option.value === "exact",

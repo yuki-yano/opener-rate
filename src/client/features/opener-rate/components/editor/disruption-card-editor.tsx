@@ -221,9 +221,10 @@ export const DisruptionCardEditor = () => {
                   ),
                 )
               }
-              topGridClassName="grid-cols-[minmax(0,1fr)_auto]"
+              topGridClassName="grid-cols-[minmax(0,1fr)_4.25rem] sm:grid-cols-[minmax(0,1fr)_auto]"
+              actionsClassName="w-[4.25rem] justify-end sm:w-auto sm:justify-start"
             >
-              <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_auto] sm:items-end">
+              <div className="grid grid-cols-[minmax(0,1fr)_4.25rem] items-end gap-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                 <label className="space-y-1 text-[11px] text-ui-text3">
                   妨害カテゴリ（任意）
                   <Select
@@ -257,8 +258,8 @@ export const DisruptionCardEditor = () => {
                       ),
                     )
                   }
-                  label="同名1回制限"
-                  className="h-10 border-transparent bg-transparent px-0 shadow-none"
+                  label="ターン1"
+                  className="h-10 w-full justify-center border-transparent bg-transparent px-0 shadow-none hover:border-transparent sm:w-auto"
                 />
               </div>
             </NameMemoEditorItem>

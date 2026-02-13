@@ -18,18 +18,19 @@ type ExpandableEditorCardProps = {
   isActive: boolean;
   isExpanded: boolean;
   isMemoExpanded: boolean;
+  showMemoButton?: boolean;
   name: string;
   namePlaceholder: string;
   activeContainerClassName: string;
   inactiveContainerClassName: string;
   activeAriaLabel: string;
-  memoAriaLabel: string;
+  memoAriaLabel?: string;
   duplicateAriaLabel: string;
   removeAriaLabel: string;
   nameErrorMessage?: string;
   onActiveChange: (next: boolean) => void;
   onNameChange: (next: string) => void;
-  onToggleMemo: () => void;
+  onToggleMemo?: () => void;
   onDuplicate: () => void;
   onRemove: () => void;
   onToggleCollapsed: () => void;
@@ -43,6 +44,7 @@ export const ExpandableEditorCard = ({
   isActive,
   isExpanded,
   isMemoExpanded,
+  showMemoButton = true,
   name,
   namePlaceholder,
   activeContainerClassName,
@@ -89,24 +91,26 @@ export const ExpandableEditorCard = ({
         />
 
         <div className="flex shrink-0 items-center gap-1">
-          <Button
-            type="button"
-            variant="ghost"
-            size="icon"
-            className={cn(
-              "h-8 w-8 border border-transparent",
-              isMemoExpanded && "text-ui-primary",
-            )}
-            aria-label={memoAriaLabel}
-            onClick={() => {
-              if (!isExpanded) {
-                onToggleCollapsed();
-              }
-              onToggleMemo();
-            }}
-          >
-            <SquarePen className="h-4 w-4" />
-          </Button>
+          {showMemoButton ? (
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon"
+              className={cn(
+                "h-8 w-8 border border-transparent",
+                isMemoExpanded && "text-ui-primary",
+              )}
+              aria-label={memoAriaLabel ?? "メモ表示切り替え"}
+              onClick={() => {
+                if (!isExpanded) {
+                  onToggleCollapsed();
+                }
+                onToggleMemo?.();
+              }}
+            >
+              <SquarePen className="h-4 w-4" />
+            </Button>
+          ) : null}
           <Button
             type="button"
             variant="ghost"

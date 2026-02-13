@@ -10,7 +10,6 @@ import {
 } from "../../state";
 import { createLocalId } from "./create-local-id";
 import {
-  editorCompactFieldLabelClassName,
   EditorEmptyState,
   editorErrorTextClassName,
   editorFieldLabelClassName,
@@ -111,6 +110,7 @@ export const VsSimulationEditor = () => {
             <label className={editorFieldLabelClassName}>
               相手デッキ枚数
               <NumericInput
+                className="sm:w-full"
                 value={vs.opponentDeckSize}
                 min={1}
                 max={120}
@@ -125,6 +125,7 @@ export const VsSimulationEditor = () => {
             <label className={editorFieldLabelClassName}>
               相手初手枚数
               <NumericInput
+                className="sm:w-full"
                 value={vs.opponentHandSize}
                 min={1}
                 max={20}
@@ -162,40 +163,11 @@ export const VsSimulationEditor = () => {
 
         return (
           <EditorListItem>
-            <div className="grid gap-2 sm:grid-cols-[minmax(0,1fr)_7rem_auto] sm:items-end">
-              <div className={editorCompactFieldLabelClassName}>
-                <p>妨害カード</p>
-                <Select
-                  ariaLabel="妨害カード選択"
-                  value={disruption.disruptionCardUid ?? ""}
-                  options={disruptionCards.map((card) => ({
-                    value: card.uid,
-                    label: card.name,
-                  }))}
-                  onChange={(nextUid) =>
-                    setVs((current) => ({
-                      ...current,
-                      opponentDisruptions: current.opponentDisruptions.map(
-                        (target) => {
-                          if (target.uid !== disruption.uid) return target;
-                          const selected = disruptionCardByUid.get(nextUid);
-                          if (selected == null) return target;
-                          return {
-                            ...target,
-                            disruptionCardUid: selected.uid,
-                            name: selected.name,
-                            oncePerName: selected.oncePerName,
-                            disruptionCategoryUid:
-                              selected.disruptionCategoryUid,
-                          };
-                        },
-                      ),
-                    }))
-                  }
-                />
-              </div>
-              <label className={editorCompactFieldLabelClassName}>
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-x-2 gap-y-1.5 sm:grid-cols-[3.5rem_minmax(0,1fr)_2rem] sm:gap-y-1 sm:items-end">
+              <span className="col-start-1 row-start-1 text-[11px] text-ui-text3 sm:col-start-1 sm:row-start-1">
                 枚数
+              </span>
+              <div className="col-start-1 row-start-2 min-w-0 sm:col-start-1 sm:row-start-2">
                 <NumericInput
                   value={disruption.count}
                   min={0}
@@ -215,11 +187,12 @@ export const VsSimulationEditor = () => {
                     }))
                   }
                 />
-              </label>
+              </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
+                className="col-start-2 row-start-2 h-8 w-8 self-center justify-self-end sm:col-start-3 sm:row-start-2"
                 aria-label="妨害札削除"
                 onClick={() =>
                   setVs((current) => ({
@@ -232,6 +205,37 @@ export const VsSimulationEditor = () => {
               >
                 <Trash2 className="h-4 w-4 text-ui-red" />
               </Button>
+              <span className="col-start-1 row-start-3 text-[11px] text-ui-text3 sm:col-start-2 sm:row-start-1">
+                妨害カード
+              </span>
+              <Select
+                ariaLabel="妨害カード選択"
+                className="col-start-1 row-start-4 min-w-0 sm:col-start-2 sm:row-start-2"
+                value={disruption.disruptionCardUid ?? ""}
+                options={disruptionCards.map((card) => ({
+                  value: card.uid,
+                  label: card.name,
+                }))}
+                onChange={(nextUid) =>
+                  setVs((current) => ({
+                    ...current,
+                    opponentDisruptions: current.opponentDisruptions.map(
+                      (target) => {
+                        if (target.uid !== disruption.uid) return target;
+                        const selected = disruptionCardByUid.get(nextUid);
+                        if (selected == null) return target;
+                        return {
+                          ...target,
+                          disruptionCardUid: selected.uid,
+                          name: selected.name,
+                          oncePerName: selected.oncePerName,
+                          disruptionCategoryUid: selected.disruptionCategoryUid,
+                        };
+                      },
+                    ),
+                  }))
+                }
+              />
             </div>
 
             {isNameEmpty ? (
@@ -240,11 +244,15 @@ export const VsSimulationEditor = () => {
               </div>
             ) : null}
             {disruption.disruptionCategoryUid != null ? (
-              <p className="text-[11px] text-ui-text3">
-                カテゴリ:{" "}
-                {disruptionCategoryByUid.get(disruption.disruptionCategoryUid)
-                  ?.name ?? "未設定"}
-              </p>
+              <div className="mt-1 min-w-0">
+                <span className="inline-flex min-w-0 max-w-full items-center rounded-full border border-ui-border1/70 bg-ui-layer2/70 px-2.5 py-0.5 text-xs font-medium text-ui-text2">
+                  <span className="truncate">
+                    {disruptionCategoryByUid.get(
+                      disruption.disruptionCategoryUid,
+                    )?.name ?? "未設定"}
+                  </span>
+                </span>
+              </div>
             ) : null}
           </EditorListItem>
         );
