@@ -203,7 +203,7 @@ export const PatternConditionEditor = ({
             <MultiSelect
               options={cardOptions}
               value={condition.uids}
-              triggerClassName="h-9 min-h-9"
+              triggerClassName="min-h-9"
               onChange={(next) =>
                 emitChange({
                   ...condition,

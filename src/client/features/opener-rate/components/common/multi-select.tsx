@@ -98,11 +98,11 @@ export const MultiSelect = ({
               triggerClassName,
             )}
           >
-            <span className="min-w-0 flex-1 py-1.5">
+            <span className="min-w-0 flex flex-1 items-center py-1.5">
               {selectedOptions.length === 0 ? (
-                <span className="block truncate">{placeholder}</span>
+                <span className="block w-full truncate">{placeholder}</span>
               ) : (
-                <span className="flex flex-wrap gap-1">
+                <span className="flex w-full flex-wrap items-center gap-1">
                   {selectedOptions.map((option) => (
                     <span
                       key={`selected-${option.value}`}
