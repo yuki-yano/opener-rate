@@ -242,71 +242,76 @@ export const DisruptionCardEditor = () => {
                 )
               }
               topMiddle={
-                <div className="col-start-1 row-start-2 grid grid-cols-[4rem_minmax(0,1fr)] items-end gap-2">
-                  <NumericInput
-                    aria-label="対戦枚数"
-                    className="h-10 w-full sm:w-full"
-                    value={
-                      opponentDisruptionCountByCardUid.get(
-                        disruptionCard.uid,
-                      ) ?? 0
-                    }
-                    min={0}
-                    max={60}
-                    onValueChange={(nextValue) =>
-                      setVs((current) => {
-                        const index = current.opponentDisruptions.findIndex(
-                          (target) =>
-                            target.disruptionCardUid === disruptionCard.uid,
-                        );
-                        if (nextValue === 0) {
-                          if (index < 0) return current;
+                <>
+                  <div className="col-start-2 row-start-1 flex items-end">
+                    <NumericInput
+                      aria-label="対戦枚数"
+                      className="h-10 w-full sm:w-full"
+                      value={
+                        opponentDisruptionCountByCardUid.get(
+                          disruptionCard.uid,
+                        ) ?? 0
+                      }
+                      min={0}
+                      max={60}
+                      onValueChange={(nextValue) =>
+                        setVs((current) => {
+                          const index = current.opponentDisruptions.findIndex(
+                            (target) =>
+                              target.disruptionCardUid === disruptionCard.uid,
+                          );
+                          if (nextValue === 0) {
+                            if (index < 0) return current;
+                            return {
+                              ...current,
+                              opponentDisruptions:
+                                current.opponentDisruptions.filter(
+                                  (target) =>
+                                    target.disruptionCardUid !==
+                                    disruptionCard.uid,
+                                ),
+                            };
+                          }
+
+                          const nextDisruption = {
+                            uid:
+                              index >= 0
+                                ? (current.opponentDisruptions[index]?.uid ??
+                                  createLocalId("disruption"))
+                                : createLocalId("disruption"),
+                            disruptionCardUid: disruptionCard.uid,
+                            name: disruptionCard.name,
+                            count: nextValue,
+                            oncePerName: disruptionCard.oncePerName,
+                            disruptionCategoryUid:
+                              disruptionCard.disruptionCategoryUid,
+                          };
+
+                          if (index < 0) {
+                            return {
+                              ...current,
+                              opponentDisruptions: [
+                                ...current.opponentDisruptions,
+                                nextDisruption,
+                              ],
+                            };
+                          }
+
                           return {
                             ...current,
                             opponentDisruptions:
-                              current.opponentDisruptions.filter(
-                                (target) =>
-                                  target.disruptionCardUid !==
-                                  disruptionCard.uid,
+                              current.opponentDisruptions.map(
+                                (target, targetIndex) =>
+                                  targetIndex === index
+                                    ? nextDisruption
+                                    : target,
                               ),
                           };
-                        }
-
-                        const nextDisruption = {
-                          uid:
-                            index >= 0
-                              ? (current.opponentDisruptions[index]?.uid ??
-                                createLocalId("disruption"))
-                              : createLocalId("disruption"),
-                          disruptionCardUid: disruptionCard.uid,
-                          name: disruptionCard.name,
-                          count: nextValue,
-                          oncePerName: disruptionCard.oncePerName,
-                          disruptionCategoryUid:
-                            disruptionCard.disruptionCategoryUid,
-                        };
-
-                        if (index < 0) {
-                          return {
-                            ...current,
-                            opponentDisruptions: [
-                              ...current.opponentDisruptions,
-                              nextDisruption,
-                            ],
-                          };
-                        }
-
-                        return {
-                          ...current,
-                          opponentDisruptions: current.opponentDisruptions.map(
-                            (target, targetIndex) =>
-                              targetIndex === index ? nextDisruption : target,
-                          ),
-                        };
-                      })
-                    }
-                  />
-                  <label className="space-y-1 text-[11px] text-ui-text3">
+                        })
+                      }
+                    />
+                  </div>
+                  <label className="col-start-1 col-end-3 row-start-2 space-y-1 text-[11px] text-ui-text3">
                     妨害カテゴリ（任意）
                     <Select
                       ariaLabel="妨害カテゴリ"
@@ -328,10 +333,10 @@ export const DisruptionCardEditor = () => {
                       }
                     />
                   </label>
-                </div>
+                </>
               }
-              topGridClassName="grid-cols-[minmax(0,1fr)_5rem]"
-              actionsClassName="row-span-2 flex w-[5rem] flex-col items-stretch justify-between gap-2"
+              topGridClassName="grid-cols-[minmax(0,1fr)_4rem_5rem]"
+              actionsClassName="col-start-3 row-start-1 row-span-2 flex w-[5rem] flex-col items-stretch justify-between gap-2"
               actionButtonsClassName="grid grid-cols-2 gap-1"
               actionBottom={
                 <Checkbox

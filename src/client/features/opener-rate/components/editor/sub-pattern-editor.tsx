@@ -55,7 +55,6 @@ export const SubPatternEditor = () => {
   const labels = useAtomValue(labelsAtom);
   const cards = useAtomValue(cardsAtom);
 
-  const [expandedMemoUids, setExpandedMemoUids] = useState<string[]>([]);
   const [collapsedUids, setCollapsedUids] = useState<string[]>(() =>
     subPatterns.map((subPattern) => subPattern.uid),
   );
@@ -143,10 +142,6 @@ export const SubPatternEditor = () => {
     setCollapsedUids((current) => removeUid(current, duplicateUid));
   };
 
-  const toggleMemo = (uid: string) => {
-    setExpandedMemoUids((current) => toggleUid(current, uid));
-  };
-
   const toggleCollapsed = (uid: string) => {
     setCollapsedUids((current) => toggleUid(current, uid));
   };
@@ -211,13 +206,13 @@ export const SubPatternEditor = () => {
         handleClassName="top-[2.1875rem] -translate-y-1/2"
         renderItem={(subPattern) => {
           const isNameEmpty = subPattern.name.trim().length === 0;
-          const isMemoExpanded = expandedMemoUids.includes(subPattern.uid);
           const isExpanded = !collapsedUids.includes(subPattern.uid);
           return (
             <ExpandableEditorCard
               isActive={subPattern.active}
               isExpanded={isExpanded}
-              isMemoExpanded={isMemoExpanded}
+              isMemoExpanded={isExpanded}
+              showMemoButton={false}
               expandedToggleButtonClassName="top-0 bottom-0 h-auto"
               collapsedToggleButtonClassName="top-0 bottom-0 h-auto"
               name={subPattern.name}
@@ -225,7 +220,6 @@ export const SubPatternEditor = () => {
               activeContainerClassName="border-ui-primary/65 bg-ui-layer2/82"
               inactiveContainerClassName="border-ui-red/65 bg-ui-layer2/82"
               activeAriaLabel="サブパターン有効切り替え"
-              memoAriaLabel="メモ表示切り替え"
               duplicateAriaLabel="サブパターン複製"
               removeAriaLabel="サブパターン削除"
               nameErrorMessage={
@@ -245,12 +239,8 @@ export const SubPatternEditor = () => {
                   name: next,
                 }))
               }
-              onToggleMemo={() => toggleMemo(subPattern.uid)}
               onDuplicate={() => handleDuplicateSubPattern(subPattern.uid)}
               onRemove={() => {
-                setExpandedMemoUids((current) =>
-                  removeUid(current, subPattern.uid),
-                );
                 setCollapsedUids((current) =>
                   removeUid(current, subPattern.uid),
                 );
@@ -449,19 +439,17 @@ export const SubPatternEditor = () => {
                     }
                   />
 
-                  {isMemoExpanded ? (
-                    <Textarea
-                      value={subPattern.memo}
-                      placeholder="メモ"
-                      rows={2}
-                      onChange={(event) =>
-                        updateSubPattern(subPattern.uid, (target) => ({
-                          ...target,
-                          memo: event.target.value,
-                        }))
-                      }
-                    />
-                  ) : null}
+                  <Textarea
+                    value={subPattern.memo}
+                    placeholder="メモ"
+                    rows={2}
+                    onChange={(event) =>
+                      updateSubPattern(subPattern.uid, (target) => ({
+                        ...target,
+                        memo: event.target.value,
+                      }))
+                    }
+                  />
                 </div>
               }
               collapsedBody={
