@@ -59,6 +59,7 @@ const countRuleModeOptions: SelectOption[] = [
   { value: "cap1", label: "種類毎に1枚" },
   { value: "raw", label: "実枚数" },
 ];
+const removeIconClassName = "h-4 w-4 text-ui-red";
 
 const isCountCondition = (
   condition: EditableCondition,
@@ -187,7 +188,7 @@ export const PatternConditionEditor = ({
                 aria-label="条件削除"
                 onClick={onRemove}
               >
-                <Trash2 className="h-4 w-4 text-ui-red" />
+                <Trash2 className={removeIconClassName} />
               </Button>
             </div>
           </div>
@@ -237,7 +238,7 @@ export const PatternConditionEditor = ({
               aria-label="条件削除"
               onClick={onRemove}
             >
-              <Trash2 className="h-4 w-4 text-ui-red" />
+              <Trash2 className={removeIconClassName} />
             </Button>
             <div className="col-span-2 row-start-3 flex min-w-0 items-end sm:col-span-2 sm:col-start-1 sm:row-start-2 sm:justify-start">
               <Button
@@ -320,7 +321,7 @@ export const PatternConditionEditor = ({
                     })
                   }
                 >
-                  <Trash2 className="h-4 w-4 text-ui-red" />
+                  <Trash2 className={removeIconClassName} />
                 </Button>
               </div>
             ))}

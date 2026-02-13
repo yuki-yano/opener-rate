@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "../../../../components/ui";
 import { labelsAtom } from "../../state";
 import { createLocalId } from "./create-local-id";
-import { EditorEmptyState } from "./editor-ui";
+import { EditorEmptyState, editorNameInputClassName } from "./editor-ui";
 import { NameMemoEditorItem } from "./name-memo-editor-item";
 import { SortableEditorSection } from "./sortable-editor-section";
 
@@ -99,7 +99,7 @@ export const LabelEditor = () => {
               )
             }
             topGridClassName="grid-cols-[minmax(0,1fr)_auto]"
-            nameInputClassName="border-ui-border1/80 bg-ui-layer1 text-ui-text placeholder:text-ui-tone2"
+            nameInputClassName={editorNameInputClassName}
             actionsClassName="justify-end"
           />
         );

@@ -2,7 +2,11 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { Calculator, ChevronDown, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 
-import { Badge, Button } from "../../../../components/ui";
+import {
+  Badge,
+  Button,
+  uiDangerNoticeClassName,
+} from "../../../../components/ui";
 import {
   canCalculateAtom,
   calculationResultAtom,
@@ -27,6 +31,27 @@ const toErrorMessage = (value: string | null) => {
     return "デッキ枚数を超過しています。カード枚数の合計を見直してください。";
   }
   return value;
+};
+
+const breakdownCardClassName =
+  "rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5";
+const breakdownLabelClassName = "text-[11px] text-ui-text3";
+const breakdownValueClassName =
+  "mt-1 text-base font-semibold tabular-nums text-ui-text";
+
+const VsBreakdownItem = ({
+  label,
+  value,
+}: {
+  label: string;
+  value: string;
+}) => {
+  return (
+    <div className={breakdownCardClassName}>
+      <p className={breakdownLabelClassName}>{label}</p>
+      <p className={breakdownValueClassName}>{value}%</p>
+    </div>
+  );
 };
 
 export const OverallRateCard = () => {
@@ -174,38 +199,30 @@ export const OverallRateCard = () => {
             対妨害シミュレーション内訳
           </p>
           <div className="grid gap-2 sm:grid-cols-3">
-            <div className="rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
-              <p className="text-[11px] text-ui-text3">妨害なし成功</p>
-              <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
-                {result.vsBreakdown.noDisruptionSuccessRate}%
-              </p>
-            </div>
-            <div className="rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
-              <p className="text-[11px] text-ui-text3">妨害あり突破成功</p>
-              <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
-                {result.vsBreakdown.disruptedButPenetratedRate}%
-              </p>
-            </div>
-            <div className="rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
-              <p className="text-[11px] text-ui-text3">妨害あり失敗</p>
-              <p className="mt-1 text-base font-semibold tabular-nums text-ui-text">
-                {result.vsBreakdown.disruptedAndFailedRate}%
-              </p>
-            </div>
+            <VsBreakdownItem
+              label="妨害なし成功"
+              value={result.vsBreakdown.noDisruptionSuccessRate}
+            />
+            <VsBreakdownItem
+              label="妨害あり突破成功"
+              value={result.vsBreakdown.disruptedButPenetratedRate}
+            />
+            <VsBreakdownItem
+              label="妨害あり失敗"
+              value={result.vsBreakdown.disruptedAndFailedRate}
+            />
           </div>
         </div>
       ) : null}
 
       {deckExceeded ? (
-        <p className="rounded-md border border-ui-red/40 bg-ui-red/12 px-3 py-2 text-xs text-ui-red">
+        <p className={uiDangerNoticeClassName}>
           デッキ枚数を超過しています（合計 {totalCardCount} 枚）。
         </p>
       ) : null}
 
       {errorMessage ? (
-        <p className="rounded-md border border-ui-red/40 bg-ui-red/12 px-3 py-2 text-xs text-ui-red">
-          {errorMessage}
-        </p>
+        <p className={uiDangerNoticeClassName}>{errorMessage}</p>
       ) : null}
     </SectionCard>
   );

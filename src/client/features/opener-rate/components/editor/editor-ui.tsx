@@ -6,11 +6,15 @@ export const editorFieldLabelClassName = "space-y-1.5 text-xs text-ui-text3";
 export const editorCompactFieldLabelClassName =
   "space-y-1 text-[11px] text-ui-text3";
 export const editorErrorTextClassName = "text-xs text-ui-red";
+export const editorNameInputClassName =
+  "border-ui-border1/80 bg-ui-layer1 text-ui-text placeholder:text-ui-tone2";
 export const editorEmptyStateClassName =
   "rounded-md border border-dashed border-ui-border1/80 bg-ui-layer2/45 px-3 py-4 text-xs text-ui-text3";
 export const editorListItemClassName =
   "space-y-2 rounded-md border border-ui-border1/80 bg-ui-layer1 py-3 pl-9 pr-3";
 export const editorMemoPanelClassName = "pt-1";
+export const editorSubSectionClassName =
+  "space-y-2.5 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5";
 
 type EditorEmptyStateProps = {
   children: ReactNode;

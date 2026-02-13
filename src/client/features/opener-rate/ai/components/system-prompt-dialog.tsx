@@ -9,6 +9,7 @@ import {
   DialogTitle,
   Textarea,
 } from "../../../../components/ui";
+import { aiSystemPromptSaveButtonClassName } from "./ai-chat-panel-style";
 
 type SystemPromptDialogProps = {
   open: boolean;
@@ -69,7 +70,7 @@ export const SystemPromptDialog = ({
             </Button>
             <Button
               type="button"
-              className="border border-ui-primary bg-ui-primary text-white shadow-[0_12px_24px_-16px_rgba(var(--theme-primary),0.95)] hover:bg-ui-primary2"
+              className={aiSystemPromptSaveButtonClassName}
               onClick={onSave}
             >
               <Save className="mr-1.5 h-4 w-4" />

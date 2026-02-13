@@ -4,6 +4,7 @@ export * from "./card";
 export * from "./checkbox";
 export * from "./dialog";
 export * from "./input";
+export * from "./notice-style";
 export * from "./popover";
 export * from "./radio-card-group";
 export * from "./radio-group";

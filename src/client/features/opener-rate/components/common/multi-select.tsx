@@ -9,8 +9,12 @@ import {
   PopoverTrigger,
 } from "../../../../components/ui";
 import {
+  selectCheckIndicatorBaseClassName,
+  selectCheckIndicatorSelectedClassName,
   selectRightRailClassName,
   selectTriggerFocusClassName,
+  selectTriggerInteractionClassName,
+  selectTriggerLayoutClassName,
 } from "../../../../components/ui/select-style";
 import { cn } from "../../../../lib/cn";
 
@@ -84,8 +88,9 @@ export const MultiSelect = ({
             variant="outline"
             disabled={disabled}
             className={cn(
-              "h-auto min-h-9 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-medium",
-              "hover:bg-ui-layer1 active:bg-ui-layer1",
+              "h-auto min-h-9 w-full text-sm font-medium",
+              selectTriggerLayoutClassName,
+              selectTriggerInteractionClassName,
               selectTriggerFocusClassName,
               selectedOptions.length === 0 && "text-ui-tone2",
             )}
@@ -161,9 +166,8 @@ export const MultiSelect = ({
                     >
                       <span
                         className={cn(
-                          "inline-flex h-4 w-4 items-center justify-center rounded border border-ui-border2",
-                          selected &&
-                            "border-ui-primary bg-ui-primary/16 text-ui-primary",
+                          selectCheckIndicatorBaseClassName,
+                          selected && selectCheckIndicatorSelectedClassName,
                         )}
                       >
                         <Check

@@ -5,7 +5,7 @@ import { useState } from "react";
 import { Button } from "../../../../components/ui";
 import { cardsAtom } from "../../state";
 import { createLocalId } from "./create-local-id";
-import { EditorEmptyState } from "./editor-ui";
+import { EditorEmptyState, editorNameInputClassName } from "./editor-ui";
 import { NameMemoEditorItem } from "./name-memo-editor-item";
 import { NumericInput } from "./numeric-input";
 import { SortableEditorSection } from "./sortable-editor-section";
@@ -101,7 +101,7 @@ export const CardListEditor = () => {
               )
             }
             topGridClassName="grid-cols-[minmax(0,1fr)_5.25rem_auto]"
-            nameInputClassName="border-ui-border1/80 bg-ui-layer1 text-ui-text placeholder:text-ui-tone2"
+            nameInputClassName={editorNameInputClassName}
             actionsClassName="justify-end"
             topMiddle={
               <NumericInput

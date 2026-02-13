@@ -38,6 +38,7 @@ import { NumericInput } from "./numeric-input";
 const createDefaultSubPatternName = (index: number) =>
   `サブパターン${index + 1}`;
 const createDefaultPatternName = (index: number) => `パターン${index + 1}`;
+const composeHintTextClassName = "text-[11px] text-ui-tone2";
 const createDefaultCondition = (): SubPatternTriggerCondition => ({
   mode: "required",
   count: 1,
@@ -325,14 +326,14 @@ export const PatternComposeDialogTrigger = () => {
         <div className="space-y-2 rounded-md border border-ui-border1 bg-ui-layer2 p-3.5">
           <div className="space-y-0.5">
             {isComposeLocked ? (
-              <p className="text-[11px] text-ui-tone2">
+              <p className={composeHintTextClassName}>
                 利用条件: 合成元1件以上 + 妨害カテゴリ1件以上
               </p>
             ) : null}
             {!isComposeLocked &&
             filterInputMode === "inline" &&
             inlineFilterConditions.length === 0 ? (
-              <p className="text-[11px] text-ui-tone2">
+              <p className={composeHintTextClassName}>
                 手動フィルタでは条件を1件以上設定してください。
               </p>
             ) : null}
@@ -340,7 +341,7 @@ export const PatternComposeDialogTrigger = () => {
             hasComposeSourceSelection &&
             selectedComposeCategoryUids.length > 0 &&
             !hasComposePenetrationTarget ? (
-              <p className="text-[11px] text-ui-tone2">
+              <p className={composeHintTextClassName}>
                 選択中の妨害カテゴリでは、メイン/フィルタ合算の貫通効果がありません。
               </p>
             ) : null}
@@ -348,12 +349,12 @@ export const PatternComposeDialogTrigger = () => {
             hasComposeSourceSelection &&
             hasComposePenetrationTarget &&
             hasComposeSkippedCategories ? (
-              <p className="text-[11px] text-ui-tone2">
+              <p className={composeHintTextClassName}>
                 一部妨害カテゴリは加算効果がないため、生成対象から除外されます。
               </p>
             ) : null}
             {!isComposeLocked && composeName.trim().length === 0 ? (
-              <p className="text-[11px] text-ui-tone2">
+              <p className={composeHintTextClassName}>
                 生成サブパターン名は必須です。
               </p>
             ) : null}

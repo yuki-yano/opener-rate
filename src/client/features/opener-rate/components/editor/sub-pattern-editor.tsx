@@ -25,7 +25,11 @@ import {
   toggleUid,
   updateItemByUid,
 } from "./editor-collection-utils";
-import { EditorEmptyState, editorFieldLabelClassName } from "./editor-ui";
+import {
+  EditorEmptyState,
+  editorFieldLabelClassName,
+  editorSubSectionClassName,
+} from "./editor-ui";
 import { EffectListEditor } from "./effect-list-editor";
 import { ExpandableEditorCard } from "./expandable-editor-card";
 import {
@@ -256,7 +260,7 @@ export const SubPatternEditor = () => {
               }}
               onToggleCollapsed={() => toggleCollapsed(subPattern.uid)}
               expandedBody={
-                <div className="space-y-2.5 rounded-md border border-ui-border1/70 bg-ui-layer2/60 p-2.5">
+                <div className={editorSubSectionClassName}>
                   <div className="grid min-w-0 gap-2 lg:grid-cols-2">
                     <label className={`min-w-0 ${editorFieldLabelClassName}`}>
                       対象基礎パターン

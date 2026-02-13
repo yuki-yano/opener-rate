@@ -9,7 +9,10 @@ import type { ReactNode } from "react";
 
 import { Button, Checkbox, Input } from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
-import { editorErrorTextClassName } from "./editor-ui";
+import {
+  editorErrorTextClassName,
+  editorNameInputClassName,
+} from "./editor-ui";
 
 type ExpandableEditorCardProps = {
   isActive: boolean;
@@ -79,7 +82,7 @@ export const ExpandableEditorCard = ({
         />
 
         <Input
-          className="h-9 border-ui-border1/80 bg-ui-layer1 text-ui-text placeholder:text-ui-tone2"
+          className={cn("h-9", editorNameInputClassName)}
           value={name}
           placeholder={namePlaceholder}
           onChange={(event) => onNameChange(event.target.value)}

@@ -5,8 +5,12 @@ import { cn } from "../../lib/cn";
 import { Button } from "./button";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import {
+  selectCheckIndicatorBaseClassName,
+  selectCheckIndicatorSelectedClassName,
   selectRightRailClassName,
   selectTriggerFocusClassName,
+  selectTriggerInteractionClassName,
+  selectTriggerLayoutClassName,
 } from "./select-style";
 
 export type SelectOption = {
@@ -59,8 +63,9 @@ export const Select = ({
             aria-label={ariaLabel}
             disabled={disabled}
             className={cn(
-              "h-10 w-full items-stretch justify-between overflow-hidden pl-3 pr-0 text-left text-sm font-normal",
-              "hover:bg-ui-layer1 active:bg-ui-layer1",
+              "h-10 w-full text-sm font-normal",
+              selectTriggerLayoutClassName,
+              selectTriggerInteractionClassName,
               selectTriggerFocusClassName,
               !selectedOption && "text-ui-tone2",
               triggerClassName,
@@ -113,9 +118,9 @@ export const Select = ({
                 >
                   <span
                     className={cn(
-                      "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded border border-ui-border2",
-                      selected &&
-                        "border-ui-primary bg-ui-primary/16 text-ui-primary",
+                      "shrink-0",
+                      selectCheckIndicatorBaseClassName,
+                      selected && selectCheckIndicatorSelectedClassName,
                     )}
                   >
                     <Check

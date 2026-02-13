@@ -2,7 +2,11 @@ import { useAtomValue, useSetAtom } from "jotai";
 import { Check, Copy } from "lucide-react";
 import { useEffect, useState } from "react";
 
-import { Button, Input } from "../../../../components/ui";
+import {
+  Button,
+  Input,
+  uiDangerNoticeClassName,
+} from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
 import {
   isShortUrlGenerationLockedAtom,
@@ -93,9 +97,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
       </div>
 
       {shortUrlError ? (
-        <p className="rounded-md border border-ui-red/40 bg-ui-red/12 px-3 py-2 text-xs text-ui-red">
-          {shortUrlError}
-        </p>
+        <p className={uiDangerNoticeClassName}>{shortUrlError}</p>
       ) : null}
     </section>
   );
