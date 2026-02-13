@@ -22,6 +22,7 @@ type PotResolutionScratch = {
 };
 type PenetrationCombinationCounter = {
   combinationLabel: string;
+  requiredPenetrationByDisruptionKey: Record<string, number>;
   occurrenceCount: number;
   successCount: number;
 };
@@ -143,6 +144,15 @@ const resolveDisruptionKey = (disruption: OpponentDisruptionCard) => {
   return disruption.uid;
 };
 
+const resolveCombinationDisruptionKey = (
+  disruption: OpponentDisruptionCard,
+) => {
+  if (disruption.disruptionCardUid != null) {
+    return disruption.disruptionCardUid;
+  }
+  return resolveDisruptionKey(disruption);
+};
+
 const resolveDisruptionDisplayName = (disruption: OpponentDisruptionCard) => {
   const name = disruption.name.trim();
   if (name.length > 0) {
@@ -212,7 +222,8 @@ const resolveOpponentDisruptionStrength = (params: {
   opponentDeckOrder: number[];
   opponentHandSize: number;
   opponentDisruptions: OpponentDisruptionCard[];
-  opponentDisruptionKeys: string[];
+  penetrationDisruptionKeys: string[];
+  combinationDisruptionKeys: string[];
   drawnCountByIndex: number[];
   rng: RandomSource;
   optimizeShuffle: boolean;
@@ -222,7 +233,8 @@ const resolveOpponentDisruptionStrength = (params: {
     opponentDeckOrder,
     opponentHandSize,
     opponentDisruptions,
-    opponentDisruptionKeys,
+    penetrationDisruptionKeys,
+    combinationDisruptionKeys,
     drawnCountByIndex,
     rng,
     optimizeShuffle,
@@ -243,7 +255,8 @@ const resolveOpponentDisruptionStrength = (params: {
   }
 
   let hasDisruption = false;
-  const strengthByDisruptionKey: Record<string, number> = {};
+  const penetrationStrengthByDisruptionKey: Record<string, number> = {};
+  const combinationStrengthByDisruptionKey: Record<string, number> = {};
 
   for (
     let disruptionIndex = 0;
@@ -260,14 +273,25 @@ const resolveOpponentDisruptionStrength = (params: {
     if (effectiveCount <= 0) continue;
 
     hasDisruption = true;
-    const key = opponentDisruptionKeys[disruptionIndex] ?? disruption.uid;
-    const currentStrength = strengthByDisruptionKey[key] ?? 0;
-    strengthByDisruptionKey[key] = currentStrength + effectiveCount;
+    const penetrationKey =
+      penetrationDisruptionKeys[disruptionIndex] ?? disruption.uid;
+    const currentPenetrationStrength =
+      penetrationStrengthByDisruptionKey[penetrationKey] ?? 0;
+    penetrationStrengthByDisruptionKey[penetrationKey] =
+      currentPenetrationStrength + effectiveCount;
+
+    const combinationKey =
+      combinationDisruptionKeys[disruptionIndex] ?? penetrationKey;
+    const currentCombinationStrength =
+      combinationStrengthByDisruptionKey[combinationKey] ?? 0;
+    combinationStrengthByDisruptionKey[combinationKey] =
+      currentCombinationStrength + effectiveCount;
   }
 
   return {
     hasDisruption,
-    strengthByDisruptionKey,
+    penetrationStrengthByDisruptionKey,
+    combinationStrengthByDisruptionKey,
   };
 };
 
@@ -293,6 +317,75 @@ const canPenetrateAllDisruptions = (params: {
     }
   }
   return true;
+};
+
+const resolveSubPatternMaxApplyCountUpperBound = (
+  subPattern: CompiledSubPattern,
+) => {
+  if (subPattern.applyLimit === "once_per_trial") {
+    return 1;
+  }
+  if (subPattern.triggerSourceIndices.length > 0) {
+    return subPattern.triggerSourceIndices.length;
+  }
+  if (subPattern.hasTriggerSourceUids === true) {
+    return 0;
+  }
+  return 1;
+};
+
+const resolveMaxPenetrationByDisruptionKey = (params: {
+  compiledPatterns: CompiledPattern[];
+  compiledSubPatterns: CompiledSubPattern[];
+}) => {
+  const { compiledPatterns, compiledSubPatterns } = params;
+  const maxPenetrationByDisruptionKey: Record<string, number> = {};
+
+  for (const pattern of compiledPatterns) {
+    if (!pattern.active) continue;
+    for (const effect of pattern.effects ?? []) {
+      if (effect.type !== "add_penetration") continue;
+      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
+        const current = maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        maxPenetrationByDisruptionKey[disruptionCategoryUid] =
+          current + effect.amount;
+      }
+    }
+  }
+
+  for (const subPattern of compiledSubPatterns) {
+    if (!subPattern.active) continue;
+    const maxApplyCount = resolveSubPatternMaxApplyCountUpperBound(subPattern);
+    if (maxApplyCount <= 0) continue;
+    for (const effect of subPattern.effects) {
+      if (effect.type !== "add_penetration") continue;
+      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
+        const current = maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
+        maxPenetrationByDisruptionKey[disruptionCategoryUid] =
+          current + effect.amount * maxApplyCount;
+      }
+    }
+  }
+
+  return maxPenetrationByDisruptionKey;
+};
+
+const isPenetrationImpossibleByUpperBound = (params: {
+  requiredPenetrationByDisruptionKey: Record<string, number>;
+  maxPenetrationByDisruptionKey: Record<string, number>;
+}) => {
+  const { requiredPenetrationByDisruptionKey, maxPenetrationByDisruptionKey } =
+    params;
+  for (const [disruptionKey, required] of Object.entries(
+    requiredPenetrationByDisruptionKey,
+  )) {
+    if (required <= 0) continue;
+    const maxPenetration = maxPenetrationByDisruptionKey[disruptionKey] ?? 0;
+    if (required > maxPenetration) {
+      return true;
+    }
+  }
+  return false;
 };
 
 const runPotResolution = (
@@ -411,15 +504,20 @@ export const calculateBySimulation = (params: {
         opponentDisruptions: vs.opponentDisruptions,
       })
     : [];
-  const opponentDisruptionKeys = vsEnabled
+  const penetrationDisruptionKeys = vsEnabled
     ? vs.opponentDisruptions.map((disruption) =>
         resolveDisruptionKey(disruption),
       )
     : [];
-  const disruptionLabelByKey = vsEnabled
+  const combinationDisruptionKeys = vsEnabled
+    ? vs.opponentDisruptions.map((disruption) =>
+        resolveCombinationDisruptionKey(disruption),
+      )
+    : [];
+  const disruptionLabelByCombinationKey = vsEnabled
     ? createDisruptionLabelsByKey({
         opponentDisruptions: vs.opponentDisruptions,
-        opponentDisruptionKeys,
+        opponentDisruptionKeys: combinationDisruptionKeys,
       })
     : new Map<string, string>();
 
@@ -446,6 +544,10 @@ export const calculateBySimulation = (params: {
   const hasPotEffects =
     normalized.pot.desiresOrExtravagance.count > 0 ||
     normalized.pot.prosperity.count > 0;
+  const maxPenetrationByDisruptionKey = resolveMaxPenetrationByDisruptionKey({
+    compiledPatterns,
+    compiledSubPatterns,
+  });
   const firstHand = normalized.deck.firstHand;
   const deckOrder = new Array<number>(deckOrderTemplate.length);
   const handCounts = new Array(normalized.deckCounts.length).fill(0);
@@ -513,7 +615,8 @@ export const calculateBySimulation = (params: {
         opponentDeckOrder,
         opponentHandSize: vs.opponentHandSize,
         opponentDisruptions: vs.opponentDisruptions,
-        opponentDisruptionKeys,
+        penetrationDisruptionKeys,
+        combinationDisruptionKeys,
         drawnCountByIndex,
         rng,
         optimizeShuffle: useOptimizedShuffle,
@@ -530,7 +633,7 @@ export const calculateBySimulation = (params: {
           subPatternPenetrationByDisruptionKey:
             countableSubPatternEvaluation.penetrationByDisruptionKey,
           disruptionStrengthByDisruptionKey:
-            opponentDisruption.strengthByDisruptionKey,
+            opponentDisruption.penetrationStrengthByDisruptionKey,
         });
         if (baseSuccess && penetrated) {
           disruptedButPenetratedCount += 1;
@@ -539,8 +642,8 @@ export const calculateBySimulation = (params: {
         }
         const combination = resolvePenetrationCombination({
           disruptionStrengthByDisruptionKey:
-            opponentDisruption.strengthByDisruptionKey,
-          disruptionLabelByKey,
+            opponentDisruption.combinationStrengthByDisruptionKey,
+          disruptionLabelByKey: disruptionLabelByCombinationKey,
         });
         if (combination != null) {
           const current = penetratedCombinationCountByKey.get(
@@ -549,6 +652,9 @@ export const calculateBySimulation = (params: {
           if (current == null) {
             penetratedCombinationCountByKey.set(combination.combinationKey, {
               combinationLabel: combination.combinationLabel,
+              requiredPenetrationByDisruptionKey: {
+                ...opponentDisruption.penetrationStrengthByDisruptionKey,
+              },
               occurrenceCount: 1,
               successCount: baseSuccess && penetrated ? 1 : 0,
             });
@@ -608,7 +714,6 @@ export const calculateBySimulation = (params: {
       : undefined,
     vsPenetrationCombinations: vsEnabled
       ? Array.from(penetratedCombinationCountByKey.entries())
-          .filter(([, entry]) => entry.successCount > 0)
           .map(([combinationKey, entry]) => ({
             combinationKey,
             combinationLabel: entry.combinationLabel,
@@ -622,6 +727,11 @@ export const calculateBySimulation = (params: {
               entry.successCount,
               entry.occurrenceCount,
             ),
+            isPenetrationImpossible: isPenetrationImpossibleByUpperBound({
+              requiredPenetrationByDisruptionKey:
+                entry.requiredPenetrationByDisruptionKey,
+              maxPenetrationByDisruptionKey,
+            }),
           }))
           .sort((left, right) => {
             const occurrenceDiff = right.occurrenceCount - left.occurrenceCount;

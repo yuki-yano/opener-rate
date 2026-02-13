@@ -138,6 +138,17 @@ describe("calculateBySimulation (rng)", () => {
       disruptedButPenetratedRate: "0.00",
       disruptedAndFailedRate: "100.00",
     });
+    expect(alwaysOne.vsPenetrationCombinations).toEqual([
+      {
+        combinationKey: "cat-1:1",
+        combinationLabel: "妨害",
+        successCount: 0,
+        occurrenceCount: 20,
+        occurrenceRate: "100.00",
+        successRate: "0.00",
+        isPenetrationImpossible: true,
+      },
+    ]);
   });
 
   it("reports occurrence rate and in-occurrence success rate per combination", () => {
@@ -210,6 +221,88 @@ describe("calculateBySimulation (rng)", () => {
         occurrenceCount: 2,
         occurrenceRate: "100.00",
         successRate: "50.00",
+        isPenetrationImpossible: false,
+      },
+    ]);
+  });
+
+  it("separates combination counts by card even when sharing disruption category", () => {
+    const baseInput: CalculateInput = {
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "初動成立",
+          active: true,
+          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-negate"],
+              amount: 2,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 2,
+        opponentHandSize: 2,
+        opponentDisruptions: [
+          {
+            uid: "od-imperm",
+            disruptionCardUid: "dc-imperm",
+            name: "無限泡影",
+            count: 1,
+            oncePerName: true,
+            disruptionCategoryUid: "cat-negate",
+          },
+          {
+            uid: "od-ash",
+            disruptionCardUid: "dc-ash",
+            name: "灰流うらら",
+            count: 1,
+            oncePerName: true,
+            disruptionCategoryUid: "cat-negate",
+          },
+        ],
+      },
+    };
+
+    const prepared = prepareSimulation(baseInput);
+    const result = calculateBySimulation({
+      ...prepared,
+      trials: 1,
+      rng: () => 0,
+    });
+
+    expect(result.vsBreakdown).toEqual({
+      noDisruptionSuccessRate: "0.00",
+      disruptedButPenetratedRate: "100.00",
+      disruptedAndFailedRate: "0.00",
+    });
+    expect(result.vsPenetrationCombinations).toEqual([
+      {
+        combinationKey: "dc-ash:1|dc-imperm:1",
+        combinationLabel: "灰流うらら + 無限泡影",
+        successCount: 1,
+        occurrenceCount: 1,
+        occurrenceRate: "100.00",
+        successRate: "100.00",
+        isPenetrationImpossible: false,
       },
     ]);
   });

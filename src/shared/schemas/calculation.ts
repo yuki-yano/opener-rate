@@ -193,6 +193,33 @@ export const calculateInputSchema = z
         message: "opponent disruption cards exceed opponentDeckSize",
       });
     }
+
+    const disruptionIndexByCardUid = new Map<string, number>();
+    for (
+      let disruptionIndex = 0;
+      disruptionIndex < value.vs.opponentDisruptions.length;
+      disruptionIndex += 1
+    ) {
+      const disruption = value.vs.opponentDisruptions[disruptionIndex];
+      const disruptionCardUid = disruption.disruptionCardUid;
+      if (disruptionCardUid == null) continue;
+
+      const existingIndex = disruptionIndexByCardUid.get(disruptionCardUid);
+      if (existingIndex != null) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: [
+            "vs",
+            "opponentDisruptions",
+            disruptionIndex,
+            "disruptionCardUid",
+          ],
+          message: "same disruptionCardUid cannot be registered multiple times",
+        });
+        continue;
+      }
+      disruptionIndexByCardUid.set(disruptionCardUid, disruptionIndex);
+    }
   });
 
 export const calculationErrorSchema = z.object({
@@ -220,6 +247,7 @@ export const vsPenetrationCombinationSchema = z.object({
   occurrenceCount: z.number().int().min(0),
   occurrenceRate: z.string(),
   successRate: z.string(),
+  isPenetrationImpossible: z.boolean().optional(),
 });
 
 export const calculateOutputSchema = z.object({

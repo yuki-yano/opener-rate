@@ -39,6 +39,20 @@ export const VsSimulationEditor = () => {
       ),
     [disruptionCategories],
   );
+  const duplicatedDisruptionCardUidSet = useMemo(() => {
+    const countByUid = new Map<string, number>();
+    for (const disruption of vs.opponentDisruptions) {
+      const disruptionCardUid = disruption.disruptionCardUid;
+      if (disruptionCardUid == null) continue;
+      const current = countByUid.get(disruptionCardUid) ?? 0;
+      countByUid.set(disruptionCardUid, current + 1);
+    }
+    return new Set(
+      Array.from(countByUid.entries())
+        .filter(([, count]) => count > 1)
+        .map(([uid]) => uid),
+    );
+  }, [vs.opponentDisruptions]);
 
   const handleAddDisruption = () => {
     const firstCard = disruptionCards[0];
@@ -160,6 +174,9 @@ export const VsSimulationEditor = () => {
             : disruptionCardByUid.get(disruption.disruptionCardUid);
         const resolvedName = linkedCard?.name ?? disruption.name;
         const isNameEmpty = resolvedName.trim().length === 0;
+        const hasDuplicateCardSelection =
+          disruption.disruptionCardUid != null &&
+          duplicatedDisruptionCardUidSet.has(disruption.disruptionCardUid);
 
         return (
           <EditorListItem>
@@ -238,9 +255,14 @@ export const VsSimulationEditor = () => {
               />
             </div>
 
-            {isNameEmpty ? (
+            {isNameEmpty || hasDuplicateCardSelection ? (
               <div className={`space-y-1 ${editorErrorTextClassName}`}>
                 {isNameEmpty ? <p>妨害札名は必須です。</p> : null}
+                {hasDuplicateCardSelection ? (
+                  <p>
+                    同じ妨害カードを複数行で登録できません。枚数を1行にまとめてください。
+                  </p>
+                ) : null}
               </div>
             ) : null}
             {disruption.disruptionCategoryUid != null ? (

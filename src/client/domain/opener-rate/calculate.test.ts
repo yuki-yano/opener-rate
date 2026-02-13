@@ -698,12 +698,13 @@ describe("calculateOpenerRateDomain", () => {
     expect(result.overallProbability).toBe("100.00");
     expect(result.vsPenetrationCombinations).toEqual([
       {
-        combinationKey: "cat-ash:2",
+        combinationKey: "dc-ash:2",
         combinationLabel: "灰流うららx2",
         successCount: 1,
         occurrenceCount: 1,
         occurrenceRate: "100.00",
         successRate: "100.00",
+        isPenetrationImpossible: false,
       },
     ]);
   });

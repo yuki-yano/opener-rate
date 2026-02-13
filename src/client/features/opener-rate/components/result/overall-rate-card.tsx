@@ -66,6 +66,7 @@ export const OverallRateCard = () => {
   const deckExceeded = useAtomValue(deckSizeExceededAtom);
   const runCalculate = useSetAtom(runCalculateAtom);
   const [isPatternRatesExpanded, setIsPatternRatesExpanded] = useState(false);
+  const [isUnpenetrableExpanded, setIsUnpenetrableExpanded] = useState(false);
   const isExactDiffEnabled =
     result?.mode === "exact" && previousResult?.mode === "exact";
   const previousPatternRateMap = useMemo(
@@ -109,6 +110,33 @@ export const OverallRateCard = () => {
   const errorMessage = toErrorMessage(
     transportError ?? result?.error?.type ?? null,
   );
+  const vsPenetrationCombinations = result?.vsPenetrationCombinations ?? [];
+  const penetratedCombinations = useMemo(
+    () => vsPenetrationCombinations.filter((entry) => entry.successCount > 0),
+    [vsPenetrationCombinations],
+  );
+  const unpenetrableCombinations = useMemo(
+    () =>
+      vsPenetrationCombinations.filter(
+        (entry) => entry.isPenetrationImpossible === true,
+      ),
+    [vsPenetrationCombinations],
+  );
+  const unpenetrableSummary = useMemo(() => {
+    const totalOccurrenceCount = unpenetrableCombinations.reduce(
+      (sum, entry) => sum + entry.occurrenceCount,
+      0,
+    );
+    const totalOccurrenceRate = unpenetrableCombinations.reduce(
+      (sum, entry) => sum + Number.parseFloat(entry.occurrenceRate),
+      0,
+    );
+    return {
+      totalOccurrenceCount,
+      totalOccurrenceRateText: totalOccurrenceRate.toFixed(2),
+      classificationCount: unpenetrableCombinations.length,
+    };
+  }, [unpenetrableCombinations]);
 
   return (
     <SectionCard
@@ -215,50 +243,113 @@ export const OverallRateCard = () => {
               value={result.vsBreakdown.disruptedAndFailedRate}
             />
           </div>
-          {result.vsPenetrationCombinations != null &&
-          result.vsPenetrationCombinations.length > 0 ? (
+          {vsPenetrationCombinations.length > 0 ? (
             <div className="space-y-1.5">
-              <p className="text-[11px] text-ui-tone2">
-                妨害あり突破成功の組み合わせ内訳
-              </p>
-              <div className="space-y-1.5">
-                {result.vsPenetrationCombinations.map((entry) => (
-                  <div
-                    key={entry.combinationKey}
-                    className="flex items-start justify-between gap-3 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5"
-                  >
-                    <p className="min-w-0 text-sm leading-snug text-ui-text">
-                      {entry.combinationLabel}
-                    </p>
-                    <div className="flex min-w-[11.5rem] shrink-0 flex-col items-end gap-1">
-                      <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
-                        <p className="text-[10px] tracking-wide text-ui-tone2">
-                          発生率
-                        </p>
-                        <p
-                          className={`text-xs text-ui-text ${percentageTextClassName}`}
-                        >
-                          {entry.occurrenceRate}%
-                        </p>
-                      </div>
-                      <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
-                        <p className="text-[10px] tracking-wide text-ui-tone2">
-                          内成功率
-                        </p>
-                        <p
-                          className={`text-xs text-ui-text ${percentageTextClassName}`}
-                        >
-                          {entry.successRate}%
-                        </p>
-                      </div>
-                      <p
-                        className={`text-[10px] text-ui-text3 ${percentageTextClassName}`}
+              {penetratedCombinations.length > 0 ? (
+                <div className="space-y-1.5">
+                  <p className="text-[11px] text-ui-tone2">
+                    妨害あり突破成功の組み合わせ内訳
+                  </p>
+                  <div className="space-y-1.5">
+                    {penetratedCombinations.map((entry) => (
+                      <div
+                        key={entry.combinationKey}
+                        className="flex items-start justify-between gap-3 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5"
                       >
-                        回数 {entry.successCount}/{entry.occurrenceCount}
-                      </p>
-                    </div>
+                        <p className="min-w-0 text-sm leading-snug text-ui-text">
+                          {entry.combinationLabel}
+                        </p>
+                        <div className="flex min-w-[11.5rem] shrink-0 flex-col items-end gap-1">
+                          <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
+                            <p className="text-[10px] tracking-wide text-ui-tone2">
+                              発生率
+                            </p>
+                            <p
+                              className={`text-xs text-ui-text ${percentageTextClassName}`}
+                            >
+                              {entry.occurrenceRate}%
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
+                            <p className="text-[10px] tracking-wide text-ui-tone2">
+                              内成功率
+                            </p>
+                            <p
+                              className={`text-xs text-ui-text ${percentageTextClassName}`}
+                            >
+                              {entry.successRate}%
+                            </p>
+                          </div>
+                          <p
+                            className={`text-[10px] text-ui-text3 ${percentageTextClassName}`}
+                          >
+                            回数 {entry.successCount}/{entry.occurrenceCount}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+              ) : null}
+              <div className="space-y-1.5 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
+                <div className="flex items-center justify-between gap-2">
+                  <div className="space-y-0.5">
+                    <p className="text-[11px] text-ui-tone2">
+                      そもそも貫通不可能な組み合わせ
+                    </p>
+                    <p className="text-[10px] text-ui-text3">
+                      合計発生確率 {unpenetrableSummary.totalOccurrenceRateText}
+                      % ・ 回数 {unpenetrableSummary.totalOccurrenceCount} ・
+                      {unpenetrableSummary.classificationCount}分類
+                    </p>
+                  </div>
+                  {unpenetrableCombinations.length > 0 ? (
+                    <Button
+                      type="button"
+                      size="sm"
+                      variant="outline"
+                      className="h-7 gap-1.5 px-2 text-[11px]"
+                      aria-expanded={isUnpenetrableExpanded}
+                      onClick={() =>
+                        setIsUnpenetrableExpanded((current) => !current)
+                      }
+                    >
+                      {isUnpenetrableExpanded ? (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronRight className="h-3.5 w-3.5" />
+                      )}
+                      {isUnpenetrableExpanded ? "分類を隠す" : "分類を表示"}
+                    </Button>
+                  ) : null}
+                </div>
+                {isUnpenetrableExpanded &&
+                unpenetrableCombinations.length > 0 ? (
+                  <div className="space-y-1.5 border-t border-ui-border1/70 pt-2">
+                    {unpenetrableCombinations.map((entry) => (
+                      <div
+                        key={entry.combinationKey}
+                        className="flex items-start justify-between gap-3 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-3 py-2"
+                      >
+                        <p className="min-w-0 text-sm leading-snug text-ui-text">
+                          {entry.combinationLabel}
+                        </p>
+                        <div className="flex min-w-[9rem] shrink-0 flex-col items-end gap-1">
+                          <p
+                            className={`text-xs text-ui-text ${percentageTextClassName}`}
+                          >
+                            発生率 {entry.occurrenceRate}%
+                          </p>
+                          <p
+                            className={`text-[10px] text-ui-text3 ${percentageTextClassName}`}
+                          >
+                            回数 {entry.occurrenceCount}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                ) : null}
               </div>
             </div>
           ) : null}

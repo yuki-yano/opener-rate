@@ -419,6 +419,47 @@ describe("apiSchemas", () => {
     expect(result.success).toBe(false);
   });
 
+  it("rejects vs when the same disruptionCardUid is registered multiple times", () => {
+    const result = calculateInputSchema.safeParse({
+      deck: { cardCount: 40, firstHand: 5 },
+      cards: [],
+      patterns: [],
+      subPatterns: [],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1000,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 40,
+        opponentHandSize: 5,
+        opponentDisruptions: [
+          {
+            uid: "d1",
+            disruptionCardUid: "dc-imperm",
+            name: "無限泡影",
+            count: 3,
+            oncePerName: true,
+          },
+          {
+            uid: "d2",
+            disruptionCardUid: "dc-imperm",
+            name: "無限泡影",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("accepts only http/https for shortenUrlRequest", () => {
     expect(
       shortenUrlRequestSchema.safeParse({ url: "https://example.com/path" })
