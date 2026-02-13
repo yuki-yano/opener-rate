@@ -97,7 +97,7 @@ export const VsSimulationEditor = () => {
         }))
       }
       layout="grid"
-      handleClassName="top-1/2 -translate-y-1/2"
+      handleClassName="top-[2rem] -translate-y-1/2"
       beforeList={
         <>
           <div className="rounded-md border border-ui-border1/80 bg-ui-layer1 px-3 py-2.5 text-xs text-ui-text3">
@@ -180,54 +180,10 @@ export const VsSimulationEditor = () => {
 
         return (
           <EditorListItem>
-            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-x-2 gap-y-1.5 sm:grid-cols-[3.5rem_minmax(0,1fr)_2rem] sm:gap-y-1 sm:items-end">
-              <span className="col-start-1 row-start-1 text-[11px] text-ui-text3 sm:col-start-1 sm:row-start-1">
-                枚数
-              </span>
-              <div className="col-start-1 row-start-2 min-w-0 sm:col-start-1 sm:row-start-2">
-                <NumericInput
-                  value={disruption.count}
-                  min={0}
-                  max={60}
-                  onValueChange={(nextValue) =>
-                    setVs((current) => ({
-                      ...current,
-                      opponentDisruptions: current.opponentDisruptions.map(
-                        (target) =>
-                          target.uid === disruption.uid
-                            ? {
-                                ...target,
-                                count: nextValue,
-                              }
-                            : target,
-                      ),
-                    }))
-                  }
-                />
-              </div>
-              <Button
-                type="button"
-                variant="ghost"
-                size="icon"
-                className="col-start-2 row-start-2 h-8 w-8 self-center justify-self-end sm:col-start-3 sm:row-start-2"
-                aria-label="妨害札削除"
-                onClick={() =>
-                  setVs((current) => ({
-                    ...current,
-                    opponentDisruptions: current.opponentDisruptions.filter(
-                      (target) => target.uid !== disruption.uid,
-                    ),
-                  }))
-                }
-              >
-                <Trash2 className="h-4 w-4 text-ui-red" />
-              </Button>
-              <span className="col-start-1 row-start-3 text-[11px] text-ui-text3 sm:col-start-2 sm:row-start-1">
-                妨害カード
-              </span>
+            <div className="grid min-w-0 grid-cols-[minmax(0,1fr)_3.5rem_2rem] items-center gap-2">
               <Select
                 ariaLabel="妨害カード選択"
-                className="col-start-1 row-start-4 min-w-0 sm:col-start-2 sm:row-start-2"
+                className="min-w-0"
                 value={disruption.disruptionCardUid ?? ""}
                 options={disruptionCards.map((card) => ({
                   value: card.uid,
@@ -253,6 +209,44 @@ export const VsSimulationEditor = () => {
                   }))
                 }
               />
+              <NumericInput
+                aria-label="枚数"
+                className="sm:w-full"
+                value={disruption.count}
+                min={0}
+                max={60}
+                onValueChange={(nextValue) =>
+                  setVs((current) => ({
+                    ...current,
+                    opponentDisruptions: current.opponentDisruptions.map(
+                      (target) =>
+                        target.uid === disruption.uid
+                          ? {
+                              ...target,
+                              count: nextValue,
+                            }
+                          : target,
+                    ),
+                  }))
+                }
+              />
+              <Button
+                type="button"
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 self-center justify-self-end"
+                aria-label="妨害札削除"
+                onClick={() =>
+                  setVs((current) => ({
+                    ...current,
+                    opponentDisruptions: current.opponentDisruptions.filter(
+                      (target) => target.uid !== disruption.uid,
+                    ),
+                  }))
+                }
+              >
+                <Trash2 className="h-4 w-4 text-ui-red" />
+              </Button>
             </div>
 
             {isNameEmpty || hasDuplicateCardSelection ? (
