@@ -110,7 +110,10 @@ export const OverallRateCard = () => {
   const errorMessage = toErrorMessage(
     transportError ?? result?.error?.type ?? null,
   );
-  const vsPenetrationCombinations = result?.vsPenetrationCombinations ?? [];
+  const vsPenetrationCombinations = useMemo(
+    () => result?.vsPenetrationCombinations ?? [],
+    [result?.vsPenetrationCombinations],
+  );
   const penetratedCombinations = useMemo(
     () => vsPenetrationCombinations.filter((entry) => entry.successCount > 0),
     [vsPenetrationCombinations],

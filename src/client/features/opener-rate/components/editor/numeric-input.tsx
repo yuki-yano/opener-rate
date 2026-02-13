@@ -109,7 +109,7 @@ export const NumericInput = ({
             type="button"
             aria-label="値を増やす"
             disabled={disabled}
-            className="group absolute -inset-1 inline-flex items-center justify-center rounded-md text-ui-text3 transition hover:text-ui-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="group absolute -inset-1.5 inline-flex items-center justify-center rounded-md text-ui-text3 transition hover:text-ui-primary disabled:cursor-not-allowed disabled:opacity-50"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => handleStep(1)}
           >
@@ -123,7 +123,7 @@ export const NumericInput = ({
             type="button"
             aria-label="値を減らす"
             disabled={disabled}
-            className="group absolute -inset-1 inline-flex items-center justify-center rounded-md text-ui-text3 transition hover:text-ui-primary disabled:cursor-not-allowed disabled:opacity-50"
+            className="group absolute -inset-1.5 inline-flex items-center justify-center rounded-md text-ui-text3 transition hover:text-ui-primary disabled:cursor-not-allowed disabled:opacity-50"
             onMouseDown={(event) => event.preventDefault()}
             onClick={() => handleStep(-1)}
           >

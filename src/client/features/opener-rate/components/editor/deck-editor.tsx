@@ -84,7 +84,7 @@ export const DeckEditor = () => {
         />
       </label>
 
-      <div className="grid gap-3 sm:grid-cols-2">
+      <div className="grid grid-cols-2 gap-3">
         <label className={editorFieldLabelClassName}>
           デッキ枚数
           <NumericInput
@@ -120,7 +120,7 @@ export const DeckEditor = () => {
       <div className="space-y-2">
         <p className="text-xs text-ui-text3">壺設定</p>
 
-        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem]">
+        <div className="grid grid-cols-[minmax(0,1fr)_7rem] gap-3">
           <label className={editorFieldLabelClassName}>
             金満で謙虚な壺 枚数
             <NumericInput
@@ -222,7 +222,7 @@ export const DeckEditor = () => {
           className="h-10 px-3 text-sm"
         />
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid grid-cols-2 gap-3">
           <label className={editorFieldLabelClassName}>
             相手デッキ枚数
             <NumericInput
