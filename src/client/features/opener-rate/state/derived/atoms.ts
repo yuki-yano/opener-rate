@@ -22,6 +22,7 @@ import {
   shortUrlLockedSourceHrefAtom,
   shortUrlLockedUntilChangeAtom,
 } from "../ui/atoms";
+import { normalizeShareSourceUrl } from "../short-url-utils";
 
 const getCurrentHref = () => {
   if (typeof window === "undefined") return null;
@@ -117,5 +118,5 @@ export const isShortUrlGenerationLockedAtom = atom((get) => {
 
   const currentHref = getCurrentHref();
   if (currentHref == null) return true;
-  return currentHref === lockedSourceHref;
+  return normalizeShareSourceUrl(currentHref) === lockedSourceHref;
 });

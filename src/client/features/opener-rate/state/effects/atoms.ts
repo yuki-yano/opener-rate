@@ -4,6 +4,7 @@ import { openerRateApi } from "../../api/opener-rate-api";
 import { ApiClientError } from "../../api/errors";
 import type { CalculateInput } from "../../../../../shared/apiSchemas";
 import { calculateInputAtom } from "../derived/atoms";
+import { normalizeShareSourceUrl } from "../short-url-utils";
 import {
   calculationResultAtom,
   isCalculatingAtom,
@@ -145,7 +146,8 @@ export const runCalculateAtom = atom(null, async (get, set) => {
 export const runCreateShortUrlAtom = atom(
   null,
   async (get, set, sourceUrl?: string) => {
-    const url = (sourceUrl ?? get(shortUrlInputAtom)).trim();
+    const rawUrl = (sourceUrl ?? get(shortUrlInputAtom)).trim();
+    const url = normalizeShareSourceUrl(rawUrl);
     if (url.length === 0) {
       set(shortUrlErrorAtom, "URLを入力してください");
       return;
@@ -157,7 +159,10 @@ export const runCreateShortUrlAtom = atom(
     try {
       const response = await openerRateApi.createShortUrl(url);
       const currentHref = getCurrentHref();
-      const shouldLock = currentHref != null && currentHref === url;
+      const normalizedCurrentHref =
+        currentHref == null ? null : normalizeShareSourceUrl(currentHref);
+      const shouldLock =
+        normalizedCurrentHref != null && normalizedCurrentHref === url;
       set(shortUrlResultAtom, response.shortenUrl);
       set(shortUrlInputAtom, response.shortenUrl);
       set(shortUrlLockedUntilChangeAtom, shouldLock);
@@ -184,7 +189,7 @@ export const runCreateShortUrlAtom = atom(
 
 export const runShareCurrentUrlAtom = atom(null, async (get, set) => {
   if (typeof window === "undefined") return;
-  const currentUrl = window.location.href;
+  const currentUrl = normalizeShareSourceUrl(window.location.href);
   const cachedShortUrl = get(shortUrlCacheAtom)[currentUrl];
   if (cachedShortUrl != null) {
     set(shortUrlInputAtom, cachedShortUrl);
@@ -207,7 +212,15 @@ export const hydrateShortUrlLockAtom = atom(null, (_get, set) => {
   if (persisted == null) return;
 
   const currentHref = getCurrentHref();
-  if (currentHref == null || currentHref !== persisted.sourceHref) {
+  const normalizedCurrentHref =
+    currentHref == null ? null : normalizeShareSourceUrl(currentHref);
+  const normalizedPersistedSourceHref = normalizeShareSourceUrl(
+    persisted.sourceHref,
+  );
+  if (
+    normalizedCurrentHref == null ||
+    normalizedCurrentHref !== normalizedPersistedSourceHref
+  ) {
     writeShortUrlLockState(null);
     return;
   }
@@ -216,7 +229,7 @@ export const hydrateShortUrlLockAtom = atom(null, (_get, set) => {
   set(shortUrlResultAtom, persisted.sharedShortUrl);
   set(shortUrlErrorAtom, null);
   set(shortUrlLockedUntilChangeAtom, true);
-  set(shortUrlLockedSourceHrefAtom, persisted.sourceHref);
+  set(shortUrlLockedSourceHrefAtom, normalizedPersistedSourceHref);
   set(shortUrlCacheAtom, (prev) => ({
     ...prev,
     [persisted.sharedShortUrl]: persisted.sharedShortUrl,
@@ -236,7 +249,9 @@ export const seedSharedUrlAsGeneratedAtom = atom(
       return;
     }
 
-    const sourceHref = getCurrentHref();
+    const sourceHrefRaw = getCurrentHref();
+    const sourceHref =
+      sourceHrefRaw == null ? null : normalizeShareSourceUrl(sourceHrefRaw);
     set(shortUrlInputAtom, url);
     set(shortUrlResultAtom, url);
     set(shortUrlErrorAtom, null);

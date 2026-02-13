@@ -283,6 +283,29 @@ describe("hydrateShortUrlLockAtom", () => {
       mockWindow.sessionStorage.getItem("openerRate.shortUrlLockState"),
     ).toBeNull();
   });
+
+  it("restores lock when difference is only mode=ai query", () => {
+    const mockWindow = createMockWindow(
+      "https://example.com/?mode=ai#deck=abc",
+    );
+    mockWindow.sessionStorage.setItem(
+      "openerRate.shortUrlLockState",
+      JSON.stringify({
+        sourceHref: "https://example.com/#deck=abc",
+        sharedShortUrl: "https://example.com/short_url/abc123de",
+      }),
+    );
+    setGlobalWindow(mockWindow);
+
+    const store = createStore();
+    store.set(hydrateShortUrlLockAtom);
+
+    expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
+      "https://example.com/#deck=abc",
+    );
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+  });
 });
 
 describe("runCreateShortUrlAtom", () => {
@@ -364,6 +387,29 @@ describe("runShareCurrentUrlAtom", () => {
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
   });
 
+  it("creates short url without mode=ai when current url includes mode=ai", async () => {
+    const mockWindow = createMockWindow(
+      "https://example.com/?mode=ai#deck=abc",
+    );
+    setGlobalWindow(mockWindow);
+    const store = createStore();
+    const createShortUrlSpy = vi
+      .spyOn(openerRateApi, "createShortUrl")
+      .mockResolvedValue({
+        shortenUrl: "https://example.com/short_url/abc123de",
+      });
+
+    await store.set(runShareCurrentUrlAtom);
+
+    expect(createShortUrlSpy).toHaveBeenCalledWith(
+      "https://example.com/#deck=abc",
+    );
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
+      "https://example.com/#deck=abc",
+    );
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+  });
+
   it("locks as shared when cached short URL exists", async () => {
     const mockWindow = createMockWindow("https://example.com/#deck=abc");
     setGlobalWindow(mockWindow);
@@ -382,6 +428,30 @@ describe("runShareCurrentUrlAtom", () => {
       "https://example.com/short_url/cached123",
     );
     expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(true);
+    expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
+      "https://example.com/#deck=abc",
+    );
+    expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+  });
+
+  it("uses cache keyed by url without mode=ai", async () => {
+    const mockWindow = createMockWindow(
+      "https://example.com/?mode=ai#deck=abc",
+    );
+    setGlobalWindow(mockWindow);
+    const store = createStore();
+    store.set(shortUrlCacheAtom, {
+      "https://example.com/#deck=abc":
+        "https://example.com/short_url/cached123",
+    });
+    const createShortUrlSpy = vi.spyOn(openerRateApi, "createShortUrl");
+
+    await store.set(runShareCurrentUrlAtom);
+
+    expect(createShortUrlSpy).not.toHaveBeenCalled();
+    expect(store.get(shortUrlInputAtom)).toBe(
+      "https://example.com/short_url/cached123",
+    );
     expect(store.get(shortUrlLockedSourceHrefAtom)).toBe(
       "https://example.com/#deck=abc",
     );
