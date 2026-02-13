@@ -652,6 +652,62 @@ describe("calculateOpenerRateDomain", () => {
     expect(noLimit.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
   });
 
+  it("collects penetrated disruption combinations", () => {
+    const result = calculateOpenerRateDomain(
+      createCalculateInput({
+        deck: { cardCount: 1, firstHand: 1 },
+        cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+        patterns: [
+          {
+            uid: "p-base",
+            name: "基礎",
+            active: true,
+            conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+            labels: [],
+            effects: [
+              {
+                type: "add_penetration",
+                disruptionCategoryUids: ["cat-ash"],
+                amount: 2,
+              },
+            ],
+            memo: "",
+          },
+        ],
+        subPatterns: [],
+        labels: [],
+        settings: createSimulationSettings(1),
+        vs: {
+          enabled: true,
+          opponentDeckSize: 2,
+          opponentHandSize: 2,
+          opponentDisruptions: [
+            {
+              uid: "d-ash",
+              disruptionCardUid: "dc-ash",
+              disruptionCategoryUid: "cat-ash",
+              name: "灰流うらら",
+              count: 2,
+              oncePerName: false,
+            },
+          ],
+        },
+      }),
+    );
+
+    expect(result.overallProbability).toBe("100.00");
+    expect(result.vsPenetrationCombinations).toEqual([
+      {
+        combinationKey: "cat-ash:2",
+        combinationLabel: "灰流うららx2",
+        successCount: 1,
+        occurrenceCount: 1,
+        occurrenceRate: "100.00",
+        successRate: "100.00",
+      },
+    ]);
+  });
+
   it("caps opponent disruptions by opponent deck size", () => {
     const result = calculateOpenerRateDomain(
       createCalculateInput({

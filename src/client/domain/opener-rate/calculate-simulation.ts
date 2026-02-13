@@ -20,6 +20,11 @@ type PotResolutionScratch = {
   scoreValueByCardIndex: number[];
   generation: number;
 };
+type PenetrationCombinationCounter = {
+  combinationLabel: string;
+  occurrenceCount: number;
+  successCount: number;
+};
 
 const scoreEvaluation = (params: {
   evaluation: ReturnType<typeof evaluatePatterns>;
@@ -136,6 +141,70 @@ const resolveDisruptionKey = (disruption: OpponentDisruptionCard) => {
     return nameKey;
   }
   return disruption.uid;
+};
+
+const resolveDisruptionDisplayName = (disruption: OpponentDisruptionCard) => {
+  const name = disruption.name.trim();
+  if (name.length > 0) {
+    return name;
+  }
+  return disruption.uid;
+};
+
+const createDisruptionLabelsByKey = (params: {
+  opponentDisruptions: OpponentDisruptionCard[];
+  opponentDisruptionKeys: string[];
+}) => {
+  const { opponentDisruptions, opponentDisruptionKeys } = params;
+  const nameSetByKey = new Map<string, Set<string>>();
+
+  for (
+    let disruptionIndex = 0;
+    disruptionIndex < opponentDisruptions.length;
+    disruptionIndex += 1
+  ) {
+    const disruption = opponentDisruptions[disruptionIndex];
+    const key = opponentDisruptionKeys[disruptionIndex] ?? disruption.uid;
+    const displayName = resolveDisruptionDisplayName(disruption);
+    const nameSet = nameSetByKey.get(key);
+    if (nameSet == null) {
+      nameSetByKey.set(key, new Set([displayName]));
+      continue;
+    }
+    nameSet.add(displayName);
+  }
+
+  const labelByKey = new Map<string, string>();
+  for (const [key, nameSet] of nameSetByKey) {
+    const names = Array.from(nameSet);
+    labelByKey.set(key, names.join(" / "));
+  }
+  return labelByKey;
+};
+
+const resolvePenetrationCombination = (params: {
+  disruptionStrengthByDisruptionKey: Record<string, number>;
+  disruptionLabelByKey: Map<string, string>;
+}) => {
+  const { disruptionStrengthByDisruptionKey, disruptionLabelByKey } = params;
+  const entries = Object.entries(disruptionStrengthByDisruptionKey)
+    .filter(([, strength]) => strength > 0)
+    .sort(([left], [right]) => left.localeCompare(right));
+
+  if (entries.length === 0) return null;
+
+  const keyParts: string[] = [];
+  const labelParts: string[] = [];
+  for (const [key, strength] of entries) {
+    keyParts.push(`${key}:${strength}`);
+    const baseLabel = disruptionLabelByKey.get(key) ?? key;
+    labelParts.push(strength > 1 ? `${baseLabel}x${strength}` : baseLabel);
+  }
+
+  return {
+    combinationKey: keyParts.join("|"),
+    combinationLabel: labelParts.join(" + "),
+  };
 };
 
 const resolveOpponentDisruptionStrength = (params: {
@@ -347,6 +416,12 @@ export const calculateBySimulation = (params: {
         resolveDisruptionKey(disruption),
       )
     : [];
+  const disruptionLabelByKey = vsEnabled
+    ? createDisruptionLabelsByKey({
+        opponentDisruptions: vs.opponentDisruptions,
+        opponentDisruptionKeys,
+      })
+    : new Map<string, string>();
 
   const labelOrder = normalized.labels.map((label) => label.uid);
   const patternOrder = normalized.patterns.map((pattern) => pattern.uid);
@@ -364,6 +439,10 @@ export const calculateBySimulation = (params: {
   let noDisruptionSuccessCount = 0;
   let disruptedButPenetratedCount = 0;
   let disruptedAndFailedCount = 0;
+  const penetratedCombinationCountByKey = new Map<
+    string,
+    PenetrationCombinationCounter
+  >();
   const hasPotEffects =
     normalized.pot.desiresOrExtravagance.count > 0 ||
     normalized.pot.prosperity.count > 0;
@@ -458,6 +537,28 @@ export const calculateBySimulation = (params: {
         } else {
           disruptedAndFailedCount += 1;
         }
+        const combination = resolvePenetrationCombination({
+          disruptionStrengthByDisruptionKey:
+            opponentDisruption.strengthByDisruptionKey,
+          disruptionLabelByKey,
+        });
+        if (combination != null) {
+          const current = penetratedCombinationCountByKey.get(
+            combination.combinationKey,
+          );
+          if (current == null) {
+            penetratedCombinationCountByKey.set(combination.combinationKey, {
+              combinationLabel: combination.combinationLabel,
+              occurrenceCount: 1,
+              successCount: baseSuccess && penetrated ? 1 : 0,
+            });
+          } else {
+            current.occurrenceCount += 1;
+            if (baseSuccess && penetrated) {
+              current.successCount += 1;
+            }
+          }
+        }
         isSuccess = baseSuccess && penetrated;
       }
     }
@@ -504,6 +605,31 @@ export const calculateBySimulation = (params: {
             trials,
           ),
         }
+      : undefined,
+    vsPenetrationCombinations: vsEnabled
+      ? Array.from(penetratedCombinationCountByKey.entries())
+          .filter(([, entry]) => entry.successCount > 0)
+          .map(([combinationKey, entry]) => ({
+            combinationKey,
+            combinationLabel: entry.combinationLabel,
+            successCount: entry.successCount,
+            occurrenceCount: entry.occurrenceCount,
+            occurrenceRate: toRateStringFromNumber(
+              entry.occurrenceCount,
+              trials,
+            ),
+            successRate: toRateStringFromNumber(
+              entry.successCount,
+              entry.occurrenceCount,
+            ),
+          }))
+          .sort((left, right) => {
+            const occurrenceDiff = right.occurrenceCount - left.occurrenceCount;
+            if (occurrenceDiff !== 0) return occurrenceDiff;
+            const successDiff = right.successCount - left.successCount;
+            if (successDiff !== 0) return successDiff;
+            return left.combinationLabel.localeCompare(right.combinationLabel);
+          })
       : undefined,
   };
 };

@@ -36,8 +36,9 @@ const toErrorMessage = (value: string | null) => {
 const breakdownCardClassName =
   "rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5";
 const breakdownLabelClassName = "text-[11px] text-ui-text3";
-const breakdownValueClassName =
-  "mt-1 text-base font-semibold tabular-nums text-ui-text";
+const percentageTextClassName = "font-numeric tabular-nums tracking-[0.005em]";
+const overallRateValueClassName = `mt-1 text-3xl font-semibold text-ui-text ${percentageTextClassName}`;
+const breakdownValueClassName = `mt-1 text-base font-semibold text-ui-text ${percentageTextClassName}`;
 
 const VsBreakdownItem = ({
   label,
@@ -129,10 +130,12 @@ export const OverallRateCard = () => {
     >
       <div className="rounded-md border border-ui-border1/80 bg-ui-layer1 px-4 py-3.5">
         <p className="text-xs tracking-[0.08em] text-ui-text3">全体成功率</p>
-        <p className="mt-1 text-3xl font-semibold tabular-nums text-ui-text">
+        <p className={overallRateValueClassName}>
           {result?.overallProbability ?? "0.00"}%
           {overallRateDiff ? (
-            <span className={`ml-2 text-sm ${overallRateDiff.className}`}>
+            <span
+              className={`ml-2 text-sm font-numeric tabular-nums ${overallRateDiff.className}`}
+            >
               ({overallRateDiff.text})
             </span>
           ) : null}
@@ -212,6 +215,53 @@ export const OverallRateCard = () => {
               value={result.vsBreakdown.disruptedAndFailedRate}
             />
           </div>
+          {result.vsPenetrationCombinations != null &&
+          result.vsPenetrationCombinations.length > 0 ? (
+            <div className="space-y-1.5">
+              <p className="text-[11px] text-ui-tone2">
+                妨害あり突破成功の組み合わせ内訳
+              </p>
+              <div className="space-y-1.5">
+                {result.vsPenetrationCombinations.map((entry) => (
+                  <div
+                    key={entry.combinationKey}
+                    className="flex items-start justify-between gap-3 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5"
+                  >
+                    <p className="min-w-0 text-sm leading-snug text-ui-text">
+                      {entry.combinationLabel}
+                    </p>
+                    <div className="flex min-w-[11.5rem] shrink-0 flex-col items-end gap-1">
+                      <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
+                        <p className="text-[10px] tracking-wide text-ui-tone2">
+                          発生率
+                        </p>
+                        <p
+                          className={`text-xs text-ui-text ${percentageTextClassName}`}
+                        >
+                          {entry.occurrenceRate}%
+                        </p>
+                      </div>
+                      <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
+                        <p className="text-[10px] tracking-wide text-ui-tone2">
+                          内成功率
+                        </p>
+                        <p
+                          className={`text-xs text-ui-text ${percentageTextClassName}`}
+                        >
+                          {entry.successRate}%
+                        </p>
+                      </div>
+                      <p
+                        className={`text-[10px] text-ui-text3 ${percentageTextClassName}`}
+                      >
+                        回数 {entry.successCount}/{entry.occurrenceCount}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : null}
         </div>
       ) : null}
 

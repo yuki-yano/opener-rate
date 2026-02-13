@@ -23,7 +23,11 @@ export const RateRow = ({
       <p className="truncate text-sm text-ui-text">{name}</p>
       <div className="flex items-center gap-2">
         {diff ? (
-          <span className={`text-xs ${diff.className}`}>({diff.text})</span>
+          <span
+            className={`text-xs font-numeric tabular-nums ${diff.className}`}
+          >
+            ({diff.text})
+          </span>
         ) : null}
         <Badge
           className={resolvePatternRateBadgeClassName(isExcludedFromOverall)}

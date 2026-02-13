@@ -7,6 +7,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["var(--font-body)"],
+        numeric: ["var(--font-numeric)"],
       },
       colors: {
         ui: {

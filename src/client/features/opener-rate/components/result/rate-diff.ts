@@ -4,7 +4,7 @@ export type RateDiff = {
 };
 
 export const rateBadgeClassName =
-  "min-w-[5rem] justify-center px-2.5 py-1 text-sm tabular-nums";
+  "min-w-[5rem] justify-center px-2.5 py-1 text-sm font-numeric tabular-nums tracking-[0.005em]";
 
 const excludedPatternRateBadgeClassName =
   "border-ui-yellow/60 bg-ui-yellow/16 text-ui-yellow shadow-[inset_0_0_0_1px_rgb(var(--theme-yellow)/0.22)]";

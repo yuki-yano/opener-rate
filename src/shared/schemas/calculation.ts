@@ -213,12 +213,22 @@ export const vsBreakdownSchema = z.object({
   disruptedAndFailedRate: z.string(),
 });
 
+export const vsPenetrationCombinationSchema = z.object({
+  combinationKey: z.string().min(1),
+  combinationLabel: z.string().trim().min(1),
+  successCount: z.number().int().min(0),
+  occurrenceCount: z.number().int().min(0),
+  occurrenceRate: z.string(),
+  successRate: z.string(),
+});
+
 export const calculateOutputSchema = z.object({
   overallProbability: z.string(),
   patternSuccessRates: z.array(successRateEntrySchema),
   labelSuccessRates: z.array(successRateEntrySchema),
   mode: calculationModeSchema,
   vsBreakdown: vsBreakdownSchema.optional(),
+  vsPenetrationCombinations: z.array(vsPenetrationCombinationSchema).optional(),
   error: calculationErrorSchema.optional(),
 });
 
@@ -254,4 +264,7 @@ export type CalculateInput = z.infer<typeof calculateInputSchema>;
 export type CalculationError = z.infer<typeof calculationErrorSchema>;
 export type SuccessRateEntry = z.infer<typeof successRateEntrySchema>;
 export type VsBreakdown = z.infer<typeof vsBreakdownSchema>;
+export type VsPenetrationCombination = z.infer<
+  typeof vsPenetrationCombinationSchema
+>;
 export type CalculateOutput = z.infer<typeof calculateOutputSchema>;
