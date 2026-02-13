@@ -32,10 +32,16 @@ const jsonFormatSection = `# JSON出力フェーズのフォーマット（厳�
 - 可能な限り以下の推奨トップレベルをすべて含める:
   - version, deckName, deck, cards, patterns, subPatterns, labels, disruptionCategories, disruptionCards, pot, vs, mode, simulationTrials
 - 少なくとも必須トップレベルは必ず含める:
-  - deck, cards, patterns, subPatterns, labels, disruptionCards, pot
+  - deck, cards, patterns, subPatterns, labels, disruptionCategories, disruptionCards, pot, vs, mode, simulationTrials
 - JSONの後に補足説明は付けない`;
 
 const schemaSection = `# 状態スキーマ（現行アプリ）
+version:
+- 1（省略可）
+
+deckName:
+- string（省略可）
+
 deck:
 - { cardCount: number, firstHand: number }
 
@@ -125,31 +131,55 @@ const numericConstraintsSection = `# 数値制約
 - deck.cardCount: 1..120
 - deck.firstHand: 1..20 かつ cardCount 以下
 - cards[].count: 0..60
+- patterns[].conditions[].count: 1..60（BaseCondition のみ）
+- patterns[].conditions[].threshold: 0..60（CountCondition のみ）
+- subPatterns[].triggerConditions[].count: 1..60（BaseCondition のみ）
+- subPatterns[].triggerConditions[].threshold: 0..60（CountCondition / BaseMatchCountCondition）
+- *.conditions[].rules は1件以上（CountCondition / BaseMatchCountCondition）
 - pot.desiresOrExtravagance.count: 0..3
 - pot.prosperity.count: 0..3
 - pot.prosperity.cost: 3 | 6
-- simulationTrials: 100..2000000
+- patterns[].effects[].amount: 1..20（add_penetration のみ）
+- subPatterns[].effects[].amount: 1..20（add_penetration のみ）
+- simulationTrials: 1000 | 10000 | 100000 | 1000000
 - vs.opponentDeckSize: 1..120
 - vs.opponentHandSize: 1..20 かつ opponentDeckSize 以下
+- vs.opponentDisruptions[].count: 0..60
 - vs.opponentDisruptions[].count の合計は opponentDeckSize 以下`;
 
 const referenceIntegritySection = `# 参照整合性ルール
 - patterns[].conditions[].uids は cards[].uid のみ参照可
+- patterns[].conditions[].rules[].uids は cards[].uid のみ参照可
 - patterns[].labels[].uid は labels[].uid のみ参照可
 - patterns[].effects[].labelUids は labels[].uid のみ参照可
 - patterns[].effects[].disruptionCategoryUids は disruptionCategories[].uid のみ参照可
 - subPatterns[].basePatternUids は patterns[].uid のみ参照可
 - subPatterns[].triggerSourceUids は cards[].uid のみ参照可
+- subPatterns[].triggerConditions[].rules[].uids は cards[].uid のみ参照可
 - subPatterns[].effects[].labelUids は labels[].uid のみ参照可
 - subPatterns[].effects[].disruptionCategoryUids は disruptionCategories[].uid のみ参照可
 - disruptionCards[].disruptionCategoryUid を使う場合は disruptionCategories[].uid を参照
-- vs.opponentDisruptions[].disruptionCardUid を使う場合は disruptionCards[].uid を参照`;
+- vs.opponentDisruptions[].disruptionCardUid を使う場合は disruptionCards[].uid を参照
+- vs.opponentDisruptions[].disruptionCategoryUid を使う場合は disruptionCategories[].uid を参照`;
+
+const structuralConstraintsSection = `# 構造制約
+- version を含める場合は必ず 1
+- vs.opponentDisruptions[].disruptionCardUid は重複禁止（同一カードは1行に集約）
+- 既存状態JSONがある編集では、必須トップレベルキーを省略しない`;
+
+const semanticRulesSection = `# 意味ルール（解釈の必須前提）
+- patterns[].excludeFromOverall === true のパターンは、overall 判定および countable な成功数の集計対象から除外する
+- subPatterns[].basePatternUids が空配列の場合は、「いずれかの base pattern が1つでも成立しているとき」に適用候補になる
+- subPatterns[].triggerConditions の mode が \`base_match_total\` の場合、判定元は「基礎パターン成立時に実際に使われたカード枚数」。該当情報がない場合のみ手札枚数を代替参照する
+- subPatterns[].applyLimit が \`once_per_distinct_uid\` の場合、\`triggerSourceUids\` に含まれるカードのうち手札に存在した異なる uid 数だけ効果を適用する
+- mode が \`exact\` でも、pot（desires / prosperity）を使う場合または vs.enabled が true の場合はシミュレーション計算になる
+- vs の妨害キー解決は \`disruptionCategoryUid\` を最優先し、未設定時は \`disruptionCardUid\` を使う`;
 
 const editRuleSection = `# 既存状態の編集ルール
 - 明示的な削除指示がない要素は保持する
 - 既存要素の uid は絶対に変更しない
 - 新規要素のみ新しい uid を作る（既存と重複禁止）
-- 新規 uid の推奨形式: \`<prefix>-<uuid>\`（例: \`card-...\`, \`pattern-...\`, \`sub_pattern-...\`）
+- 新規 uid の推奨形式: \`<prefix>-<uuid>\`（例: \`card-...\`, \`pattern-...\`, \`sub_pattern-...\`, \`label-...\`, \`disruption_category-...\`, \`disruption_card-...\`, \`disruption-...\`）
 - name は空文字を避ける。memo は必ず string（未指定時は \`""\`）
 - 旧形式キー（例: top-level の \`input\` や \`settings\`）は使わない`;
 
@@ -157,6 +187,8 @@ const defaultsSection = `# 追加時の推奨デフォルト
 - version: 1
 - deckName: ""
 - deck: { cardCount: 40, firstHand: 5 }
+- disruptionCategories: []
+- disruptionCards: []
 - pot: { desiresOrExtravagance: { count: 0 }, prosperity: { count: 0, cost: 6 } }
 - mode: "exact"
 - simulationTrials: 100000
@@ -171,6 +203,8 @@ const selfCheckSection = `# 生成前セルフチェック（必須）
 - 値型がスキーマ通り
 - 参照 uid が全て実在する
 - 数値制約を全て満たす
+- simulationTrials が \`1000 | 10000 | 100000 | 1000000\` のいずれか
+- vs.opponentDisruptions[].disruptionCardUid が重複していない
 - \`deck.cardCount\` が極端に不足していない（\`cards[].count + pot枚数\` を下回らない）
 - JSONとして単体で parse 可能`;
 
@@ -182,6 +216,8 @@ const defaultPromptSections = [
   schemaSection,
   numericConstraintsSection,
   referenceIntegritySection,
+  structuralConstraintsSection,
+  semanticRulesSection,
   editRuleSection,
   defaultsSection,
   selfCheckSection,

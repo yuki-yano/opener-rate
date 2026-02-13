@@ -26,9 +26,25 @@ describe("ai const", () => {
       "少なくとも必須トップレベルは必ず含める",
     );
     expect(DEFAULT_SYSTEM_PROMPT).toContain(
-      "deck, cards, patterns, subPatterns, labels, disruptionCards, pot",
+      "deck, cards, patterns, subPatterns, labels, disruptionCategories, disruptionCards, pot, vs, mode, simulationTrials",
+    );
+    expect(DEFAULT_SYSTEM_PROMPT).toContain(
+      "simulationTrials: 1000 | 10000 | 100000 | 1000000",
     );
     expect(DEFAULT_SYSTEM_PROMPT).toContain("JSONとして単体で parse 可能");
+  });
+
+  it("keeps required semantic interpretation rules", () => {
+    expect(DEFAULT_SYSTEM_PROMPT).toContain("# 意味ルール（解釈の必須前提）");
+    expect(DEFAULT_SYSTEM_PROMPT).toContain(
+      "excludeFromOverall === true のパターンは、overall 判定および countable な成功数の集計対象から除外する",
+    );
+    expect(DEFAULT_SYSTEM_PROMPT).toContain(
+      "basePatternUids が空配列の場合は、「いずれかの base pattern が1つでも成立しているとき」に適用候補になる",
+    );
+    expect(DEFAULT_SYSTEM_PROMPT).toContain(
+      "mode が `exact` でも、pot（desires / prosperity）を使う場合または vs.enabled が true の場合はシミュレーション計算になる",
+    );
   });
 
   it("uses current state marker", () => {
