@@ -864,6 +864,234 @@ describe("calculateOpenerRateDomain", () => {
     expect(notEnough.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
   });
 
+  it("treats multi-category penetration amount as shared across categories", () => {
+    const baseInput = createCalculateInput({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-ash", "cat-veiler"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      settings: createSimulationSettings(),
+      vs: {
+        enabled: true,
+        opponentDeckSize: 2,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "d-ash",
+            disruptionCardUid: "dc-ash",
+            disruptionCategoryUid: "cat-ash",
+            name: "灰流うらら",
+            count: 1,
+            oncePerName: true,
+          },
+          {
+            uid: "d-veiler",
+            disruptionCardUid: "dc-veiler",
+            disruptionCategoryUid: "cat-veiler",
+            name: "エフェクト・ヴェーラー",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    const singleDisruption = calculateOpenerRateDomain(baseInput);
+    expect(singleDisruption.overallProbability).toBe("100.00");
+    expect(singleDisruption.vsBreakdown?.disruptedButPenetratedRate).toBe(
+      "100.00",
+    );
+
+    const bothDisruptions = calculateOpenerRateDomain({
+      ...baseInput,
+      vs: {
+        ...baseInput.vs!,
+        opponentHandSize: 2,
+      },
+    });
+    expect(bothDisruptions.overallProbability).toBe("0.00");
+    expect(bothDisruptions.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
+  });
+
+  it("shares penetration amount across multiple effects with the same poolId", () => {
+    const baseInput = createCalculateInput({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-urara"],
+              amount: 1,
+              poolId: "ice_route",
+            },
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-veiler"],
+              amount: 1,
+              poolId: "ice_route",
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      settings: createSimulationSettings(),
+      vs: {
+        enabled: true,
+        opponentDeckSize: 2,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "d-urara",
+            disruptionCardUid: "dc-urara",
+            disruptionCategoryUid: "cat-urara",
+            name: "灰流うらら",
+            count: 1,
+            oncePerName: true,
+          },
+          {
+            uid: "d-veiler",
+            disruptionCardUid: "dc-veiler",
+            disruptionCategoryUid: "cat-veiler",
+            name: "エフェクト・ヴェーラー",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    const singleDisruption = calculateOpenerRateDomain(baseInput);
+    expect(singleDisruption.overallProbability).toBe("100.00");
+    expect(singleDisruption.vsBreakdown?.disruptedButPenetratedRate).toBe(
+      "100.00",
+    );
+
+    const bothDisruptions = calculateOpenerRateDomain({
+      ...baseInput,
+      vs: {
+        ...baseInput.vs!,
+        opponentHandSize: 2,
+      },
+    });
+    expect(bothDisruptions.overallProbability).toBe("0.00");
+    expect(bothDisruptions.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
+  });
+
+  it("auto-complements legacy penetration effects without poolId as a shared pool", () => {
+    const baseInput = createCalculateInput({
+      deck: { cardCount: 1, firstHand: 1 },
+      cards: [{ uid: "starter", name: "初動", count: 1, memo: "" }],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "基礎",
+          active: true,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: ["starter"],
+            },
+          ],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-urara"],
+              amount: 1,
+            },
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-veiler"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [],
+      labels: [],
+      settings: createSimulationSettings(),
+      vs: {
+        enabled: true,
+        opponentDeckSize: 2,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "d-urara",
+            disruptionCardUid: "dc-urara",
+            disruptionCategoryUid: "cat-urara",
+            name: "灰流うらら",
+            count: 1,
+            oncePerName: true,
+          },
+          {
+            uid: "d-veiler",
+            disruptionCardUid: "dc-veiler",
+            disruptionCategoryUid: "cat-veiler",
+            name: "エフェクト・ヴェーラー",
+            count: 1,
+            oncePerName: true,
+          },
+        ],
+      },
+    });
+
+    const singleDisruption = calculateOpenerRateDomain(baseInput);
+    expect(singleDisruption.overallProbability).toBe("100.00");
+    expect(singleDisruption.vsBreakdown?.disruptedButPenetratedRate).toBe(
+      "100.00",
+    );
+
+    const bothDisruptions = calculateOpenerRateDomain({
+      ...baseInput,
+      vs: {
+        ...baseInput.vs!,
+        opponentHandSize: 2,
+      },
+    });
+    expect(bothDisruptions.overallProbability).toBe("0.00");
+    expect(bothDisruptions.vsBreakdown?.disruptedAndFailedRate).toBe("100.00");
+  });
+
   it("matches disruption penetration by name key when category/card uid is absent", () => {
     const result = calculateOpenerRateDomain(
       createCalculateInput({

@@ -17,6 +17,48 @@ type NormalizeResult =
       };
     };
 
+const hasPoolId = (poolId: string | undefined) =>
+  poolId != null && poolId.trim().length > 0;
+
+const complementLegacyPenetrationPoolIds = (params: {
+  effects: CalculateInput["patterns"][number]["effects"];
+  fallbackPoolId: string;
+}) => {
+  const { effects, fallbackPoolId } = params;
+  if (effects == null || effects.length === 0) {
+    return { effects, changed: false };
+  }
+
+  let penetrationEffectCount = 0;
+  let missingPoolIdCount = 0;
+  for (const effect of effects) {
+    if (effect.type !== "add_penetration") continue;
+    penetrationEffectCount += 1;
+    if (!hasPoolId(effect.poolId)) {
+      missingPoolIdCount += 1;
+    }
+  }
+
+  // Backward compatibility:
+  // legacy data (poolId 未対応) では、同一パターン内の複数 add_penetration を
+  // 1つの共有プールとして解釈したいケースがあるため自動補完する。
+  if (
+    penetrationEffectCount < 2 ||
+    missingPoolIdCount !== penetrationEffectCount
+  ) {
+    return { effects, changed: false };
+  }
+
+  return {
+    changed: true,
+    effects: effects.map((effect) =>
+      effect.type === "add_penetration"
+        ? { ...effect, poolId: fallbackPoolId }
+        : effect,
+    ),
+  };
+};
+
 export const normalizeCalculateInput = (
   input: CalculateInput,
 ): NormalizeResult => {
@@ -66,14 +108,38 @@ export const normalizeCalculateInput = (
   const prosperityIndex = uidToIndex.get(PROSPERITY_UID) ?? null;
   const desiresIndex = uidToIndex.get(DESIRES_UID) ?? null;
 
+  const patterns = input.patterns.map((pattern, index) => {
+    const complemented = complementLegacyPenetrationPoolIds({
+      effects: pattern.effects,
+      fallbackPoolId: `__legacy_pool__:pattern:${index}`,
+    });
+    if (!complemented.changed) return pattern;
+    return {
+      ...pattern,
+      effects: complemented.effects,
+    };
+  });
+
+  const subPatterns = input.subPatterns.map((subPattern, index) => {
+    const complemented = complementLegacyPenetrationPoolIds({
+      effects: subPattern.effects,
+      fallbackPoolId: `__legacy_pool__:sub_pattern:${index}`,
+    });
+    if (!complemented.changed) return subPattern;
+    return {
+      ...subPattern,
+      effects: complemented.effects ?? [],
+    };
+  });
+
   return {
     ok: true,
     value: {
       deck: input.deck,
       cards: input.cards,
       labels: input.labels,
-      patterns: input.patterns,
-      subPatterns: input.subPatterns,
+      patterns,
+      subPatterns,
       pot: input.pot,
       vs: input.vs,
       uidToIndex,

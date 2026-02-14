@@ -68,4 +68,146 @@ describe("normalizeCalculateInput", () => {
       excess: 1,
     });
   });
+
+  it("auto-complements shared poolId for legacy penetration effects", () => {
+    const input: CalculateInput = {
+      ...createBaseInput(),
+      patterns: [
+        {
+          uid: "p-legacy",
+          name: "legacy",
+          active: true,
+          excludeFromOverall: false,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: [],
+            },
+          ],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-a"],
+              amount: 1,
+            },
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-b"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp-legacy",
+          name: "legacy-sub",
+          active: true,
+          basePatternUids: [],
+          triggerConditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: [],
+            },
+          ],
+          triggerSourceUids: [],
+          applyLimit: "once_per_trial",
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-c"],
+              amount: 1,
+            },
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-d"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+    };
+
+    const normalized = normalizeCalculateInput(input);
+    expect(normalized.ok).toBe(true);
+    if (!normalized.ok) return;
+
+    const patternEffects = normalized.value.patterns[0]?.effects;
+    expect(patternEffects).toBeDefined();
+    const patternPenetrations = patternEffects?.filter(
+      (effect) => effect.type === "add_penetration",
+    );
+    expect(patternPenetrations).toHaveLength(2);
+    expect(patternPenetrations?.[0]?.poolId).toBe("__legacy_pool__:pattern:0");
+    expect(patternPenetrations?.[1]?.poolId).toBe("__legacy_pool__:pattern:0");
+
+    const subPatternPenetrations =
+      normalized.value.subPatterns[0]?.effects.filter(
+        (effect) => effect.type === "add_penetration",
+      );
+    expect(subPatternPenetrations).toHaveLength(2);
+    expect(subPatternPenetrations?.[0]?.poolId).toBe(
+      "__legacy_pool__:sub_pattern:0",
+    );
+    expect(subPatternPenetrations?.[1]?.poolId).toBe(
+      "__legacy_pool__:sub_pattern:0",
+    );
+  });
+
+  it("does not override explicit poolId in penetration effects", () => {
+    const input: CalculateInput = {
+      ...createBaseInput(),
+      patterns: [
+        {
+          uid: "p-explicit",
+          name: "explicit",
+          active: true,
+          excludeFromOverall: false,
+          conditions: [
+            {
+              mode: "required",
+              count: 1,
+              uids: [],
+            },
+          ],
+          labels: [],
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-a"],
+              amount: 1,
+              poolId: "user_pool",
+            },
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-b"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+    };
+
+    const normalized = normalizeCalculateInput(input);
+    expect(normalized.ok).toBe(true);
+    if (!normalized.ok) return;
+
+    const patternEffects = normalized.value.patterns[0]?.effects;
+    const first = patternEffects?.[0];
+    const second = patternEffects?.[1];
+    expect(first?.type).toBe("add_penetration");
+    expect(second?.type).toBe("add_penetration");
+    if (first?.type === "add_penetration") {
+      expect(first.poolId).toBe("user_pool");
+    }
+    if (second?.type === "add_penetration") {
+      expect(second.poolId).toBeUndefined();
+    }
+  });
 });
