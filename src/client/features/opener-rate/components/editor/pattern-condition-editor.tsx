@@ -148,7 +148,6 @@ export const PatternConditionEditor = ({
       <span>条件</span>
       <Select
         ariaLabel={`条件${index + 1}の種類`}
-        triggerClassName="h-9"
         listClassName="max-h-none overflow-visible"
         value={condition.mode}
         options={modeOptions}
@@ -174,7 +173,6 @@ export const PatternConditionEditor = ({
           </span>
           <div className="col-start-1 row-start-2 min-w-0 md:col-start-2 md:row-start-2">
             <NumericInput
-              className="h-9"
               value={condition.count}
               min={1}
               max={60}
@@ -190,7 +188,7 @@ export const PatternConditionEditor = ({
             type="button"
             variant="ghost"
             size="icon"
-            className="col-start-2 row-start-2 h-7 w-7 self-center justify-self-end md:col-start-3 md:row-start-2"
+            className="col-start-2 row-start-2 mt-1 h-7 w-7 self-start justify-self-end md:col-start-3 md:row-start-2"
             aria-label="条件削除"
             onClick={onRemove}
           >
@@ -203,7 +201,6 @@ export const PatternConditionEditor = ({
             <MultiSelect
               options={cardOptions}
               value={condition.uids}
-              triggerClassName="min-h-9"
               onChange={(next) =>
                 emitChange({
                   ...condition,
@@ -225,7 +222,7 @@ export const PatternConditionEditor = ({
             </span>
             <div className="col-start-1 row-start-2 min-w-0 sm:col-start-1 sm:row-start-2">
               <NumericInput
-                className="h-9 sm:w-full"
+                className="sm:w-full"
                 value={condition.threshold}
                 min={0}
                 max={60}
@@ -243,7 +240,6 @@ export const PatternConditionEditor = ({
             <div className="col-start-1 row-start-4 min-w-0 sm:col-start-2 sm:row-start-2">
               <Select
                 ariaLabel={`条件${index + 1}の判定`}
-                triggerClassName="h-9"
                 value={condition.operator}
                 options={countOperatorOptions}
                 onChange={(next) =>
@@ -291,7 +287,7 @@ export const PatternConditionEditor = ({
                 <Select
                   ariaLabel={`条件${index + 1}ルール${ruleIndex + 1}の集計方式`}
                   className="col-start-1 row-start-1 min-w-0"
-                  triggerClassName="h-9 whitespace-nowrap"
+                  triggerClassName="whitespace-nowrap"
                   value={rule.mode}
                   options={countRuleModeOptions}
                   onChange={(next) =>

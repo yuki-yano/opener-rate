@@ -77,7 +77,7 @@ export const AiChatPanelFooter = ({
                 label: option.label,
               }))}
               disabled={controller.isLoading}
-              triggerClassName="h-9 w-full min-w-0 bg-ui-layer1 text-xs"
+              triggerClassName="w-full min-w-0 bg-ui-layer1 text-xs"
               onChange={(next) =>
                 controller.setThinkingLevel(
                   next as typeof controller.thinkingLevel,

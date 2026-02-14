@@ -62,27 +62,21 @@ export const EffectListEditor = ({
                 className={cn(
                   "grid min-w-0 grid-cols-[minmax(0,1fr)_2rem] gap-x-2 gap-y-2 rounded-md border border-ui-border1/70 bg-ui-layer2/55 p-2.5",
                   isAddLabel &&
-                    "sm:grid-cols-[10rem_minmax(0,1fr)_2rem] sm:items-end",
+                    "sm:grid-cols-[10rem_minmax(0,1fr)_2rem] sm:grid-rows-[auto_auto] sm:items-start",
                   isAddPenetration &&
                     "lg:grid-cols-[10rem_minmax(0,1fr)_8rem_2rem] lg:grid-rows-[auto_auto_auto] lg:items-start",
                 )}
               >
-                <span
-                  className={cn(
-                    "col-start-1 row-start-1 text-xs text-ui-text3",
-                    isAddLabel && "sm:hidden",
-                  )}
-                >
+                <span className="col-start-1 row-start-1 text-xs text-ui-text3">
                   効果種別
                 </span>
                 <Select
                   ariaLabel={`効果${effectIndex + 1}種類`}
                   className={cn(
                     "col-start-1 row-start-2 min-w-0",
-                    isAddLabel && "sm:col-start-1 sm:row-start-1",
+                    isAddLabel && "sm:col-start-1 sm:row-start-2",
                     isAddPenetration && "lg:col-start-1 lg:row-start-2",
                   )}
-                  triggerClassName="h-9"
                   value={effect.type}
                   options={effectTypeOptions.map((option) => ({
                     value: option.value,
@@ -101,8 +95,10 @@ export const EffectListEditor = ({
                   size="icon"
                   className={cn(
                     "col-start-2 row-start-2 h-8 w-8 self-center justify-self-end",
-                    isAddLabel && "sm:col-start-3 sm:row-start-1",
-                    isAddPenetration && "lg:col-start-4 lg:row-start-2",
+                    isAddLabel &&
+                      "sm:col-start-3 sm:row-start-2 sm:mt-1 sm:self-start",
+                    isAddPenetration &&
+                      "lg:col-start-4 lg:row-start-2 lg:mt-1 lg:self-start",
                   )}
                   aria-label="効果削除"
                   onClick={() => onRemove(effectIndex)}
@@ -110,21 +106,25 @@ export const EffectListEditor = ({
                   <Trash2 className="h-4 w-4 text-ui-red" />
                 </Button>
                 {effect.type === "add_label" ? (
-                  <label
-                    className={cn(
-                      `col-start-1 row-start-3 min-w-0 ${editorFieldLabelClassName}`,
-                      "sm:col-start-2 sm:row-start-1",
-                    )}
-                  >
-                    <span className="sm:sr-only">付与ラベル</span>
-                    <MultiSelect
-                      options={labelOptions}
-                      value={effect.labelUids}
-                      placeholder="付与ラベルを選択"
-                      emptyText="有効なラベルがありません"
-                      onChange={(next) => onChangeLabels(effectIndex, next)}
-                    />
-                  </label>
+                  <>
+                    <span className="col-start-1 row-start-3 text-xs text-ui-text3 sm:col-start-2 sm:row-start-1">
+                      付与ラベル
+                    </span>
+                    <div
+                      className={cn(
+                        `col-start-1 row-start-4 min-w-0 ${editorFieldLabelClassName}`,
+                        "sm:col-start-2 sm:row-start-2",
+                      )}
+                    >
+                      <MultiSelect
+                        options={labelOptions}
+                        value={effect.labelUids}
+                        placeholder="付与ラベルを選択"
+                        emptyText="有効なラベルがありません"
+                        onChange={(next) => onChangeLabels(effectIndex, next)}
+                      />
+                    </div>
+                  </>
                 ) : (
                   <>
                     <span className="col-start-1 row-start-3 text-xs text-ui-text3 lg:col-start-2 lg:row-start-1">
@@ -134,7 +134,6 @@ export const EffectListEditor = ({
                       <MultiSelect
                         options={penetrationCategoryOptions}
                         value={effect.disruptionCategoryUids}
-                        triggerClassName="min-h-9"
                         placeholder="対象妨害カテゴリを選択"
                         emptyText="有効な妨害カテゴリがありません"
                         onChange={(next) =>
@@ -147,7 +146,7 @@ export const EffectListEditor = ({
                     </span>
                     <div className="col-start-1 row-start-6 min-w-0 lg:col-start-3 lg:row-start-2">
                       <NumericInput
-                        className="h-9 sm:w-full"
+                        className="sm:w-full"
                         value={effect.amount}
                         min={1}
                         max={20}

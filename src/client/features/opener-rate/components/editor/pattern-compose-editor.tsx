@@ -375,7 +375,6 @@ export const PatternComposeDialogTrigger = () => {
               <Select
                 ariaLabel="メイン元"
                 disabled={!canSelectMainSource}
-                triggerClassName="h-9"
                 value={effectiveComposeMainSourceUid}
                 options={composeSourceOptions}
                 onChange={setComposeMainSourceUid}
@@ -388,7 +387,6 @@ export const PatternComposeDialogTrigger = () => {
                 <Select
                   ariaLabel="フィルタ元"
                   disabled={!canSelectComposeSources}
-                  triggerClassName="h-9"
                   value={effectiveComposeFilterSourceUid}
                   options={composeSourceOptions}
                   onChange={setComposeFilterSourceUid}
@@ -464,7 +462,6 @@ export const PatternComposeDialogTrigger = () => {
             <label className={editorCompactFieldLabelClassName}>
               手動貫通加算（カテゴリごと）
               <NumericInput
-                className="h-9"
                 disabled={isComposeLocked}
                 value={effectiveManualPenetrationAmount}
                 min={0}

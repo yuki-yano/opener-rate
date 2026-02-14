@@ -63,7 +63,7 @@ export const Select = ({
             aria-label={ariaLabel}
             disabled={disabled}
             className={cn(
-              "h-10 w-full text-sm font-normal",
+              "h-9 w-full text-sm font-normal",
               selectTriggerLayoutClassName,
               selectTriggerInteractionClassName,
               selectTriggerFocusClassName,

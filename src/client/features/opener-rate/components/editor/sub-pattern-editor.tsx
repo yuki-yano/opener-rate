@@ -293,7 +293,6 @@ export const SubPatternEditor = () => {
                       適用回数
                       <Select
                         ariaLabel="適用回数"
-                        triggerClassName="h-9"
                         value={subPattern.applyLimit}
                         options={applyLimitOptions.map((option) => ({
                           value: option.value,

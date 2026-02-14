@@ -98,7 +98,7 @@ export const MultiSelect = ({
               triggerClassName,
             )}
           >
-            <span className="min-w-0 flex flex-1 items-center py-1.5">
+            <span className="min-w-0 flex flex-1 items-center py-1">
               {selectedOptions.length === 0 ? (
                 <span className="block w-full truncate">{placeholder}</span>
               ) : (
