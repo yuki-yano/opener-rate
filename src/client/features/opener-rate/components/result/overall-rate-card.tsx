@@ -39,6 +39,9 @@ const breakdownLabelClassName = "text-[11px] text-ui-text3";
 const percentageTextClassName = "font-numeric tabular-nums tracking-[0.005em]";
 const overallRateValueClassName = `mt-1 text-3xl font-semibold text-ui-text ${percentageTextClassName}`;
 const breakdownValueClassName = `mt-1 text-base font-semibold text-ui-text ${percentageTextClassName}`;
+const penetratedCombinationDefaultVisibleCount = 8;
+const penetratedCombinationToggleStartIndex =
+  penetratedCombinationDefaultVisibleCount + 1;
 
 const VsBreakdownItem = ({
   label,
@@ -67,6 +70,10 @@ export const OverallRateCard = () => {
   const runCalculate = useSetAtom(runCalculateAtom);
   const [isPatternRatesExpanded, setIsPatternRatesExpanded] = useState(false);
   const [isUnpenetrableExpanded, setIsUnpenetrableExpanded] = useState(false);
+  const [
+    isPenetratedCombinationsExpanded,
+    setIsPenetratedCombinationsExpanded,
+  ] = useState(false);
   const isExactDiffEnabled =
     result?.mode === "exact" && previousResult?.mode === "exact";
   const previousPatternRateMap = useMemo(
@@ -117,6 +124,20 @@ export const OverallRateCard = () => {
   const penetratedCombinations = useMemo(
     () => vsPenetrationCombinations.filter((entry) => entry.successCount > 0),
     [vsPenetrationCombinations],
+  );
+  const hiddenPenetratedCombinationCount = Math.max(
+    0,
+    penetratedCombinations.length - penetratedCombinationDefaultVisibleCount,
+  );
+  const displayedPenetratedCombinations = useMemo(
+    () =>
+      isPenetratedCombinationsExpanded
+        ? penetratedCombinations
+        : penetratedCombinations.slice(
+            0,
+            penetratedCombinationDefaultVisibleCount,
+          ),
+    [isPenetratedCombinationsExpanded, penetratedCombinations],
   );
   const unpenetrableCombinations = useMemo(
     () =>
@@ -254,7 +275,7 @@ export const OverallRateCard = () => {
                     妨害あり突破成功の組み合わせ内訳
                   </p>
                   <div className="space-y-1.5">
-                    {penetratedCombinations.map((entry) => (
+                    {displayedPenetratedCombinations.map((entry) => (
                       <div
                         key={entry.combinationKey}
                         className="flex items-start justify-between gap-3 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5"
@@ -292,6 +313,34 @@ export const OverallRateCard = () => {
                       </div>
                     ))}
                   </div>
+                  {hiddenPenetratedCombinationCount > 0 ? (
+                    <div className="flex items-center justify-between gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2.5 py-2">
+                      <p className="text-[11px] text-ui-text3">
+                        残り {hiddenPenetratedCombinationCount} 件
+                      </p>
+                      <Button
+                        type="button"
+                        size="sm"
+                        variant="outline"
+                        className="h-7 gap-1.5 px-2 text-[11px]"
+                        aria-expanded={isPenetratedCombinationsExpanded}
+                        onClick={() =>
+                          setIsPenetratedCombinationsExpanded(
+                            (current) => !current,
+                          )
+                        }
+                      >
+                        {isPenetratedCombinationsExpanded ? (
+                          <ChevronDown className="h-3.5 w-3.5" />
+                        ) : (
+                          <ChevronRight className="h-3.5 w-3.5" />
+                        )}
+                        {isPenetratedCombinationsExpanded
+                          ? `${penetratedCombinationToggleStartIndex}件目以降を隠す`
+                          : `${penetratedCombinationToggleStartIndex}件目以降を表示`}
+                      </Button>
+                    </div>
+                  ) : null}
                 </div>
               ) : null}
               <div className="space-y-1.5 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5">
