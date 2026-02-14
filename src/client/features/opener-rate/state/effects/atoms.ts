@@ -2,8 +2,12 @@ import { atom } from "jotai";
 
 import { openerRateApi } from "../../api/opener-rate-api";
 import { ApiClientError } from "../../api/errors";
-import type { CalculateInput } from "../../../../../shared/apiSchemas";
+import type {
+  CalculateInput,
+  CalculationMode,
+} from "../../../../../shared/apiSchemas";
 import { calculateInputAtom } from "../derived/atoms";
+import { modeAtom } from "../input/atoms";
 import { normalizeShareSourceUrl } from "../short-url-utils";
 import {
   calculationResultAtom,
@@ -142,6 +146,17 @@ export const runCalculateAtom = atom(null, async (get, set) => {
     set(isCalculatingAtom, false);
   }
 });
+
+export const setModeAndRunCalculateAtom = atom(
+  null,
+  async (get, set, nextMode: CalculationMode) => {
+    if (get(modeAtom) === nextMode) {
+      return;
+    }
+    set(modeAtom, nextMode);
+    await set(runCalculateAtom);
+  },
+);
 
 export const runCreateShortUrlAtom = atom(
   null,

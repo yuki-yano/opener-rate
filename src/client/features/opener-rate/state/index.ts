@@ -13,6 +13,7 @@ export {
   runCalculateAtom,
   runCreateShortUrlAtom,
   runShareCurrentUrlAtom,
+  setModeAndRunCalculateAtom,
   seedSharedUrlAsGeneratedAtom,
 } from "./effects/atoms";
 export {

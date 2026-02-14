@@ -5,12 +5,13 @@ import type { CalculateOutput } from "../../../../../shared/apiSchemas";
 import { openerRateApi } from "../../api/opener-rate-api";
 import { ApiClientError } from "../../api/errors";
 import { isShortUrlGenerationLockedAtom } from "../derived/atoms";
-import { deckNameAtom } from "../input/atoms";
+import { deckNameAtom, modeAtom } from "../input/atoms";
 import {
   hydrateShortUrlLockAtom,
   runCalculateAtom,
   runCreateShortUrlAtom,
   runShareCurrentUrlAtom,
+  setModeAndRunCalculateAtom,
   seedSharedUrlAsGeneratedAtom,
 } from "./atoms";
 import {
@@ -148,6 +149,39 @@ describe("runCalculateAtom", () => {
 
     expect(store.get(calculationResultAtom)).toEqual(nextResult);
     expect(store.get(previousCalculationResultAtom)).toEqual(currentResult);
+  });
+});
+
+describe("setModeAndRunCalculateAtom", () => {
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("updates mode and runs calculation when mode changes", async () => {
+    const store = createStore();
+    const calculateSpy = vi
+      .spyOn(openerRateApi, "calculate")
+      .mockResolvedValue(createOutput("44.44", "simulation"));
+
+    await store.set(setModeAndRunCalculateAtom, "simulation");
+
+    expect(store.get(modeAtom)).toBe("simulation");
+    expect(calculateSpy).toHaveBeenCalledTimes(1);
+    expect(calculateSpy).toHaveBeenCalledWith(
+      expect.objectContaining({
+        settings: expect.objectContaining({ mode: "simulation" }),
+      }),
+    );
+  });
+
+  it("does not run calculation when mode is unchanged", async () => {
+    const store = createStore();
+    const calculateSpy = vi.spyOn(openerRateApi, "calculate");
+
+    await store.set(setModeAndRunCalculateAtom, "exact");
+
+    expect(store.get(modeAtom)).toBe("exact");
+    expect(calculateSpy).not.toHaveBeenCalled();
   });
 });
 

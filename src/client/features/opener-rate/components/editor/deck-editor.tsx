@@ -1,4 +1,4 @@
-import { useAtom } from "jotai";
+import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useEffect } from "react";
 
 import {
@@ -15,6 +15,7 @@ import {
   modeAtom,
   modeAutoSwitchedByVsAtom,
   potAtom,
+  setModeAndRunCalculateAtom,
   simulationTrialOptions,
   simulationTrialsAtom,
   vsAtom,
@@ -45,27 +46,28 @@ export const DeckEditor = () => {
   const [deck, setDeck] = useAtom(deckAtom);
   const [deckName, setDeckName] = useAtom(deckNameAtom);
   const [pot, setPot] = useAtom(potAtom);
-  const [mode, setMode] = useAtom(modeAtom);
+  const mode = useAtomValue(modeAtom);
   const [simulationTrials, setSimulationTrials] = useAtom(simulationTrialsAtom);
   const [modeAutoSwitchedByVs, setModeAutoSwitchedByVs] = useAtom(
     modeAutoSwitchedByVsAtom,
   );
   const [vs, setVs] = useAtom(vsAtom);
+  const setModeAndRunCalculate = useSetAtom(setModeAndRunCalculateAtom);
 
   useEffect(() => {
     if (vs.enabled && mode === "exact") {
-      setMode("simulation");
+      void setModeAndRunCalculate("simulation");
       setModeAutoSwitchedByVs(true);
       return;
     }
     if (!vs.enabled && modeAutoSwitchedByVs) {
-      setMode("exact");
+      void setModeAndRunCalculate("exact");
       setModeAutoSwitchedByVs(false);
     }
   }, [
     mode,
     modeAutoSwitchedByVs,
-    setMode,
+    setModeAndRunCalculate,
     setModeAutoSwitchedByVs,
     vs.enabled,
   ]);
@@ -190,7 +192,7 @@ export const DeckEditor = () => {
               disabled: vs.enabled && option.value === "exact",
             }))}
             onChange={(next) => {
-              setMode(next);
+              void setModeAndRunCalculate(next);
               if (!vs.enabled) {
                 setModeAutoSwitchedByVs(false);
               }
