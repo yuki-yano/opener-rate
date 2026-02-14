@@ -28,6 +28,10 @@ export const AiChatPanelFooter = ({
 }: {
   controller: UseAiChatControllerResult;
 }) => {
+  const shouldRenderActionRow =
+    controller.canApplyLastAssistantJson ||
+    (controller.applyFeedback != null && controller.lastAssistantJson != null);
+
   return (
     <div className="space-y-3 border-t border-ui-border1/90 bg-ui-bg/65 px-4 py-3">
       {controller.savedHistoryKey != null ? (
@@ -62,41 +66,30 @@ export const AiChatPanelFooter = ({
         </div>
       ) : null}
 
-      <div className="grid grid-cols-[8.75rem_auto] items-end gap-2 sm:grid-cols-[10rem_auto] sm:gap-3">
-        <div className="w-[8.75rem] rounded-lg border border-ui-border1/90 bg-ui-layer1/75 px-3 py-2 sm:w-[10rem]">
-          <div className="min-w-0 space-y-1 text-left">
-            <p className="text-[11px] font-medium uppercase tracking-[0.06em] text-ui-text3">
-              Thinking Level
-            </p>
-            <Select
-              ariaLabel="Thinking Level"
-              className="w-full min-w-0"
-              value={controller.thinkingLevel}
-              options={thinkingLevelOptions.map((option) => ({
-                value: option.value,
-                label: option.label,
-              }))}
-              disabled={controller.isLoading}
-              triggerClassName="w-full min-w-0 bg-ui-layer1 text-xs"
-              onChange={(next) =>
-                controller.setThinkingLevel(
-                  next as typeof controller.thinkingLevel,
-                )
-              }
-            />
-          </div>
-        </div>
+      <div className="flex items-start justify-between gap-2">
+        <Select
+          ariaLabel="Thinking Level"
+          className="w-[7.75rem] min-w-0 shrink-0"
+          value={controller.thinkingLevel}
+          options={thinkingLevelOptions.map((option) => ({
+            value: option.value,
+            label: option.label,
+          }))}
+          disabled={controller.isLoading}
+          triggerClassName="h-8 w-full min-w-0 bg-ui-layer1/80 text-xs"
+          onChange={(next) =>
+            controller.setThinkingLevel(next as typeof controller.thinkingLevel)
+          }
+        />
 
-        <div className="flex min-w-0 flex-col items-end gap-2">
-          <div className="flex min-h-8 justify-end">
+        {shouldRenderActionRow ? (
+          <div className="flex min-w-0 flex-col items-end gap-2">
             {controller.applyFeedback != null &&
             controller.lastAssistantJson != null ? (
               <div
                 className={cn(
                   "inline-flex max-w-[9.5rem] items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs",
-                  resolveAiApplyFeedbackClassName(
-                    controller.applyFeedback.kind,
-                  ),
+                  resolveAiApplyFeedbackClassName(controller.applyFeedback.kind),
                 )}
               >
                 {controller.applyFeedback.kind === "success" ? (
@@ -109,9 +102,7 @@ export const AiChatPanelFooter = ({
                 </span>
               </div>
             ) : null}
-          </div>
 
-          <div className="flex items-center gap-2">
             {controller.canApplyLastAssistantJson ? (
               <Button
                 type="button"
@@ -125,7 +116,7 @@ export const AiChatPanelFooter = ({
               </Button>
             ) : null}
           </div>
-        </div>
+        ) : null}
       </div>
 
       <form
