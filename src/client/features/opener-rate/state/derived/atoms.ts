@@ -19,6 +19,7 @@ import {
   vsAtom,
 } from "../input/atoms";
 import {
+  shortUrlInputAtom,
   shortUrlLockedSourceHrefAtom,
   shortUrlLockedUntilChangeAtom,
 } from "../ui/atoms";
@@ -119,4 +120,9 @@ export const isShortUrlGenerationLockedAtom = atom((get) => {
   const currentHref = getCurrentHref();
   if (currentHref == null) return true;
   return normalizeShareSourceUrl(currentHref) === lockedSourceHref;
+});
+
+export const displayShortUrlAtom = atom((get) => {
+  if (!get(isShortUrlGenerationLockedAtom)) return "";
+  return get(shortUrlInputAtom);
 });

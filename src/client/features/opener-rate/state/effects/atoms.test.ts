@@ -4,7 +4,10 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import type { CalculateOutput } from "../../../../../shared/apiSchemas";
 import { openerRateApi } from "../../api/opener-rate-api";
 import { ApiClientError } from "../../api/errors";
-import { isShortUrlGenerationLockedAtom } from "../derived/atoms";
+import {
+  displayShortUrlAtom,
+  isShortUrlGenerationLockedAtom,
+} from "../derived/atoms";
 import { deckNameAtom, modeAtom } from "../input/atoms";
 import {
   hydrateShortUrlLockAtom,
@@ -215,6 +218,7 @@ describe("seedSharedUrlAsGeneratedAtom", () => {
     expect(store.get(shortUrlCacheAtom)[sharedUrl]).toBeUndefined();
     expect(store.get(shortUrlLockedUntilChangeAtom)).toBe(false);
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(false);
+    expect(store.get(displayShortUrlAtom)).toBe("");
   });
 
   it("locks regeneration when seeded URL is a short URL", () => {
@@ -234,6 +238,7 @@ describe("seedSharedUrlAsGeneratedAtom", () => {
       "https://example.com/#deck=abc",
     );
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(true);
+    expect(store.get(displayShortUrlAtom)).toBe(sharedUrl);
     expect(mockWindow.sessionStorage.setItem).toHaveBeenCalled();
   });
 
@@ -250,6 +255,7 @@ describe("seedSharedUrlAsGeneratedAtom", () => {
 
     expect(mockWindow.location.href).toContain("#");
     expect(store.get(isShortUrlGenerationLockedAtom)).toBe(false);
+    expect(store.get(displayShortUrlAtom)).toBe("");
   });
 });
 

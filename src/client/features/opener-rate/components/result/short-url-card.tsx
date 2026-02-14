@@ -9,10 +9,10 @@ import {
 } from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
 import {
+  displayShortUrlAtom,
   isShortUrlGenerationLockedAtom,
   runShareCurrentUrlAtom,
   shortUrlErrorAtom,
-  shortUrlInputAtom,
   shortUrlLoadingAtom,
 } from "../../state";
 
@@ -21,7 +21,7 @@ type ShortUrlCardProps = {
 };
 
 export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
-  const url = useAtomValue(shortUrlInputAtom);
+  const displayUrl = useAtomValue(displayShortUrlAtom);
   const shortUrlLoading = useAtomValue(shortUrlLoadingAtom);
   const shortUrlError = useAtomValue(shortUrlErrorAtom);
   const isShortUrlGenerationLocked = useAtomValue(
@@ -51,7 +51,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
           <div className="relative min-w-0">
             <Input
               className="h-10 pr-9 text-sm"
-              value={url}
+              value={displayUrl}
               readOnly
               placeholder="「共有」を押すとURLを生成します"
             />
@@ -62,7 +62,7 @@ export const ShortUrlCard = ({ className }: ShortUrlCardProps) => {
               className="absolute right-1.5 top-1/2 h-7 w-7 -translate-y-1/2 rounded-md text-ui-text3 hover:text-ui-primary"
               aria-label="URLをコピー"
               onClick={async () => {
-                const text = url.trim();
+                const text = displayUrl.trim();
                 if (text.length === 0) return;
                 try {
                   await navigator.clipboard.writeText(text);

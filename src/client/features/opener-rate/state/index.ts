@@ -2,6 +2,7 @@ export {
   canCalculateAtom,
   calculateInputAtom,
   deckSizeExceededAtom,
+  displayShortUrlAtom,
   isShortUrlGenerationLockedAtom,
   totalCardCountAtom,
   validationResultAtom,
