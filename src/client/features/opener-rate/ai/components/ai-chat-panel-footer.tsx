@@ -89,7 +89,9 @@ export const AiChatPanelFooter = ({
               <div
                 className={cn(
                   "inline-flex max-w-[9.5rem] items-center justify-center gap-1.5 rounded-md px-2 py-1.5 text-xs",
-                  resolveAiApplyFeedbackClassName(controller.applyFeedback.kind),
+                  resolveAiApplyFeedbackClassName(
+                    controller.applyFeedback.kind,
+                  ),
                 )}
               >
                 {controller.applyFeedback.kind === "success" ? (

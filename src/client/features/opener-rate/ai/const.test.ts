@@ -47,6 +47,18 @@ describe("ai const", () => {
     );
   });
 
+  it("describes add_penetration poolId structure and shared pool behavior", () => {
+    expect(DEFAULT_SYSTEM_PROMPT).toContain(
+      '{ type: "add_penetration", disruptionCategoryUids: string[], amount: number, poolId?: string }',
+    );
+    expect(DEFAULT_SYSTEM_PROMPT).toContain(
+      "同一 poolId の add_penetration は、カテゴリをまたいで1つの共有貫通プールとして扱う",
+    );
+    expect(DEFAULT_SYSTEM_PROMPT).toContain(
+      "同一 poolId に複数効果がある場合、利用可能量は合計ではなく amount の最大値",
+    );
+  });
+
   it("uses current state marker", () => {
     expect(CHAT_STATE_MARKER).toBe("\n\n--- Current State ---");
     expect(DEFAULT_SYSTEM_PROMPT).toContain("`--- Current State ---`");

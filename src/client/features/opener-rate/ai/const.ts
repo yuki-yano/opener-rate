@@ -89,7 +89,7 @@ SubPatternTriggerCondition:
 
 SubPatternEffect:
 - { type: "add_label", labelUids: string[] }
-- { type: "add_penetration", disruptionCategoryUids: string[], amount: number }
+- { type: "add_penetration", disruptionCategoryUids: string[], amount: number, poolId?: string }
 
 labels:
 - Array<{ uid: string, name: string, memo: string }>
@@ -141,6 +141,8 @@ const numericConstraintsSection = `# 数値制約
 - pot.prosperity.cost: 3 | 6
 - patterns[].effects[].amount: 1..20（add_penetration のみ）
 - subPatterns[].effects[].amount: 1..20（add_penetration のみ）
+- patterns[].effects[].poolId: 1..64 文字（add_penetration のみ、指定時）
+- subPatterns[].effects[].poolId: 1..64 文字（add_penetration のみ、指定時）
 - simulationTrials: 1000 | 10000 | 100000 | 1000000
 - vs.opponentDeckSize: 1..120
 - vs.opponentHandSize: 1..20 かつ opponentDeckSize 以下
@@ -172,6 +174,9 @@ const semanticRulesSection = `# 意味ルール（解釈の必須前提）
 - subPatterns[].basePatternUids が空配列の場合は、「いずれかの base pattern が1つでも成立しているとき」に適用候補になる
 - subPatterns[].triggerConditions の mode が \`base_match_total\` の場合、判定元は「基礎パターン成立時に実際に使われたカード枚数」。該当情報がない場合のみ手札枚数を代替参照する
 - subPatterns[].applyLimit が \`once_per_distinct_uid\` の場合、\`triggerSourceUids\` に含まれるカードのうち手札に存在した異なる uid 数だけ効果を適用する
+- 同一 poolId の add_penetration は、カテゴリをまたいで1つの共有貫通プールとして扱う
+- 同一 poolId に複数効果がある場合、利用可能量は合計ではなく amount の最大値
+- 同一 poolId に紐づく disruptionCategoryUids は和集合で扱う
 - mode が \`exact\` でも、pot（desires / prosperity）を使う場合または vs.enabled が true の場合はシミュレーション計算になる
 - vs の妨害キー解決は \`disruptionCategoryUid\` を最優先し、未設定時は \`disruptionCardUid\` を使う`;
 
