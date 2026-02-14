@@ -281,9 +281,14 @@ const collectPenetrationRelatedCardIndices = (params: {
   evaluation: ReturnType<typeof evaluatePatterns>;
   countableMatchedPatternUids: string[];
   compiledPatternByUid: Map<string, CompiledPattern>;
+  subPatternRelatedCardIndices: number[];
 }) => {
-  const { evaluation, countableMatchedPatternUids, compiledPatternByUid } =
-    params;
+  const {
+    evaluation,
+    countableMatchedPatternUids,
+    compiledPatternByUid,
+    subPatternRelatedCardIndices,
+  } = params;
   const relatedCardIndices = new Set<number>();
 
   for (const patternUid of countableMatchedPatternUids) {
@@ -302,6 +307,9 @@ const collectPenetrationRelatedCardIndices = (params: {
     if (pattern != null) {
       collectConditionRelatedCardIndices(pattern, relatedCardIndices);
     }
+  }
+  for (const index of subPatternRelatedCardIndices) {
+    relatedCardIndices.add(index);
   }
 
   return relatedCardIndices;
@@ -791,6 +799,8 @@ export const calculateBySimulation = (params: {
               countableMatchedPatternUids:
                 countablePatternEffects.countableMatchedPatternUids,
               compiledPatternByUid,
+              subPatternRelatedCardIndices:
+                countableSubPatternEvaluation.relatedCardIndices,
             });
             const handCombination = resolveHandCombination({
               handCounts,

@@ -96,6 +96,7 @@ export type ThresholdCheck = {
 export type SubPatternEvaluationResult = {
   addedLabelUids: string[];
   penetrationByDisruptionKey: Record<string, number>;
+  relatedCardIndices: number[];
 };
 
 export type CompiledSubPatternEffect = SubPatternEffect;

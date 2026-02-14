@@ -161,6 +161,37 @@ const canApplyByBaseMatchedCards = (params: {
   return false;
 };
 
+const collectSubPatternRelatedCardIndices = (params: {
+  preparedSubPattern: PreparedSubPattern;
+  subPattern: CompiledSubPattern;
+  target: Set<number>;
+}) => {
+  const { preparedSubPattern, subPattern, target } = params;
+  for (const condition of preparedSubPattern.regularConditions) {
+    if ("indices" in condition) {
+      for (const index of condition.indices) {
+        target.add(index);
+      }
+      continue;
+    }
+    for (const rule of condition.rules) {
+      for (const index of rule.indices) {
+        target.add(index);
+      }
+    }
+  }
+  for (const condition of preparedSubPattern.baseMatchConditions) {
+    for (const rule of condition.rules) {
+      for (const index of rule.indices) {
+        target.add(index);
+      }
+    }
+  }
+  for (const index of subPattern.triggerSourceIndices) {
+    target.add(index);
+  }
+};
+
 export const evaluateSubPatterns = (
   params: EvaluateSubPatternsParams,
 ): SubPatternEvaluationResult => {
@@ -173,6 +204,7 @@ export const evaluateSubPatterns = (
   const matchedPatternSet = new Set(matchedPatternUids);
   const labelSet = new Set<string>();
   const penetrationByDisruptionKey: Record<string, number> = {};
+  const relatedCardIndexSet = new Set<number>();
 
   for (const subPattern of compiledSubPatterns) {
     const preparedSubPattern = prepareSubPattern(subPattern);
@@ -196,6 +228,7 @@ export const evaluateSubPatterns = (
 
     const applyCount = resolveApplyCount(subPattern, context);
     if (applyCount <= 0) continue;
+    let hasPenetrationEffect = false;
 
     for (const effect of subPattern.effects) {
       if (effect.type === "add_label") {
@@ -204,6 +237,7 @@ export const evaluateSubPatterns = (
         }
         continue;
       }
+      hasPenetrationEffect = true;
 
       for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
         const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
@@ -211,10 +245,18 @@ export const evaluateSubPatterns = (
         penetrationByDisruptionKey[disruptionCategoryUid] = next;
       }
     }
+    if (hasPenetrationEffect) {
+      collectSubPatternRelatedCardIndices({
+        preparedSubPattern,
+        subPattern,
+        target: relatedCardIndexSet,
+      });
+    }
   }
 
   return {
     addedLabelUids: Array.from(labelSet),
     penetrationByDisruptionKey,
+    relatedCardIndices: Array.from(relatedCardIndexSet).sort((a, b) => a - b),
   };
 };

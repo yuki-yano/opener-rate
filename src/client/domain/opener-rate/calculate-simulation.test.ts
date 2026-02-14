@@ -323,6 +323,96 @@ describe("calculateBySimulation (rng)", () => {
     ]);
   });
 
+  it("includes sub-pattern trigger cards in penetrable hand summary", () => {
+    const baseInput: CalculateInput = {
+      deck: { cardCount: 2, firstHand: 2 },
+      cards: [
+        { uid: "starter", name: "初動", count: 1, memo: "" },
+        { uid: "grave", name: "墓穴", count: 1, memo: "" },
+      ],
+      patterns: [
+        {
+          uid: "p-base",
+          name: "初動成立",
+          active: true,
+          conditions: [{ mode: "required", count: 1, uids: ["starter"] }],
+          labels: [],
+          effects: [],
+          memo: "",
+        },
+      ],
+      subPatterns: [
+        {
+          uid: "sp-penetrate",
+          name: "墓穴貫通",
+          active: true,
+          basePatternUids: ["p-base"],
+          triggerConditions: [{ mode: "required", count: 1, uids: ["grave"] }],
+          triggerSourceUids: ["grave"],
+          applyLimit: "once_per_trial",
+          effects: [
+            {
+              type: "add_penetration",
+              disruptionCategoryUids: ["cat-1"],
+              amount: 1,
+            },
+          ],
+          memo: "",
+        },
+      ],
+      labels: [],
+      pot: {
+        desiresOrExtravagance: { count: 0 },
+        prosperity: { count: 0, cost: 6 },
+      },
+      settings: {
+        mode: "simulation",
+        simulationTrials: 1,
+      },
+      vs: {
+        enabled: true,
+        opponentDeckSize: 1,
+        opponentHandSize: 1,
+        opponentDisruptions: [
+          {
+            uid: "od-1",
+            name: "妨害",
+            count: 1,
+            oncePerName: true,
+            disruptionCategoryUid: "cat-1",
+          },
+        ],
+      },
+    };
+
+    const prepared = prepareSimulation(baseInput);
+    const result = calculateBySimulation({
+      ...prepared,
+      trials: 1,
+      rng: () => 0,
+    });
+
+    expect(result.vsPenetrationCombinations).toEqual([
+      {
+        combinationKey: "cat-1:1",
+        combinationLabel: "妨害",
+        successCount: 1,
+        occurrenceCount: 1,
+        occurrenceRate: "100.00",
+        successRate: "100.00",
+        penetrableHandCombinations: [
+          {
+            handKey: "grave:1|starter:1",
+            handLabel: "墓穴 + 初動",
+            successCount: 1,
+            successRateInCombination: "100.00",
+          },
+        ],
+        isPenetrationImpossible: false,
+      },
+    ]);
+  });
+
   it("omits cards unrelated to penetration from hand combination summary", () => {
     const baseInput: CalculateInput = {
       deck: { cardCount: 2, firstHand: 2 },

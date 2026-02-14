@@ -317,4 +317,37 @@ describe("evaluateSubPatterns", () => {
 
     expect(result.addedLabelUids).toEqual(["l-hit"]);
   });
+
+  it("collects related card indices when penetration effect is applied", () => {
+    const compiledSubPatterns: CompiledSubPattern[] = [
+      {
+        uid: "sp1",
+        name: "墓穴で貫通",
+        active: true,
+        basePatternUids: ["p1"],
+        triggerConditions: [
+          { mode: "required", count: 1, uids: ["grave"], indices: [2] },
+        ],
+        triggerSourceIndices: [2],
+        applyLimit: "once_per_trial",
+        effects: [
+          {
+            type: "add_penetration",
+            disruptionCategoryUids: ["cat-negate"],
+            amount: 1,
+          },
+        ],
+        memo: "",
+      },
+    ];
+
+    const result = evaluateSubPatterns({
+      compiledSubPatterns,
+      context: createContext([1, 1, 1]),
+      matchedPatternUids: ["p1"],
+    });
+
+    expect(result.penetrationByDisruptionKey).toEqual({ "cat-negate": 1 });
+    expect(result.relatedCardIndices).toEqual([2]);
+  });
 });
