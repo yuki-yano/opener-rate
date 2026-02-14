@@ -94,6 +94,7 @@ export const subPatternEffectSchema = z.discriminatedUnion("type", [
     type: z.literal("add_penetration"),
     disruptionCategoryUids: z.array(z.string().min(1)),
     amount: z.number().int().min(1).max(20),
+    poolId: z.string().trim().min(1).max(64).optional(),
   }),
 ]);
 

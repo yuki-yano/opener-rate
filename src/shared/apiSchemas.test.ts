@@ -292,6 +292,7 @@ describe("apiSchemas", () => {
               type: "add_penetration",
               disruptionCategoryUids: ["cat-negate"],
               amount: 1,
+              poolId: "shared-negate",
             },
           ],
           memo: "",

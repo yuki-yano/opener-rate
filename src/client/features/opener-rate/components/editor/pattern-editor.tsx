@@ -401,6 +401,27 @@ export const PatternEditor = () => {
                         };
                       })
                     }
+                    onChangePenetrationPoolId={(effectIndex, nextPoolId) =>
+                      updatePattern(pattern.uid, (target) => {
+                        const currentEffects = target.effects ?? [];
+                        const normalizedPoolId = nextPoolId.trim();
+                        return {
+                          ...target,
+                          effects: currentEffects.map((entry, idx) =>
+                            idx === effectIndex &&
+                            entry.type === "add_penetration"
+                              ? {
+                                  ...entry,
+                                  poolId:
+                                    normalizedPoolId.length > 0
+                                      ? normalizedPoolId
+                                      : undefined,
+                                }
+                              : entry,
+                          ),
+                        };
+                      })
+                    }
                   />
 
                   <Textarea

@@ -4,6 +4,7 @@ import type {
   CompiledPatternCondition,
   EvaluationContext,
   EvaluationResult,
+  PenetrationEffect,
 } from "./types";
 
 type MatchedCardCounts = Record<number, number>;
@@ -336,6 +337,7 @@ export const evaluatePatterns = (
   const matchedCardCountsByPatternUid: Record<string, MatchedCardCounts> = {};
   const matchedLabelUids = new Set<string>();
   const penetrationByDisruptionKey: Record<string, number> = {};
+  const penetrationEffects: PenetrationEffect[] = [];
 
   for (const pattern of patterns) {
     const detail = evaluatePatternWithDetail(pattern, context);
@@ -353,6 +355,13 @@ export const evaluatePatterns = (
         }
         continue;
       }
+      if (effect.amount > 0 && effect.disruptionCategoryUids.length > 0) {
+        penetrationEffects.push({
+          disruptionCategoryUids: [...effect.disruptionCategoryUids],
+          amount: effect.amount,
+          poolId: effect.poolId,
+        });
+      }
       for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
         const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
         penetrationByDisruptionKey[disruptionCategoryUid] =
@@ -367,5 +376,6 @@ export const evaluatePatterns = (
     matchedCardCountsByPatternUid,
     matchedLabelUids: Array.from(matchedLabelUids),
     penetrationByDisruptionKey,
+    penetrationEffects,
   };
 };

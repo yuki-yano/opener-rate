@@ -1,6 +1,6 @@
 import { Trash2 } from "lucide-react";
 
-import { Button, Select } from "../../../../components/ui";
+import { Button, Input, Select } from "../../../../components/ui";
 import { cn } from "../../../../lib/cn";
 import type { SubPatternEffect } from "../../../../../shared/apiSchemas";
 import type { MultiSelectOption } from "../common/multi-select";
@@ -19,6 +19,7 @@ type EffectListEditorProps = {
   onChangeLabels: (index: number, next: string[]) => void;
   onChangePenetrationCategories: (index: number, next: string[]) => void;
   onChangePenetrationAmount: (index: number, nextAmount: number) => void;
+  onChangePenetrationPoolId: (index: number, nextPoolId: string) => void;
 };
 
 export const EffectListEditor = ({
@@ -31,6 +32,7 @@ export const EffectListEditor = ({
   onChangeLabels,
   onChangePenetrationCategories,
   onChangePenetrationAmount,
+  onChangePenetrationPoolId,
 }: EffectListEditorProps) => {
   return (
     <div className="space-y-2 rounded-md border border-ui-border1/70 bg-ui-layer1/85 p-2.5">
@@ -64,7 +66,7 @@ export const EffectListEditor = ({
                   isAddLabel &&
                     "sm:grid-cols-[10rem_minmax(0,1fr)_2rem] sm:grid-rows-[auto_auto] sm:items-start",
                   isAddPenetration &&
-                    "lg:grid-cols-[10rem_minmax(0,1fr)_8rem_2rem] lg:grid-rows-[auto_auto_auto] lg:items-start",
+                    "lg:grid-cols-[10rem_minmax(0,1fr)_8rem_2rem] lg:grid-rows-[auto_auto_auto_auto] lg:items-start",
                 )}
               >
                 <span className="col-start-1 row-start-1 text-xs text-ui-text3">
@@ -156,8 +158,23 @@ export const EffectListEditor = ({
                         }
                       />
                     </div>
-                    <p className="col-start-1 row-start-7 text-[11px] text-ui-text3 lg:col-start-2 lg:row-start-3 lg:col-span-2">
-                      対象妨害カテゴリは複数選択できます。
+                    <span className="col-start-1 row-start-7 text-xs text-ui-text3 lg:col-start-2 lg:row-start-3">
+                      共有プールID（任意）
+                    </span>
+                    <div className="col-start-1 row-start-8 min-w-0 lg:col-start-2 lg:row-start-4 lg:col-span-2">
+                      <Input
+                        value={effect.poolId ?? ""}
+                        placeholder="例: ice_route"
+                        onChange={(event) =>
+                          onChangePenetrationPoolId(
+                            effectIndex,
+                            event.target.value,
+                          )
+                        }
+                      />
+                    </div>
+                    <p className="col-start-1 row-start-9 text-[11px] text-ui-text3 lg:col-start-2 lg:row-start-5 lg:col-span-2">
+                      同じ共有プールIDを持つ効果は、加算量を合算せず1つの共有リソースとして消費されます。
                     </p>
                   </>
                 )}

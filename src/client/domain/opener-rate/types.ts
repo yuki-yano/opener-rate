@@ -84,6 +84,7 @@ export type EvaluationResult = {
   matchedPatternUids: string[];
   matchedLabelUids: string[];
   penetrationByDisruptionKey: Record<string, number>;
+  penetrationEffects: PenetrationEffect[];
   matchedCardCountsByPatternUid: Record<string, Record<number, number>>;
 };
 
@@ -96,7 +97,14 @@ export type ThresholdCheck = {
 export type SubPatternEvaluationResult = {
   addedLabelUids: string[];
   penetrationByDisruptionKey: Record<string, number>;
+  penetrationEffects: PenetrationEffect[];
   relatedCardIndices: number[];
 };
 
 export type CompiledSubPatternEffect = SubPatternEffect;
+
+export type PenetrationEffect = {
+  disruptionCategoryUids: string[];
+  amount: number;
+  poolId?: string;
+};

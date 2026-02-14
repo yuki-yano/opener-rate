@@ -9,6 +9,7 @@ import {
   type CompiledPattern,
   type CompiledSubPattern,
   type NormalizedDeck,
+  type PenetrationEffect,
 } from "./types";
 import {
   evaluateMatchedOutcome,
@@ -16,6 +17,7 @@ import {
   toRateStringFromNumber,
 } from "./calculation-shared";
 import { evaluatePatterns } from "./evaluate-pattern";
+import { canSatisfyPenetrationRequirements } from "./penetration-allocation";
 
 type RandomSource = () => number;
 type PotResolutionScratch = {
@@ -419,27 +421,22 @@ const resolveOpponentDisruptionStrength = (params: {
 };
 
 const canPenetrateAllDisruptions = (params: {
-  patternPenetrationByDisruptionKey: Record<string, number>;
-  subPatternPenetrationByDisruptionKey: Record<string, number>;
+  patternPenetrationEffects: PenetrationEffect[];
+  subPatternPenetrationEffects: PenetrationEffect[];
   disruptionStrengthByDisruptionKey: Record<string, number>;
 }) => {
   const {
-    patternPenetrationByDisruptionKey,
-    subPatternPenetrationByDisruptionKey,
+    patternPenetrationEffects,
+    subPatternPenetrationEffects,
     disruptionStrengthByDisruptionKey,
   } = params;
-  for (const [disruptionKey, required] of Object.entries(
-    disruptionStrengthByDisruptionKey,
-  )) {
-    if (required <= 0) continue;
-    const penetration =
-      (patternPenetrationByDisruptionKey[disruptionKey] ?? 0) +
-      (subPatternPenetrationByDisruptionKey[disruptionKey] ?? 0);
-    if (penetration < required) {
-      return false;
-    }
-  }
-  return true;
+  return canSatisfyPenetrationRequirements({
+    requiredPenetrationByDisruptionKey: disruptionStrengthByDisruptionKey,
+    penetrationEffects: [
+      ...patternPenetrationEffects,
+      ...subPatternPenetrationEffects,
+    ],
+  });
 };
 
 const resolveSubPatternMaxApplyCountUpperBound = (
@@ -457,23 +454,25 @@ const resolveSubPatternMaxApplyCountUpperBound = (
   return 1;
 };
 
-const resolveMaxPenetrationByDisruptionKey = (params: {
+const resolveMaxPenetrationEffects = (params: {
   compiledPatterns: CompiledPattern[];
   compiledSubPatterns: CompiledSubPattern[];
 }) => {
   const { compiledPatterns, compiledSubPatterns } = params;
-  const maxPenetrationByDisruptionKey: Record<string, number> = {};
+  const maxPenetrationEffects: PenetrationEffect[] = [];
 
   for (const pattern of compiledPatterns) {
     if (!pattern.active) continue;
     for (const effect of pattern.effects ?? []) {
       if (effect.type !== "add_penetration") continue;
-      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
-        const current =
-          maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
-        maxPenetrationByDisruptionKey[disruptionCategoryUid] =
-          current + effect.amount;
+      if (effect.amount <= 0 || effect.disruptionCategoryUids.length === 0) {
+        continue;
       }
+      maxPenetrationEffects.push({
+        disruptionCategoryUids: [...effect.disruptionCategoryUids],
+        amount: effect.amount,
+        poolId: effect.poolId,
+      });
     }
   }
 
@@ -483,34 +482,30 @@ const resolveMaxPenetrationByDisruptionKey = (params: {
     if (maxApplyCount <= 0) continue;
     for (const effect of subPattern.effects) {
       if (effect.type !== "add_penetration") continue;
-      for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
-        const current =
-          maxPenetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
-        maxPenetrationByDisruptionKey[disruptionCategoryUid] =
-          current + effect.amount * maxApplyCount;
+      const amount = effect.amount * maxApplyCount;
+      if (amount <= 0 || effect.disruptionCategoryUids.length === 0) {
+        continue;
       }
+      maxPenetrationEffects.push({
+        disruptionCategoryUids: [...effect.disruptionCategoryUids],
+        amount,
+        poolId: effect.poolId,
+      });
     }
   }
 
-  return maxPenetrationByDisruptionKey;
+  return maxPenetrationEffects;
 };
 
 const isPenetrationImpossibleByUpperBound = (params: {
   requiredPenetrationByDisruptionKey: Record<string, number>;
-  maxPenetrationByDisruptionKey: Record<string, number>;
+  maxPenetrationEffects: PenetrationEffect[];
 }) => {
-  const { requiredPenetrationByDisruptionKey, maxPenetrationByDisruptionKey } =
-    params;
-  for (const [disruptionKey, required] of Object.entries(
+  const { requiredPenetrationByDisruptionKey, maxPenetrationEffects } = params;
+  return !canSatisfyPenetrationRequirements({
     requiredPenetrationByDisruptionKey,
-  )) {
-    if (required <= 0) continue;
-    const maxPenetration = maxPenetrationByDisruptionKey[disruptionKey] ?? 0;
-    if (required > maxPenetration) {
-      return true;
-    }
-  }
-  return false;
+    penetrationEffects: maxPenetrationEffects,
+  });
 };
 
 const runPotResolution = (
@@ -670,7 +665,7 @@ export const calculateBySimulation = (params: {
   const hasPotEffects =
     normalized.pot.desiresOrExtravagance.count > 0 ||
     normalized.pot.prosperity.count > 0;
-  const maxPenetrationByDisruptionKey = resolveMaxPenetrationByDisruptionKey({
+  const maxPenetrationEffects = resolveMaxPenetrationEffects({
     compiledPatterns,
     compiledSubPatterns,
   });
@@ -754,10 +749,9 @@ export const calculateBySimulation = (params: {
         }
       } else {
         const penetrated = canPenetrateAllDisruptions({
-          patternPenetrationByDisruptionKey:
-            countablePatternEffects.penetrationByDisruptionKey,
-          subPatternPenetrationByDisruptionKey:
-            countableSubPatternEvaluation.penetrationByDisruptionKey,
+          patternPenetrationEffects: countablePatternEffects.penetrationEffects,
+          subPatternPenetrationEffects:
+            countableSubPatternEvaluation.penetrationEffects,
           disruptionStrengthByDisruptionKey:
             opponentDisruption.penetrationStrengthByDisruptionKey,
         });
@@ -915,7 +909,7 @@ export const calculateBySimulation = (params: {
               isPenetrationImpossible: isPenetrationImpossibleByUpperBound({
                 requiredPenetrationByDisruptionKey:
                   entry.requiredPenetrationByDisruptionKey,
-                maxPenetrationByDisruptionKey,
+                maxPenetrationEffects,
               }),
             };
           })

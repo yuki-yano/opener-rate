@@ -1,6 +1,10 @@
 import { evaluatePatterns } from "./evaluate-pattern";
 import { evaluateSubPatterns } from "./evaluate-sub-pattern";
-import type { CompiledPattern, CompiledSubPattern } from "./types";
+import type {
+  CompiledPattern,
+  CompiledSubPattern,
+  PenetrationEffect,
+} from "./types";
 
 export const collectCountablePatternEffects = (
   matchedPatternUids: string[],
@@ -9,6 +13,7 @@ export const collectCountablePatternEffects = (
   const countableMatchedPatternUids: string[] = [];
   const countableMatchedLabelUids = new Set<string>();
   const penetrationByDisruptionKey: Record<string, number> = {};
+  const penetrationEffects: PenetrationEffect[] = [];
 
   for (const patternUid of matchedPatternUids) {
     const pattern = compiledPatternByUid.get(patternUid);
@@ -26,6 +31,13 @@ export const collectCountablePatternEffects = (
         }
         continue;
       }
+      if (effect.amount > 0 && effect.disruptionCategoryUids.length > 0) {
+        penetrationEffects.push({
+          disruptionCategoryUids: [...effect.disruptionCategoryUids],
+          amount: effect.amount,
+          poolId: effect.poolId,
+        });
+      }
       for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
         const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
         penetrationByDisruptionKey[disruptionCategoryUid] =
@@ -38,6 +50,7 @@ export const collectCountablePatternEffects = (
     countableMatchedPatternUids,
     countableMatchedLabelUids,
     penetrationByDisruptionKey,
+    penetrationEffects,
   };
 };
 

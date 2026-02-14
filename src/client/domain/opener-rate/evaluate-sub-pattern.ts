@@ -4,6 +4,7 @@ import type {
   CompiledPatternCondition,
   CompiledSubPattern,
   EvaluationContext,
+  PenetrationEffect,
   SubPatternEvaluationResult,
 } from "./types";
 
@@ -204,6 +205,7 @@ export const evaluateSubPatterns = (
   const matchedPatternSet = new Set(matchedPatternUids);
   const labelSet = new Set<string>();
   const penetrationByDisruptionKey: Record<string, number> = {};
+  const penetrationEffects: PenetrationEffect[] = [];
   const relatedCardIndexSet = new Set<number>();
 
   for (const subPattern of compiledSubPatterns) {
@@ -238,10 +240,18 @@ export const evaluateSubPatterns = (
         continue;
       }
       hasPenetrationEffect = true;
+      const amount = effect.amount * applyCount;
+      if (amount > 0 && effect.disruptionCategoryUids.length > 0) {
+        penetrationEffects.push({
+          disruptionCategoryUids: [...effect.disruptionCategoryUids],
+          amount,
+          poolId: effect.poolId,
+        });
+      }
 
       for (const disruptionCategoryUid of effect.disruptionCategoryUids) {
         const current = penetrationByDisruptionKey[disruptionCategoryUid] ?? 0;
-        const next = current + effect.amount * applyCount;
+        const next = current + amount;
         penetrationByDisruptionKey[disruptionCategoryUid] = next;
       }
     }
@@ -257,6 +267,7 @@ export const evaluateSubPatterns = (
   return {
     addedLabelUids: Array.from(labelSet),
     penetrationByDisruptionKey,
+    penetrationEffects,
     relatedCardIndices: Array.from(relatedCardIndexSet).sort((a, b) => a - b),
   };
 };
