@@ -704,6 +704,14 @@ describe("calculateOpenerRateDomain", () => {
         occurrenceCount: 1,
         occurrenceRate: "100.00",
         successRate: "100.00",
+        penetrableHandCombinations: [
+          {
+            handKey: "starter:1",
+            handLabel: "初動",
+            successCount: 1,
+            successRateInCombination: "100.00",
+          },
+        ],
         isPenetrationImpossible: false,
       },
     ]);

@@ -2,10 +2,13 @@ import type {
   CalculateOutput,
   OpponentDisruptionCard,
 } from "../../../shared/apiSchemas";
-import type {
-  CompiledPattern,
-  CompiledSubPattern,
-  NormalizedDeck,
+import {
+  DESIRES_UID,
+  PROSPERITY_UID,
+  UNKNOWN_UID,
+  type CompiledPattern,
+  type CompiledSubPattern,
+  type NormalizedDeck,
 } from "./types";
 import {
   evaluateMatchedOutcome,
@@ -20,9 +23,14 @@ type PotResolutionScratch = {
   scoreValueByCardIndex: number[];
   generation: number;
 };
+type PenetrableHandCounter = {
+  handLabel: string;
+  successCount: number;
+};
 type PenetrationCombinationCounter = {
   combinationLabel: string;
   requiredPenetrationByDisruptionKey: Record<string, number>;
+  penetrableHandCountByKey: Map<string, PenetrableHandCounter>;
   occurrenceCount: number;
   successCount: number;
 };
@@ -190,6 +198,113 @@ const createDisruptionLabelsByKey = (params: {
     labelByKey.set(key, names.join(" / "));
   }
   return labelByKey;
+};
+
+const specialCardLabelByUid = new Map<string, string>([
+  [PROSPERITY_UID, "金満で謙虚な壺"],
+  [DESIRES_UID, "強欲で貪欲な壺/強欲で金満な壺"],
+  [UNKNOWN_UID, "その他カード"],
+]);
+
+const createCardLabelByUid = (normalized: NormalizedDeck) => {
+  const cardLabelByUid = new Map<string, string>(
+    normalized.cards.map((card) => {
+      const name = card.name.trim();
+      return [card.uid, name.length > 0 ? name : card.uid];
+    }),
+  );
+  for (const [uid, label] of specialCardLabelByUid) {
+    cardLabelByUid.set(uid, label);
+  }
+  return cardLabelByUid;
+};
+
+const resolveHandCombination = (params: {
+  handCounts: number[];
+  indexToUid: string[];
+  cardLabelByUid: Map<string, string>;
+  relatedCardIndices?: Set<number>;
+}) => {
+  const { handCounts, indexToUid, cardLabelByUid, relatedCardIndices } = params;
+  const entries: Array<{ uid: string; count: number }> = [];
+
+  for (let cardIndex = 0; cardIndex < handCounts.length; cardIndex += 1) {
+    if (relatedCardIndices != null && !relatedCardIndices.has(cardIndex)) {
+      continue;
+    }
+    const count = handCounts[cardIndex] ?? 0;
+    if (count <= 0) continue;
+    const uid = indexToUid[cardIndex];
+    if (uid == null) continue;
+    entries.push({ uid, count });
+  }
+
+  if (entries.length === 0) return null;
+  entries.sort((left, right) => left.uid.localeCompare(right.uid));
+
+  const keyParts: string[] = [];
+  const labelParts: string[] = [];
+  for (const entry of entries) {
+    keyParts.push(`${entry.uid}:${entry.count}`);
+    const cardLabel = cardLabelByUid.get(entry.uid) ?? entry.uid;
+    labelParts.push(
+      entry.count > 1 ? `${cardLabel}x${entry.count}` : cardLabel,
+    );
+  }
+
+  return {
+    handKey: keyParts.join("|"),
+    handLabel: labelParts.join(" + "),
+  };
+};
+
+const collectConditionRelatedCardIndices = (
+  pattern: CompiledPattern,
+  target: Set<number>,
+) => {
+  for (const condition of pattern.conditions) {
+    if ("indices" in condition) {
+      for (const index of condition.indices) {
+        target.add(index);
+      }
+      continue;
+    }
+    for (const rule of condition.rules) {
+      for (const index of rule.indices) {
+        target.add(index);
+      }
+    }
+  }
+};
+
+const collectPenetrationRelatedCardIndices = (params: {
+  evaluation: ReturnType<typeof evaluatePatterns>;
+  countableMatchedPatternUids: string[];
+  compiledPatternByUid: Map<string, CompiledPattern>;
+}) => {
+  const { evaluation, countableMatchedPatternUids, compiledPatternByUid } =
+    params;
+  const relatedCardIndices = new Set<number>();
+
+  for (const patternUid of countableMatchedPatternUids) {
+    const matchedCardCounts =
+      evaluation.matchedCardCountsByPatternUid[patternUid];
+    if (matchedCardCounts != null) {
+      for (const [indexText, count] of Object.entries(matchedCardCounts)) {
+        if (count <= 0) continue;
+        const index = Number(indexText);
+        if (!Number.isNaN(index)) {
+          relatedCardIndices.add(index);
+        }
+      }
+    }
+    const pattern = compiledPatternByUid.get(patternUid);
+    if (pattern != null) {
+      collectConditionRelatedCardIndices(pattern, relatedCardIndices);
+    }
+  }
+
+  return relatedCardIndices;
 };
 
 const resolvePenetrationCombination = (params: {
@@ -522,6 +637,7 @@ export const calculateBySimulation = (params: {
         opponentDisruptionKeys: combinationDisruptionKeys,
       })
     : new Map<string, string>();
+  const cardLabelByUid = createCardLabelByUid(normalized);
 
   const labelOrder = normalized.labels.map((label) => label.uid);
   const patternOrder = normalized.patterns.map((pattern) => pattern.uid);
@@ -637,7 +753,8 @@ export const calculateBySimulation = (params: {
           disruptionStrengthByDisruptionKey:
             opponentDisruption.penetrationStrengthByDisruptionKey,
         });
-        if (baseSuccess && penetrated) {
+        const isPenetratedSuccess = baseSuccess && penetrated;
+        if (isPenetratedSuccess) {
           disruptedButPenetratedCount += 1;
         } else {
           disruptedAndFailedCount += 1;
@@ -648,26 +765,59 @@ export const calculateBySimulation = (params: {
           disruptionLabelByKey: disruptionLabelByCombinationKey,
         });
         if (combination != null) {
-          const current = penetratedCombinationCountByKey.get(
+          let combinationCounter = penetratedCombinationCountByKey.get(
             combination.combinationKey,
           );
-          if (current == null) {
-            penetratedCombinationCountByKey.set(combination.combinationKey, {
+          if (combinationCounter == null) {
+            combinationCounter = {
               combinationLabel: combination.combinationLabel,
               requiredPenetrationByDisruptionKey: {
                 ...opponentDisruption.penetrationStrengthByDisruptionKey,
               },
-              occurrenceCount: 1,
-              successCount: baseSuccess && penetrated ? 1 : 0,
+              penetrableHandCountByKey: new Map(),
+              occurrenceCount: 0,
+              successCount: 0,
+            };
+            penetratedCombinationCountByKey.set(
+              combination.combinationKey,
+              combinationCounter,
+            );
+          }
+          combinationCounter.occurrenceCount += 1;
+          if (isPenetratedSuccess) {
+            combinationCounter.successCount += 1;
+            const relatedCardIndices = collectPenetrationRelatedCardIndices({
+              evaluation,
+              countableMatchedPatternUids:
+                countablePatternEffects.countableMatchedPatternUids,
+              compiledPatternByUid,
             });
-          } else {
-            current.occurrenceCount += 1;
-            if (baseSuccess && penetrated) {
-              current.successCount += 1;
+            const handCombination = resolveHandCombination({
+              handCounts,
+              indexToUid: normalized.indexToUid,
+              cardLabelByUid,
+              relatedCardIndices,
+            });
+            if (handCombination != null) {
+              const currentHandCounter =
+                combinationCounter.penetrableHandCountByKey.get(
+                  handCombination.handKey,
+                );
+              if (currentHandCounter == null) {
+                combinationCounter.penetrableHandCountByKey.set(
+                  handCombination.handKey,
+                  {
+                    handLabel: handCombination.handLabel,
+                    successCount: 1,
+                  },
+                );
+              } else {
+                currentHandCounter.successCount += 1;
+              }
             }
           }
         }
-        isSuccess = baseSuccess && penetrated;
+        isSuccess = isPenetratedSuccess;
       }
     }
 
@@ -716,25 +866,49 @@ export const calculateBySimulation = (params: {
       : undefined,
     vsPenetrationCombinations: vsEnabled
       ? Array.from(penetratedCombinationCountByKey.entries())
-          .map(([combinationKey, entry]) => ({
-            combinationKey,
-            combinationLabel: entry.combinationLabel,
-            successCount: entry.successCount,
-            occurrenceCount: entry.occurrenceCount,
-            occurrenceRate: toRateStringFromNumber(
-              entry.occurrenceCount,
-              trials,
-            ),
-            successRate: toRateStringFromNumber(
-              entry.successCount,
-              entry.occurrenceCount,
-            ),
-            isPenetrationImpossible: isPenetrationImpossibleByUpperBound({
-              requiredPenetrationByDisruptionKey:
-                entry.requiredPenetrationByDisruptionKey,
-              maxPenetrationByDisruptionKey,
-            }),
-          }))
+          .map(([combinationKey, entry]) => {
+            const penetrableHandCombinations = Array.from(
+              entry.penetrableHandCountByKey.entries(),
+            )
+              .map(([handKey, handEntry]) => ({
+                handKey,
+                handLabel: handEntry.handLabel,
+                successCount: handEntry.successCount,
+                successRateInCombination: toRateStringFromNumber(
+                  handEntry.successCount,
+                  entry.occurrenceCount,
+                ),
+              }))
+              .sort((left, right) => {
+                const countDiff = right.successCount - left.successCount;
+                if (countDiff !== 0) return countDiff;
+                return left.handLabel.localeCompare(right.handLabel);
+              });
+
+            return {
+              combinationKey,
+              combinationLabel: entry.combinationLabel,
+              successCount: entry.successCount,
+              occurrenceCount: entry.occurrenceCount,
+              occurrenceRate: toRateStringFromNumber(
+                entry.occurrenceCount,
+                trials,
+              ),
+              successRate: toRateStringFromNumber(
+                entry.successCount,
+                entry.occurrenceCount,
+              ),
+              penetrableHandCombinations:
+                penetrableHandCombinations.length > 0
+                  ? penetrableHandCombinations
+                  : undefined,
+              isPenetrationImpossible: isPenetrationImpossibleByUpperBound({
+                requiredPenetrationByDisruptionKey:
+                  entry.requiredPenetrationByDisruptionKey,
+                maxPenetrationByDisruptionKey,
+              }),
+            };
+          })
           .sort((left, right) => {
             const occurrenceDiff = right.occurrenceCount - left.occurrenceCount;
             if (occurrenceDiff !== 0) return occurrenceDiff;

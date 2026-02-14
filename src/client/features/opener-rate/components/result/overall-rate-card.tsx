@@ -74,6 +74,10 @@ export const OverallRateCard = () => {
     isPenetratedCombinationsExpanded,
     setIsPenetratedCombinationsExpanded,
   ] = useState(false);
+  const [
+    expandedPenetrableCombinationKeys,
+    setExpandedPenetrableCombinationKeys,
+  ] = useState<Set<string>>(() => new Set());
   const isExactDiffEnabled =
     result?.mode === "exact" && previousResult?.mode === "exact";
   const previousPatternRateMap = useMemo(
@@ -161,6 +165,17 @@ export const OverallRateCard = () => {
       classificationCount: unpenetrableCombinations.length,
     };
   }, [unpenetrableCombinations]);
+  const togglePenetrableCombination = (combinationKey: string) => {
+    setExpandedPenetrableCombinationKeys((current) => {
+      const next = new Set(current);
+      if (next.has(combinationKey)) {
+        next.delete(combinationKey);
+      } else {
+        next.add(combinationKey);
+      }
+      return next;
+    });
+  };
 
   return (
     <SectionCard
@@ -275,43 +290,111 @@ export const OverallRateCard = () => {
                     妨害あり突破成功の組み合わせ内訳
                   </p>
                   <div className="space-y-1.5">
-                    {displayedPenetratedCombinations.map((entry) => (
-                      <div
-                        key={entry.combinationKey}
-                        className="flex items-start justify-between gap-3 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5"
-                      >
-                        <p className="min-w-0 text-sm leading-snug text-ui-text">
-                          {entry.combinationLabel}
-                        </p>
-                        <div className="flex min-w-[11.5rem] shrink-0 flex-col items-end gap-1">
-                          <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
-                            <p className="text-[10px] tracking-wide text-ui-tone2">
-                              発生率
+                    {displayedPenetratedCombinations.map((entry) => {
+                      const penetrableHands =
+                        entry.penetrableHandCombinations ?? [];
+                      const canExpandPenetrableHands =
+                        penetrableHands.length > 0;
+                      const isPenetrableExpanded =
+                        expandedPenetrableCombinationKeys.has(
+                          entry.combinationKey,
+                        );
+
+                      return (
+                        <div
+                          key={entry.combinationKey}
+                          className="space-y-1.5 rounded-md border border-ui-border1/70 bg-ui-layer1 px-3 py-2.5"
+                        >
+                          <div className="flex items-start justify-between gap-3">
+                            <p className="min-w-0 text-sm leading-snug text-ui-text">
+                              {entry.combinationLabel}
                             </p>
-                            <p
-                              className={`text-xs text-ui-text ${percentageTextClassName}`}
-                            >
-                              {entry.occurrenceRate}%
-                            </p>
+                            <div className="flex min-w-[11.5rem] shrink-0 flex-col items-end gap-1">
+                              <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
+                                <p className="text-[10px] tracking-wide text-ui-tone2">
+                                  発生率
+                                </p>
+                                <p
+                                  className={`text-xs text-ui-text ${percentageTextClassName}`}
+                                >
+                                  {entry.occurrenceRate}%
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
+                                <p className="text-[10px] tracking-wide text-ui-tone2">
+                                  内成功率
+                                </p>
+                                <p
+                                  className={`text-xs text-ui-text ${percentageTextClassName}`}
+                                >
+                                  {entry.successRate}%
+                                </p>
+                              </div>
+                              <p
+                                className={`text-[10px] text-ui-text3 ${percentageTextClassName}`}
+                              >
+                                回数 {entry.successCount}/
+                                {entry.occurrenceCount}
+                              </p>
+                              {canExpandPenetrableHands ? (
+                                <Button
+                                  type="button"
+                                  size="sm"
+                                  variant="outline"
+                                  className="h-6 gap-1.5 px-2 text-[10px]"
+                                  aria-expanded={isPenetrableExpanded}
+                                  onClick={() =>
+                                    togglePenetrableCombination(
+                                      entry.combinationKey,
+                                    )
+                                  }
+                                >
+                                  {isPenetrableExpanded ? (
+                                    <ChevronDown className="h-3.5 w-3.5" />
+                                  ) : (
+                                    <ChevronRight className="h-3.5 w-3.5" />
+                                  )}
+                                  {isPenetrableExpanded
+                                    ? "展開可能手札を隠す"
+                                    : "展開可能手札を表示"}
+                                </Button>
+                              ) : null}
+                            </div>
                           </div>
-                          <div className="flex items-center gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2 py-1">
-                            <p className="text-[10px] tracking-wide text-ui-tone2">
-                              内成功率
-                            </p>
-                            <p
-                              className={`text-xs text-ui-text ${percentageTextClassName}`}
-                            >
-                              {entry.successRate}%
-                            </p>
-                          </div>
-                          <p
-                            className={`text-[10px] text-ui-text3 ${percentageTextClassName}`}
-                          >
-                            回数 {entry.successCount}/{entry.occurrenceCount}
-                          </p>
+                          {canExpandPenetrableHands && isPenetrableExpanded ? (
+                            <div className="space-y-1 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2.5 py-2">
+                              <p className="text-[10px] text-ui-tone2">
+                                この妨害組み合わせで展開可能だった手札内訳
+                              </p>
+                              <div className="space-y-1">
+                                {penetrableHands.map((hand) => (
+                                  <div
+                                    key={hand.handKey}
+                                    className="flex items-start justify-between gap-2 rounded border border-ui-border1/70 bg-ui-layer1 px-2 py-1.5"
+                                  >
+                                    <p className="min-w-0 text-xs leading-snug text-ui-text">
+                                      {hand.handLabel}
+                                    </p>
+                                    <div className="flex shrink-0 flex-col items-end gap-0.5">
+                                      <p
+                                        className={`text-[11px] text-ui-text ${percentageTextClassName}`}
+                                      >
+                                        成功率 {hand.successRateInCombination}%
+                                      </p>
+                                      <p
+                                        className={`text-[10px] text-ui-text3 ${percentageTextClassName}`}
+                                      >
+                                        回数 {hand.successCount}
+                                      </p>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          ) : null}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                   {hiddenPenetratedCombinationCount > 0 ? (
                     <div className="flex items-center justify-between gap-2 rounded-md border border-ui-border1/70 bg-ui-layer2/60 px-2.5 py-2">

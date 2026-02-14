@@ -247,6 +247,16 @@ export const vsPenetrationCombinationSchema = z.object({
   occurrenceCount: z.number().int().min(0),
   occurrenceRate: z.string(),
   successRate: z.string(),
+  penetrableHandCombinations: z
+    .array(
+      z.object({
+        handKey: z.string().min(1),
+        handLabel: z.string().trim().min(1),
+        successCount: z.number().int().min(1),
+        successRateInCombination: z.string(),
+      }),
+    )
+    .optional(),
   isPenetrationImpossible: z.boolean().optional(),
 });
 
