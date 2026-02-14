@@ -96,9 +96,9 @@ export const EffectListEditor = ({
                   className={cn(
                     "col-start-2 row-start-2 h-8 w-8 self-center justify-self-end",
                     isAddLabel &&
-                      "sm:col-start-3 sm:row-start-2 sm:mt-1 sm:self-start",
+                      "sm:col-start-3 sm:row-start-2 sm:mt-0.5 sm:self-start",
                     isAddPenetration &&
-                      "lg:col-start-4 lg:row-start-2 lg:mt-1 lg:self-start",
+                      "lg:col-start-4 lg:row-start-2 lg:mt-0.5 lg:self-start",
                   )}
                   aria-label="効果削除"
                   onClick={() => onRemove(effectIndex)}
